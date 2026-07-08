@@ -1,0 +1,399 @@
+{
+  "info": {
+    "name": "Sanaad B2E API",
+    "_postman_id": "sanaad-b2e-collection",
+    "description": "Sanaad Business-to-Employee API. Generated from sanaad-api-service-mapping.html (v1.9). Folders = NestJS modules. Uses legacy UAT gateway paths ({{baseUrl}}); switch to {{apiV1Url}} for the new NestJS backend. Requests named [path TBD] have an inferred path not explicit in the source.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "variable": [{ "key": "lovname", "value": "COUNTRY_LOV" }, { "key": "lookupname", "value": "GetLeaveType" }],
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "1. Login [path TBD]",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "description": "Op 1. Login flow is out-of-band ('Another document provided'). Placeholder."
+          }
+        }
+      ]
+    },
+    {
+      "name": "profile",
+      "item": [
+        {
+          "name": "2. Personal Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/employee/profile?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "profile"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] },
+            "description": "Op 2. Oracle: PERSONAL_DETAILS_V, EMP_PHONE_V, EMP_OUT_ADDRESS_V, TEMP_ADD_TYPE_V, DEP_PHONE_V, PND_DEPENDENT_ADDR_V, COUNTRY_LOV."
+          }
+        },
+        {
+          "name": "48. PersonalDetsUpdate [path TBD]",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" },
+            "url": { "raw": "{{baseUrl}}/employee/personal/update", "host": ["{{baseUrl}}"], "path": ["employee", "personal", "update"] },
+            "description": "Op 48. Oracle: UPD_PERSONAL_INFO_PR."
+          }
+        },
+        {
+          "name": "63. MaritalStatusLOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=EMP_MARITAL_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "EMP_MARITAL_LOV" }, { "key": "lang", "value": "{{lang}}" }] },
+            "description": "Op 63. Oracle: EMP_MARITAL_LOV."
+          }
+        }
+      ]
+    },
+    {
+      "name": "employee",
+      "item": [
+        {
+          "name": "3. Employee Details",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/service?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "service"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 3. Oracle: EMPLOYMENT_DETAILS_V, GET_PAYSLIP_PERIODS." }
+        },
+        {
+          "name": "8. GET_BASIC_EMP",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/basicinfo?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "basicinfo"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 8. Oracle: EMPLOYMENT_DETAILS_V." }
+        },
+        {
+          "name": "7. GETPERFORMANCE",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/performance?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "performance"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 7. Oracle: PERFORMANCE_V." }
+        },
+        {
+          "name": "35. GET_SUPERVISOR_VIEW",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/views?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "views"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 35. Oracle: SUPERVISOR_VIEW. Role: SUPERVISOR." }
+        },
+        {
+          "name": "36. SUPERVISOR_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\"\n}" }, "url": { "raw": "{{baseUrl}}/supervisor/update", "host": ["{{baseUrl}}"], "path": ["supervisor", "update"] }, "description": "Op 36. Oracle: SUPERVISOR_PR." }
+        }
+      ]
+    },
+    {
+      "name": "payslip",
+      "item": [
+        {
+          "name": "5. GET_PAYSLIP_PERIOD",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/payslipperiod?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "payslipperiod"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 5. Oracle: GET_PAYSLIP_PERIODS." }
+        },
+        {
+          "name": "6. CHECK_PAYSLIP_COUNT",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/payslipperiodcount?enum={{enum}}&lang={{lang}}&payslipperiod={{payslipperiod}}", "host": ["{{baseUrl}}"], "path": ["employee", "payslipperiodcount"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }, { "key": "payslipperiod", "value": "{{payslipperiod}}" }] }, "description": "Op 6. Oracle: CHK_PAYROLL_CNT." }
+        },
+        {
+          "name": "11. Generate Payslip",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/payslip?enum={{enum}}&lang={{lang}}&payperiod={{payperiod}}&assignmentid={{assignmentid}}", "host": ["{{baseUrl}}"], "path": ["employee", "payslip"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }, { "key": "payperiod", "value": "{{payperiod}}" }, { "key": "assignmentid", "value": "{{assignmentid}}" }] }, "description": "Op 11. Oracle: PAYSLIP_PR." }
+        }
+      ]
+    },
+    {
+      "name": "leave",
+      "item": [
+        {
+          "name": "9. Leave balance",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/leave/info?enum={{username}}&lang={{lang}}&accurlpln=&effectivedate=19000101", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "info"], "query": [{ "key": "enum", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }, { "key": "accurlpln", "value": "" }, { "key": "effectivedate", "value": "19000101" }] }, "description": "Op 9. Oracle: LEAVE_BAL_PLAN_LOV, LEAVE_BALANCE_PR." }
+        },
+        {
+          "name": "10. Leave Submission",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Test\",\n  \"p_start_date\": \"12-Jun-2025\",\n  \"p_end_date\": \"12-Jun-2025\",\n  \"p_adv_leave_salary\": \"\",\n  \"p_leave_inc_bonus\": \"\",\n  \"p_annual_tkt\": \"\",\n  \"p_contractual_year\": \"\",\n  \"p_remarks\": \"\",\n  \"p_leave_classification\": \"\",\n  \"p_language\": \"ENGLISH\",\n  \"p_file_name1\": \"\",\n  \"p_attachment1\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/employee/leave/apply", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "apply"] },
+            "description": "Op 10. Oracle: LEAV_OF_ABSEN_NEW_PR (~50 params). May return successflag=N with 'A Request is pending for approval...'."
+          }
+        },
+        {
+          "name": "47. LEAVE_CALCULATION [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"12-Jun-2025\",\n  \"p_end_date\": \"14-Jun-2025\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/leave/calculate", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "calculate"] }, "description": "Op 47. Oracle: CALC_LEAV_DUR_PR." }
+        },
+        {
+          "name": "57. LEAVEAMEND [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/leave/amend", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "amend"] }, "description": "Op 57. Oracle: HR_LEAV_AMEND_PR, RET_FRM_LEAV_PR." }
+        },
+        {
+          "name": "58. LEAVECANCEL [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/leave/cancel", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "cancel"] }, "description": "Op 58. Oracle: HR_LEAV_CANCEL_PR, RET_FRM_LEAV_PR." }
+        },
+        {
+          "name": "56. ReturnFromLeaveSubmit [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/leave/return", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "return"] }, "description": "Op 56. Oracle: RET_FRM_LEAV_PR." }
+        },
+        {
+          "name": "12. GetLeaveType",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname=GetLeaveType&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "GetLeaveType" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 12. Oracle: ABSENCE_TYPE_V." }
+        },
+        {
+          "name": "13. GetLeaveReasonType",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname=GetLeaveReasonType&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "GetLeaveReasonType" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 13. Oracle: ABSENCE_REASON_V." }
+        },
+        {
+          "name": "14. GetLeaveclassType",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname=getLeaveClassType&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "getLeaveClassType" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 14. Oracle: LEAV_CLASS_V." }
+        },
+        {
+          "name": "45. GetLeaveDefault_LOV [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/leave/defaults?enum={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "leave", "defaults"], "query": [{ "key": "enum", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 45. Oracle: EMPLOYMENT_DETAILS_V, ANNUAL_TICKT_LOV, LIBR_DFALT_LOV, ALSR_DFALT_LOV, CONTRACT_YEAR_V." }
+        },
+        {
+          "name": "46. GetLeaveRequestLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=NUM_OF_CHILD_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "NUM_OF_CHILD_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 46. Oracle: NUM_OF_CHILD_V, LEAV_CLASS_V, EXAM_CENTRE_V, BEREAV_RELAT_V, CONTRACT_YEAR_V, ABSENCE_TYPE_V, ABSENCE_REASON_V, LEAVE_TYPE_V." }
+        },
+        {
+          "name": "55. ReturnFromLeaveLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=RFL_REL_LEAVE1_LOV&username={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "RFL_REL_LEAVE1_LOV" }, { "key": "username", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 55. Oracle: RFL_REL_LEAVE1_V, RFL_REL_LEAVE2_V, RFL_LEAVE_DET_V." }
+        },
+        {
+          "name": "61. LeaveCancelLOV [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=LEAVE_CANCEL_LOV&username={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "LEAVE_CANCEL_LOV" }, { "key": "username", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 61. Oracle: LEAVE_CANCEL_V." }
+        },
+        {
+          "name": "62. LeaveAmendLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=LEAVE_TO_AMEND_LOV&username={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "LEAVE_TO_AMEND_LOV" }, { "key": "username", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 62. Oracle: LEAVE_AMEND_V." }
+        }
+      ]
+    },
+    {
+      "name": "letters",
+      "item": [
+        {
+          "name": "16. LetterReqLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?lovname=LETTER_NAME_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "lovname", "value": "LETTER_NAME_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 16. Fan-out (7): LETTER_MOBILE_NO_LOV, EMP_LTR_DEFAULT_COPY, LETTER_COUNTRY_LOV, LETTER_NAME_LOV, LETTER_LANGUAGE_LOV, EXIT_COPIES_LOV, DELIVERY_LOC_V + /employee/phone." }
+        },
+        {
+          "name": "17. LetterReqSubmit [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_letter_language\": \"\",\n  \"p_letter_name\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/letter/apply", "host": ["{{baseUrl}}"], "path": ["employee", "letter", "apply"] }, "description": "Op 17. Oracle: HR_EMPLYMNT_LTR_PR." }
+        }
+      ]
+    },
+    {
+      "name": "identity",
+      "item": [
+        {
+          "name": "18. GET_QID_DET [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/qid?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "qid"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 18. Oracle: QID_DET_V." }
+        },
+        {
+          "name": "19. QID_UPD_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/qid/update", "host": ["{{baseUrl}}"], "path": ["employee", "qid", "update"] }, "description": "Op 19. Oracle: QID_CHG_PR." }
+        },
+        {
+          "name": "54. RequestCompanyID",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/idcard/apply", "host": ["{{baseUrl}}"], "path": ["employee", "idcard", "apply"] }, "description": "Op 54. Oracle: COID_REQ_PR." }
+        },
+        {
+          "name": "53b. GET_HMC_ID_WORK_LOC",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=SIT_WORK_LOC_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "SIT_WORK_LOC_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 53b. Oracle: SIT_WORK_LOC_V." }
+        },
+        {
+          "name": "59. IDdeliverylocation",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=SIT_DELEV_LOC_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "SIT_DELEV_LOC_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 59. Oracle: SIT_DELEV_LOC_V." }
+        },
+        {
+          "name": "60. IDReason",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=SIT_REASON_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "SIT_REASON_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 60. Oracle: SIT_REASON_V." }
+        }
+      ]
+    },
+    {
+      "name": "contact",
+      "item": [
+        {
+          "name": "27. PhoneTypeLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=PHONE_TYPE_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "PHONE_TYPE_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 27. Oracle: PHONE_TYPE_V." }
+        },
+        {
+          "name": "28. UPDATE_PHONE_NUMBER",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"P_USER_NAME\": \"{{username}}\",\n  \"P_PHONE\": [{ \"P_PHONE_ID\": \"\", \"P_OBJECT_VERSION_NUMBER\": \"\", \"P_PHONE_TYPE\": \"Qatar Mobile Number\", \"P_PHONE_NUMBER\": \"87654789\" }],\n  \"P_LANGUAGE\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/phone/update", "host": ["{{baseUrl}}"], "path": ["employee", "phone", "update"] }, "description": "Op 28. Oracle: PHONE_PKG.ADD_OR_UPDATE_PHONE." }
+        },
+        {
+          "name": "32. DELETE_PHONE_DETAILS_SUBMIT_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_phone_id\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/phone/delete", "host": ["{{baseUrl}}"], "path": ["employee", "phone", "delete"] }, "description": "Op 32. Oracle: DEL_PHONE_NUMBER_PR." }
+        },
+        {
+          "name": "29. CREATE_ADDRESS_SUBMIT [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/address/create", "host": ["{{baseUrl}}"], "path": ["employee", "address", "create"] }, "description": "Op 29. Oracle: CREATE_ADDRESS_PR." }
+        },
+        {
+          "name": "25. UPDATE_ADDRESS_SUBMIT [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/address/update", "host": ["{{baseUrl}}"], "path": ["employee", "address", "update"] }, "description": "Op 25. Oracle: UPD_ADDRESS_PR." }
+        },
+        {
+          "name": "30. UpdateAddress_OutsideCountry_LOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=COUNTRY_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "COUNTRY_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 30. Oracle: COUNTRY_LOV." }
+        }
+      ]
+    },
+    {
+      "name": "dependents",
+      "item": [
+        {
+          "name": "65. ADD_DEPENDENT_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/dependent/add", "host": ["{{baseUrl}}"], "path": ["employee", "dependent", "add"] }, "description": "Op 65. Oracle: ADD_DEPENDENT_PKG, ADD_DEPENDENT_PR, CREATE_ADDRESS_PR." }
+        },
+        {
+          "name": "24. UPDATE_DEPENDENT_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/dependent/update", "host": ["{{baseUrl}}"], "path": ["employee", "dependent", "update"] }, "description": "Op 24. Oracle: ADD_DEPENDENT_PKG, UPDATE_DEPENDENT_PR." }
+        },
+        {
+          "name": "31. DELETE_DEPENDENT_PR",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_dependent_id\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/dependent/delete", "host": ["{{baseUrl}}"], "path": ["employee", "dependent", "delete"] }, "description": "Op 31. Oracle: REMOVE_DEPENDENT_PR." }
+        },
+        {
+          "name": "64. DependentLOV",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=DEP_LOOKUP_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "DEP_LOOKUP_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 64. Oracle: DEP_LOOKUP_LOV." }
+        },
+        {
+          "name": "33. GET_PP_TYPE",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/passport/type?lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "passport", "type"], "query": [{ "key": "lang", "value": "{{lang}}" }] }, "description": "Op 33. Oracle: PASSPORT_TYPE." }
+        },
+        {
+          "name": "34. PASSPORT_DET_REQ_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/passport/apply", "host": ["{{baseUrl}}"], "path": ["employee", "passport", "apply"] }, "description": "Op 34. Oracle: PASS_DTL_PR." }
+        },
+        {
+          "name": "49. GetPassportIssuePlace",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=DEP_PLACE_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "DEP_PLACE_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 49. Oracle: DEP_PLACE_LOV." }
+        }
+      ]
+    },
+    {
+      "name": "school-fees",
+      "item": [
+        {
+          "name": "39. SCHOOL_FEE_REQ_PR [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/schoolfee/apply", "host": ["{{baseUrl}}"], "path": ["employee", "schoolfee", "apply"] }, "description": "Op 39. Oracle: SCHOOL_FEE_PR." }
+        },
+        {
+          "name": "37. GET_SCH_FEE_SCHOOL_NAME",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=SCHOOL_NAME_LOV&username={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "SCHOOL_NAME_LOV" }, { "key": "username", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 37. Oracle: SCHOOL_NAME_LOV." }
+        },
+        {
+          "name": "38. GET_SCH_FEE_SCHOOL_TERM",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=SCHOOL_TERM_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "SCHOOL_TERM_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 38. Oracle: SCHOOL_TERM_LOV." }
+        },
+        {
+          "name": "40. GET_SCH_FEE_EDU_STAGE",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=EDU_STAGE_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "EDU_STAGE_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 40. Oracle: EDU_STAGE_LOV." }
+        },
+        {
+          "name": "50. GET_SCH_FEE_ACADEMIC_YEAR",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=ACAD_YR_STRT_END_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "ACAD_YR_STRT_END_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 50. Oracle: ACAD_YR_STRT_END_LOV." }
+        },
+        {
+          "name": "53. GET_SCH_FEE_REQUEST_TYPE",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=REQUEST_TYPE_LOV&username={{username}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "REQUEST_TYPE_LOV" }, { "key": "username", "value": "{{username}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 53. Oracle: REQUEST_TYPE_LOV." }
+        },
+        {
+          "name": "52. GET_SCH_FEE_CHILD_DTLS",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/school/children?enum={{enum}}&acadyrstrtdt={{acadyrstrtdt}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "school", "children"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "acadyrstrtdt", "value": "{{acadyrstrtdt}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 52. Oracle: CHILD_DETS_VIEW. (Op 51 GET_SCH_FEE_CHILD_LIST is Not in Scope.)" }
+        }
+      ]
+    },
+    {
+      "name": "appointments",
+      "item": [
+        {
+          "name": "41. Get Upcoming Staff Clinic Appointments",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/appointments?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "appointments"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 41. Source: Cerner." }
+        },
+        {
+          "name": "42. Get Staff Clinic Master Details",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname=CernerLocation&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "CernerLocation" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 42. Also CernerClinics, CernerMedicalServices. Source: Cerner." }
+        },
+        {
+          "name": "43. Booking Screen Init [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/employee/appointments/init?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["employee", "appointments", "init"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 43. Aggregate of 41+42." }
+        },
+        {
+          "name": "44. Book Appointment [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"enum\": \"{{enum}}\",\n  \"clinic\": \"\",\n  \"location\": \"\",\n  \"slot\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/appointments/book", "host": ["{{baseUrl}}"], "path": ["employee", "appointments", "book"] }, "description": "Op 44. Validate + create combined. Source: Cerner." }
+        }
+      ]
+    },
+    {
+      "name": "annual-ticket",
+      "item": [
+        {
+          "name": "66. AnnualticketmasterLOV [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=ANNUAL_TICKT_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "ANNUAL_TICKT_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 66. Oracle: TICKET_MASTER." }
+        },
+        {
+          "name": "67. Submit_Annual_Ticket [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_language\": \"ENGLISH\"\n}" }, "url": { "raw": "{{baseUrl}}/employee/ticket/apply", "host": ["{{baseUrl}}"], "path": ["employee", "ticket", "apply"] }, "description": "Op 67. Oracle: TICKET_REQ_PR." }
+        }
+      ]
+    },
+    {
+      "name": "approvals",
+      "item": [
+        {
+          "name": "20. MYAPPROVALS [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/approvals?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "approvals"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 20. Oracle: APPROVE_SUMRY_V, PNDNG_QID_V. Role: APPROVER." }
+        },
+        {
+          "name": "21. MyApprovatDetsView [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/approval/details?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "approval", "details"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 21. Oracle: NOTYFY_APPR_V, PNDNG_QID_V. Role: APPROVER." }
+        },
+        {
+          "name": "22. ApproveReject [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_decision\": \"APPROVE\",\n  \"p_language\": \"$LANGUAGE\"\n}" }, "url": { "raw": "{{baseUrl}}/supervisor/approve", "host": ["{{baseUrl}}"], "path": ["supervisor", "approve"] }, "description": "Op 22. Oracle: APPROVE_REJECT_PR. Role: APPROVER." }
+        },
+        {
+          "name": "23. MYREQUESTS",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/requests?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "requests"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 23. Oracle: MY_REQEST_SUMMARY_V, PNDNG_QID_V." }
+        },
+        {
+          "name": "68. WorklistMain [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/worklist?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "worklist"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 68. Oracle: WORKLISTS_V. Role: APPROVER." }
+        },
+        {
+          "name": "69. Worklistsummary [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/worklist/summary?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "worklist", "summary"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 69. Oracle: WORKLISTS_V. Role: APPROVER." }
+        },
+        {
+          "name": "70. Worklistactionhistory [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/supervisor/worklist/history?enum={{enum}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["supervisor", "worklist", "history"], "query": [{ "key": "enum", "value": "{{enum}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 70. Oracle: ACTION_HISTORY_V. Role: APPROVER." }
+        },
+        {
+          "name": "71. Reassignapproval [path TBD]",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"p_user_name\": \"{{username}}\",\n  \"p_reassign_to\": \"\"\n}" }, "url": { "raw": "{{baseUrl}}/supervisor/reassign", "host": ["{{baseUrl}}"], "path": ["supervisor", "reassign"] }, "description": "Op 71. Oracle: REASSIGN_PR. Role: APPROVER." }
+        }
+      ]
+    },
+    {
+      "name": "lookups",
+      "item": [
+        {
+          "name": "15. GetYesno",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname=GetYesNo&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "GetYesNo" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 15. Oracle: YES_NO_LOV." }
+        },
+        {
+          "name": "26. RFMI_USER_LOV [path TBD]",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname=RFMI_USER_LOV&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "RFMI_USER_LOV" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Op 26. Oracle: RFMI_USER_LOV." }
+        },
+        {
+          "name": "Generic LOV lookup",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/lovlookup?Lovname={{lovname}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "lovlookup"], "query": [{ "key": "Lovname", "value": "{{lovname}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Generic. Set {{lovname}} to any *_LOV." }
+        },
+        {
+          "name": "Generic master lookup",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/data/masterlookup?lookupname={{lookupname}}&lang={{lang}}", "host": ["{{baseUrl}}"], "path": ["data", "masterlookup"], "query": [{ "key": "lookupname", "value": "{{lookupname}}" }, { "key": "lang", "value": "{{lang}}" }] }, "description": "Generic. Set {{lookupname}} (e.g., GetLeaveType, CernerClinics)." }
+        }
+      ]
+    }
+  ]
+}
