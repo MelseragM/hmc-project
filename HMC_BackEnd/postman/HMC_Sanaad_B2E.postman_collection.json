@@ -1,0 +1,1360 @@
+{
+  "info": {
+    "name": "HMC Sanaad B2E API",
+    "_postman_id": "b2e0a1c2-3d4e-5f60-8a90-hmc-sanaad-001",
+    "description": "NestJS backend re-exposing the 71 Sanaad B2E operations over Oracle XXHMC_SND_*.\n\nAll routes are under the `{{baseUrl}}` variable (default `http://localhost:3000/api/v1`).\n\nAuth: run `auth / op 1 - Login` first — its test script auto-saves `{{token}}`, which the collection-level Bearer auth uses for every other request.\n\nNotes:\n- `{{enum}}` = employee number (personid); some ops use the username form.\n- Write ops / unimplemented Oracle procs return 501 until bind signatures are wired; reads return 503 when Oracle is disabled.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "enum", "value": "053613", "type": "string" },
+    { "key": "username", "value": "V-NFERNANDO", "type": "string" },
+    { "key": "lang", "value": "en", "type": "string" },
+    { "key": "payslipperiod", "value": "August 2024", "type": "string" },
+    { "key": "payperiod", "value": "January 2024", "type": "string" },
+    { "key": "assignmentid", "value": "7179444713", "type": "string" },
+    { "key": "acadyrstrtdt", "value": "20200202", "type": "string" },
+    { "key": "approvalId", "value": "99001", "type": "string" },
+    { "key": "lovname", "value": "EMP_MARITAL_LOV", "type": "string" },
+    { "key": "lookupname", "value": "GetLeaveType", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Public. Liveness + Oracle reachability. Skips the response envelope."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "op 1 - Login (dev placeholder)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  var json = pm.response.json();",
+                  "  var token = json && json.result && json.result.accessToken;",
+                  "  if (token) {",
+                  "    pm.collectionVariables.set('token', token);",
+                  "    console.log('Saved {{token}} from login response.');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"ignored-by-dev-flow\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Public. Out-of-band in production; dev mints a JWT. Test script auto-saves {{token}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Current identity (/auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns the verified token identity."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "lookups",
+      "item": [
+        {
+          "name": "op 15 - Yes/No LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lookups/yes-no?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lookups", "yes-no"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 26 - RFMI user LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lookups/rfmi-user?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lookups", "rfmi-user"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generic LOV by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lookups/lov?lovname={{lovname}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lookups", "lov"],
+              "query": [
+                { "key": "lovname", "value": "{{lovname}}" },
+                { "key": "lang", "value": "{{lang}}" },
+                { "key": "username", "value": "{{username}}", "disabled": true }
+              ]
+            },
+            "description": "Generic allow-listed LOV read. `username` only for user-scoped LOVs."
+          },
+          "response": []
+        },
+        {
+          "name": "Generic master-lookup by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lookups/master?lookupname={{lookupname}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["lookups", "master"],
+              "query": [
+                { "key": "lookupname", "value": "{{lookupname}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "profile",
+      "item": [
+        {
+          "name": "op 2 - Personal detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 48 - Update personal details",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maritalStatus\": \"M\",\n  \"email\": \"name@hamad.qa\",\n  \"nationality\": \"QA\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile/personal",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "personal"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 63 - Marital status LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile/lov/marital-status?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "lov", "marital-status"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "employee",
+      "item": [
+        {
+          "name": "op 3 - Employment details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/employment?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "employment"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 8 - Basic employee info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/basic?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "basic"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 7 - Performance records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/performance?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "performance"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 35 - Supervisor view (SUPERVISOR)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/supervisor/views?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "supervisor", "views"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 36 - Supervisor update (SUPERVISOR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeNumber\": \"053613\",\n  \"supervisorUsername\": \"V-NEWSUP\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/employee/supervisor",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "supervisor"]
+            },
+            "description": "Requires SUPERVISOR role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "payslip",
+      "item": [
+        {
+          "name": "op 5 - Payslip periods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payslip/periods?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payslip", "periods"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 6 - Payslip count for a period",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payslip/count?enum={{enum}}&lang={{lang}}&payslipperiod={{payslipperiod}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payslip", "count"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" },
+                { "key": "payslipperiod", "value": "{{payslipperiod}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 11 - Generate payslip",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payslip?enum={{enum}}&lang={{lang}}&payperiod={{payperiod}}&assignmentid={{assignmentid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payslip"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" },
+                { "key": "payperiod", "value": "{{payperiod}}" },
+                { "key": "assignmentid", "value": "{{assignmentid}}" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "leave",
+      "item": [
+        {
+          "name": "op 9 - Leave balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/balance?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "balance"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" },
+                { "key": "accurlpln", "value": "", "disabled": true },
+                { "key": "effectivedate", "value": "19000101", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 10 - Leave submission",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Jun-2025\",\n  \"endDate\": \"14-Jun-2025\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 47 - Leave duration calculation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"startDate\": \"12-Jun-2025\",\n  \"endDate\": \"14-Jun-2025\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/calculate",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "calculate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 57 - Leave amend",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveRequestId\": \"99001\",\n  \"effectiveDate\": \"14-Jun-2025\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/amend",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "amend"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 58 - Leave cancel",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveRequestId\": \"99001\",\n  \"effectiveDate\": \"14-Jun-2025\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "cancel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 56 - Return from leave",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveRequestId\": \"99001\",\n  \"effectiveDate\": \"14-Jun-2025\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/leave/return",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "return"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 12 - Leave types LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/types?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "types"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 13 - Leave reasons LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/reasons?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "reasons"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 14 - Leave classes LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/classes?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "classes"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 45 - Leave defaults",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/defaults?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "defaults"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 46 - Leave request LOVs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/request-lov?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "request-lov"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 55 - Return-from-leave LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/return?username={{username}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "return"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 61 - Leave cancel LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/cancel?username={{username}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "cancel"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 62 - Leave amend LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/amend?username={{username}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["leave", "lov", "amend"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "letters",
+      "item": [
+        {
+          "name": "op 16 - Letter request LOVs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/letters/lov?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["letters", "lov"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 17 - Submit letter request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"letterName\": \"EMPLOYMENT\",\n  \"letterLanguage\": \"en\",\n  \"deliveryLocation\": \"HMC-HQ\",\n  \"copies\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/letters/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["letters", "apply"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "identity",
+      "item": [
+        {
+          "name": "op 18 - QID details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity/qid?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "qid"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 19 - QID update",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qidNumber\": \"28xxxxxxxxx\",\n  \"expiryDate\": \"31-Dec-2030\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity/qid/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "qid", "update"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 54 - Request company ID",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workLocation\": \"SIT-HQ\",\n  \"deliveryLocation\": \"SIT-DEL\",\n  \"reason\": \"LOST\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity/idcard/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "idcard", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 53b - Work location LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity/lov/work-location?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "lov", "work-location"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 59 - Delivery location LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity/lov/delivery-location?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "lov", "delivery-location"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 60 - ID reason LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity/lov/reason?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["identity", "lov", "reason"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "contact",
+      "item": [
+        {
+          "name": "op 27 - Phone-type LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact/lov/phone-type?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "lov", "phone-type"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 28 - Update phone number(s)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"MOBILE\",\n      \"phoneNumber\": \"+97455512345\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/phone",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "phone"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 32 - Delete phone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneId\": \"12345\",\n  \"objectVersionNumber\": \"1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/phone/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "phone", "delete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 29 - Create address",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressType\": \"HOME\",\n  \"country\": \"QA\",\n  \"city\": \"Doha\",\n  \"addressLine1\": \"Al Sadd\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/address",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "address"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 25 - Update address",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"addressId\": \"67890\",\n  \"addressType\": \"HOME\",\n  \"country\": \"QA\",\n  \"city\": \"Doha\",\n  \"addressLine1\": \"Al Sadd\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/address/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "address", "update"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 30 - Country LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact/lov/country?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "lov", "country"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "dependents",
+      "item": [
+        {
+          "name": "op 65 - Add dependent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"relationship\": \"SPOUSE\",\n  \"fullName\": \"Jane Doe\",\n  \"dateOfBirth\": \"01-Jan-1990\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dependents",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 24 - Update dependent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dependentId\": \"5001\",\n  \"relationship\": \"SPOUSE\",\n  \"fullName\": \"Jane Doe\",\n  \"dateOfBirth\": \"01-Jan-1990\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dependents/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "update"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 31 - Delete dependent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dependentId\": \"5001\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dependents/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "delete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 64 - Dependent LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dependents/lov?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "lov"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 33 - Passport types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dependents/passport/types?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "passport", "types"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 34 - Passport detail request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dependentId\": \"5001\",\n  \"passportType\": \"ORD\",\n  \"passportNumber\": \"A1234567\",\n  \"issuePlace\": \"QA\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dependents/passport/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "passport", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 49 - Passport issue place LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dependents/passport/issue-place?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dependents", "passport", "issue-place"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "school-fees",
+      "item": [
+        {
+          "name": "op 39 - School-fee request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolName\": \"SCH-001\",\n  \"schoolTerm\": \"TERM1\",\n  \"eduStage\": \"PRIMARY\",\n  \"academicYear\": \"2024-2025\",\n  \"childId\": \"5001\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "apply"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 37 - School name LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/lov/schools?username={{username}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "lov", "schools"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 38 - School term LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/lov/terms?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "lov", "terms"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 40 - Education stage LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/lov/edu-stage?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "lov", "edu-stage"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 50 - Academic year LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/lov/academic-year?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "lov", "academic-year"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 53 - Request type LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/lov/request-type?username={{username}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "lov", "request-type"],
+              "query": [
+                { "key": "username", "value": "{{username}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 52 - Child details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-fees/children?enum={{enum}}&acadyrstrtdt={{acadyrstrtdt}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["school-fees", "children"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "acadyrstrtdt", "value": "{{acadyrstrtdt}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "appointments",
+      "item": [
+        {
+          "name": "op 41 - Upcoming appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/upcoming?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "upcoming"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Cerner-backed. 503 if Cerner base URL not configured."
+          },
+          "response": []
+        },
+        {
+          "name": "op 42 - Clinic master details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/masters?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "masters"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 43 - Booking screen init",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appointments/booking-init?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "booking-init"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 44 - Book appointment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clinicId\": \"CLINIC-001\",\n  \"locationId\": \"LOC-001\",\n  \"serviceId\": \"SVC-001\",\n  \"slot\": \"2025-06-12T09:30:00\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments", "book"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "annual-ticket",
+      "item": [
+        {
+          "name": "op 66 - Annual ticket master LOV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/annual-ticket/master?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["annual-ticket", "master"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "op 67 - Submit annual ticket",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"DOH-LON\",\n  \"ticketClass\": \"ECONOMY\",\n  \"numberOfTickets\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/annual-ticket/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["annual-ticket", "apply"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "approvals",
+      "item": [
+        {
+          "name": "op 20 - Approvals summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 23 - My requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/my-requests?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "my-requests"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 68 - Worklist main",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/worklist?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "worklist"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 69 - Worklist summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/worklist/summary?enum={{enum}}&lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "worklist", "summary"],
+              "query": [
+                { "key": "enum", "value": "{{enum}}" },
+                { "key": "lang", "value": "{{lang}}" }
+              ]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 70 - Worklist action history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/worklist/:id/history?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", "worklist", ":id", "history"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }],
+              "variable": [{ "key": "id", "value": "{{approvalId}}" }]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 21 - Approval detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/approvals/:id/details?lang={{lang}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", ":id", "details"],
+              "query": [{ "key": "lang", "value": "{{lang}}" }],
+              "variable": [{ "key": "id", "value": "{{approvalId}}" }]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "op 22 - Approve/Reject",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APPROVE\",\n  \"comment\": \"Approved as per policy.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approvals/:id/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", ":id", "decision"],
+              "variable": [{ "key": "id", "value": "{{approvalId}}" }]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role. decision: APPROVE | REJECT."
+          },
+          "response": []
+        },
+        {
+          "name": "op 71 - Reassign approval",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignTo\": \"V-OTHERSUP\",\n  \"comment\": \"Out of office.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/approvals/:id/reassign",
+              "host": ["{{baseUrl}}"],
+              "path": ["approvals", ":id", "reassign"],
+              "variable": [{ "key": "id", "value": "{{approvalId}}" }]
+            },
+            "description": "Requires APPROVER or SUPERVISOR role."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

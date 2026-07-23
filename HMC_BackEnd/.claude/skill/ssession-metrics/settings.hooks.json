@@ -1,0 +1,39 @@
+{
+  "_comment": "Merge the contents of \"hooks\" below into your .claude/settings.json. This is the PROJECT-SCOPED form (skill committed at .claude/skills/session-metrics). For a personal/global install (~/.claude/skills/session-metrics), replace ${CLAUDE_PROJECT_DIR}/.claude/skills/session-metrics with the absolute path to the skill, or just run: node scripts/install.js [--global]. Do not keep the _comment key in real settings.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/skills/session-metrics/hooks/metrics-start.js"]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/skills/session-metrics/hooks/metrics-track.js"]
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/skills/session-metrics/hooks/metrics-finish.js"]
+          }
+        ]
+      }
+    ]
+  }
+}

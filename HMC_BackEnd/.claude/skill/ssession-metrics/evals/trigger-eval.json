@@ -1,0 +1,28 @@
+{
+  "skill_name": "session-metrics",
+  "_about": "Trigger evals for description tuning. should_trigger=true means consulting the skill is the right move; false means the query lives in an adjacent domain the description must NOT capture. Edge cases are intentional. Run with the skill-creator run_loop to get quantitative trigger rates.",
+  "evals": [
+    { "query": "set me up so every claude code response logs how long it took and how many lines of code it produced", "should_trigger": true, "why": "core setup, phrased without the skill name" },
+    { "query": "how much code did i write today across my claude sessions?", "should_trigger": true, "why": "report intent, today window" },
+    { "query": "give me a weekly breakdown of avg response time and net LOC from my claude code sessions", "should_trigger": true, "why": "weekly trend report, scoped to claude code" },
+    { "query": "my .claude/metrics/session-log.jsonl hasn't gotten any new lines since this morning even though i've been coding all day, whats wrong?", "should_trigger": true, "why": "verify/repair, names the concrete artifact" },
+    { "query": "is the session-metrics logging actually wired up? check my hooks", "should_trigger": true, "why": "verify install" },
+    { "query": "i want to start tracking lines of code per session and per day in claude code", "should_trigger": true, "why": "setup, LOC-per-session/day phrasing" },
+    { "query": "aggregate my session log and show LOC/session and LOC/day trends over the last month", "should_trigger": true, "why": "aggregation/report" },
+    { "query": "why does session-metrics show 0 lines for the oracle ebs config file i created with a bash heredoc?", "should_trigger": true, "why": "names the skill; about its known LOC limitation" },
+    { "query": "add the metrics hooks to ~/.claude/settings.json so it tracks every project, not just this repo", "should_trigger": true, "why": "global-scope setup" },
+    { "query": "whats my average claude response time per coding turn this week?", "should_trigger": true, "why": "report; qualified as the Claude per-turn metric, the boundary against API latency" },
+    { "query": "turn on coding-session metrics and tell me how to read the log afterwards", "should_trigger": true, "why": "setup + report" },
+    { "query": "am i getting faster? show average claude response time and net loc trend over the past few weeks", "should_trigger": true, "why": "trend report" },
+
+    { "query": "whats the p95 latency on my /api/auth endpoint in production?", "should_trigger": false, "why": "API/production latency, not Claude response time" },
+    { "query": "run cloc on src/ and tell me the total lines of code in the repo", "should_trigger": false, "why": "static line counting, not session logging" },
+    { "query": "add a posttooluse hook that runs prettier after every edit", "should_trigger": false, "why": "unrelated formatting hook; mentions hooks + every edit as a hard negative" },
+    { "query": "how many commits did i push this week?", "should_trigger": false, "why": "git stats; overlaps 'this week / I' but is not session-metrics" },
+    { "query": "i need to add prometheus metrics and request timing to my express middleware", "should_trigger": false, "why": "application metrics / API timing" },
+    { "query": "measure how long my jest test suite takes to run", "should_trigger": false, "why": "test runtime, not Claude response time" },
+    { "query": "what's the code coverage on the auth module?", "should_trigger": false, "why": "coverage metric" },
+    { "query": "refactor the token refresh logic in auth.js to use async/await", "should_trigger": false, "why": "pure coding task, no metrics intent" },
+    { "query": "i want to track how much time i spend coding each day", "should_trigger": false, "why": "deliberate boundary: general time-tracking (WakaTime-style), no Claude Code / per-response signal" }
+  ]
+}

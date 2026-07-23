@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hmc-sanaad-backend:latest
+    container_name: hmc-sanaad-backend
+    restart: unless-stopped
+    # Runtime configuration is read from .env (copy from .env.example if missing).
+    env_file:
+      - .env
+    # Host:container port mapping stays in sync with PORT in .env.
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    # Lets a container reach an Oracle DB running on the Windows host via
+    # ORACLE_DSN=host.docker.internal:1521/<service>.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s

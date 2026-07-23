@@ -6,7 +6,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as oracledb from 'oracledb';
+import oracledb = require('oracledb');
 import { OracleConfig } from '../config/configuration';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
 import { OracleQueryError } from './oracle.error';
@@ -40,11 +40,8 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     try {
-      // Module-level settings are typed read-only on the ESM namespace; assign via a
-      // mutable view (runtime is CommonJS, so this is safe).
-      const settings = oracledb as unknown as { outFormat: number; fetchAsString: unknown[] };
-      settings.outFormat = oracledb.OUT_FORMAT_OBJECT;
-      settings.fetchAsString = [oracledb.CLOB];
+      oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+      oracledb.fetchAsString = [oracledb.CLOB];
       this.pool = await oracledb.createPool({
         user: this.cfg.user,
         password: this.cfg.password,
