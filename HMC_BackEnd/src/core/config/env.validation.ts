@@ -36,6 +36,30 @@ export const envValidationSchema = Joi.object({
   CERNER_BASE_URL: Joi.string().uri().allow('').default(''),
   CERNER_TIMEOUT_MS: Joi.number().default(10000),
 
+  // Auth framework — app-launch (API-1)
+  APP_MIN_SUPPORTED_VERSION: Joi.string().default('1.0.0'),
+  APP_LATEST_VERSION: Joi.string().default('1.0.0'),
+  APP_DOWNTIME: Joi.boolean().default(false),
+  APP_DOWNTIME_START: Joi.string().allow('').default(''),
+  APP_DOWNTIME_END: Joi.string().allow('').default(''),
+
+  // Auth framework — MPIN policy
+  MPIN_MIN_LENGTH: Joi.number().default(4),
+  MPIN_MAX_LENGTH: Joi.number().default(6),
+  MPIN_MAX_ATTEMPTS: Joi.number().default(5),
+  MPIN_LOCKOUT_MINUTES: Joi.number().default(15),
+
+  // Auth framework — OTP policy
+  OTP_LENGTH: Joi.number().default(6),
+  OTP_TTL_SECONDS: Joi.number().default(300),
+  OTP_MAX_ATTEMPTS: Joi.number().default(5),
+  OTP_RESEND_WINDOW_SECONDS: Joi.number().default(60),
+
+  // Auth framework — LDAP directory
+  LDAP_URL: Joi.string().allow('').default(''),
+  LDAP_BASE_DN: Joi.string().allow('').default(''),
+  LDAP_ENABLED: Joi.boolean().default(false),
+
   // Misc
   REQUEST_TIMEOUT_MS: Joi.number().default(30000),
   LOG_LEVEL: Joi.string()

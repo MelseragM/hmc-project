@@ -11,6 +11,10 @@ interface JwtPayload {
   employeeNumber?: string;
   enum?: string;
   roles?: Role[];
+  functions?: string[];
+  name?: string;
+  dept?: string;
+  company?: string;
   [key: string]: unknown;
 }
 
@@ -35,6 +39,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       username: payload.username ?? payload.sub ?? 'unknown',
       employeeNumber: payload.employeeNumber ?? payload.enum ?? payload.sub,
       roles: payload.roles ?? [Role.EMPLOYEE],
+      functions: payload.functions,
+      employeeName: payload.name,
+      department: payload.dept,
+      company: payload.company,
       claims: payload,
     };
   }

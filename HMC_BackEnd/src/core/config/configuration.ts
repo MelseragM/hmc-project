@@ -35,11 +35,44 @@ export interface CernerConfig {
   timeoutMs: number;
 }
 
+/** App-launch health check (API-1): downtime window + forced/optional update. */
+export interface AppLaunchConfig {
+  minSupportedVersion: string;
+  latestVersion: string;
+  downtime: boolean;
+  downtimeStart: string;
+  downtimeEnd: string;
+}
+
+export interface MpinConfig {
+  minLength: number;
+  maxLength: number;
+  maxAttempts: number;
+  lockoutMinutes: number;
+}
+
+export interface OtpConfig {
+  length: number;
+  ttlSeconds: number;
+  maxAttempts: number;
+  resendWindowSeconds: number;
+}
+
+export interface LdapConfig {
+  url: string;
+  baseDn: string;
+  enabled: boolean;
+}
+
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
   auth: AuthConfig;
   cerner: CernerConfig;
+  appLaunch: AppLaunchConfig;
+  mpin: MpinConfig;
+  otp: OtpConfig;
+  ldap: LdapConfig;
 }
 
 const toBool = (v: unknown): boolean => v === true || v === 'true';
@@ -74,5 +107,29 @@ export default (): RootConfig => ({
   cerner: {
     baseUrl: process.env.CERNER_BASE_URL ?? '',
     timeoutMs: Number(process.env.CERNER_TIMEOUT_MS ?? 10000),
+  },
+  appLaunch: {
+    minSupportedVersion: process.env.APP_MIN_SUPPORTED_VERSION ?? '1.0.0',
+    latestVersion: process.env.APP_LATEST_VERSION ?? '1.0.0',
+    downtime: toBool(process.env.APP_DOWNTIME),
+    downtimeStart: process.env.APP_DOWNTIME_START ?? '',
+    downtimeEnd: process.env.APP_DOWNTIME_END ?? '',
+  },
+  mpin: {
+    minLength: Number(process.env.MPIN_MIN_LENGTH ?? 4),
+    maxLength: Number(process.env.MPIN_MAX_LENGTH ?? 6),
+    maxAttempts: Number(process.env.MPIN_MAX_ATTEMPTS ?? 5),
+    lockoutMinutes: Number(process.env.MPIN_LOCKOUT_MINUTES ?? 15),
+  },
+  otp: {
+    length: Number(process.env.OTP_LENGTH ?? 6),
+    ttlSeconds: Number(process.env.OTP_TTL_SECONDS ?? 300),
+    maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
+    resendWindowSeconds: Number(process.env.OTP_RESEND_WINDOW_SECONDS ?? 60),
+  },
+  ldap: {
+    url: process.env.LDAP_URL ?? '',
+    baseDn: process.env.LDAP_BASE_DN ?? '',
+    enabled: toBool(process.env.LDAP_ENABLED),
   },
 });

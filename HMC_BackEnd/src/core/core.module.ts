@@ -15,6 +15,9 @@ import { LoggingInterceptor } from './http/logging.interceptor';
 import { TimeoutInterceptor } from './http/timeout.interceptor';
 import { CorrelationIdMiddleware } from './http/correlation-id.middleware';
 import { HealthController } from './health/health.controller';
+import { AuditModule } from './audit/audit.module';
+import { AuditInterceptor } from './audit/audit.interceptor';
+import { FunctionAccessGuard } from './auth/function-access.guard';
 
 /**
  * Framework-level cross-cutting concerns wired once for the whole app:
@@ -35,6 +38,7 @@ import { HealthController } from './health/health.controller';
     EventEmitterModule.forRoot(),
     OracleModule,
     AuthModule,
+    AuditModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -47,10 +51,12 @@ import { HealthController } from './health/health.controller';
       }),
     },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: FunctionAccessGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_FILTER, useClass: OracleExceptionFilter },
   ],
