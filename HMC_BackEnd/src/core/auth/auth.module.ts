@@ -22,7 +22,7 @@ import { RolesGuard } from './roles.guard';
         const auth = config.getOrThrow<AuthConfig>('auth');
         return {
           secret: auth.jwtSecret,
-          signOptions: { expiresIn: auth.jwtExpiresIn },
+          signOptions: { expiresIn: auth.jwtExpiresIn as JwtSignOptions['expiresIn'] },
         };
       },
     }),
