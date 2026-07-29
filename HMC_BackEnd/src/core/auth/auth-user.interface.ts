@@ -13,6 +13,11 @@ export interface AuthenticatedUser {
   username: string;
   employeeNumber?: string;
   roles: Role[];
+  /** Enabled function/module codes from the login functionaccesslist (API-5). */
+  functions?: string[];
+  employeeName?: string;
+  department?: string;
+  company?: string;
   claims?: Record<string, unknown>;
 }
 
@@ -21,4 +26,5 @@ export const DEV_USER: AuthenticatedUser = {
   username: 'dev',
   employeeNumber: '000000',
   roles: [Role.EMPLOYEE, Role.SUPERVISOR, Role.APPROVER],
+  functions: ['PYSRS', 'LEAVE', 'LETTER', 'SDCAPT'],
 };
