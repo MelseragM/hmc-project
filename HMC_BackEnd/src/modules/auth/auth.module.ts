@@ -10,7 +10,7 @@ import { OTP_PORT } from './domain/ports/otp.port';
 import { MPIN_STORE_PORT } from './domain/ports/mpin-store.port';
 import { DEVICE_REGISTRY_PORT } from './domain/ports/device-registry.port';
 import { FUNCTION_ACCESS_PORT } from './domain/ports/function-access.port';
-import { LdapUserStubRepository } from './infrastructure/adapters/ldap-user.stub.repository';
+import { LdapUserRepository } from './infrastructure/adapters/ldap-user.repository';
 import { OtpStubRepository } from './infrastructure/adapters/otp.stub.repository';
 import { MpinStoreStubRepository } from './infrastructure/adapters/mpin-store.stub.repository';
 import { DeviceRegistryStubRepository } from './infrastructure/adapters/device-registry.stub.repository';
@@ -29,7 +29,7 @@ import { FunctionAccessStubRepository } from './infrastructure/adapters/function
     OnboardingService,
     MpinService,
     HealthCheckService,
-    { provide: LDAP_USER_PORT, useClass: LdapUserStubRepository },
+    { provide: LDAP_USER_PORT, useClass: LdapUserRepository },
     { provide: OTP_PORT, useClass: OtpStubRepository },
     { provide: MPIN_STORE_PORT, useClass: MpinStoreStubRepository },
     { provide: DEVICE_REGISTRY_PORT, useClass: DeviceRegistryStubRepository },

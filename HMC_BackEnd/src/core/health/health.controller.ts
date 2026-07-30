@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OracleService } from '../database/oracle.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
@@ -28,5 +28,21 @@ export class HealthController {
       oracle: { enabled: oracleEnabled, reachable: oracleReachable },
       timestamp: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Dedicated Oracle connectivity test. Acquires a real connection, runs a
+   * probe query, and reports latency, server version and DB time — or the
+   * exact failure reason (message + ORA code) when the database is unreachable.
+   * Always responds 200; inspect `status`/`connected` for the result.
+   */
+  @Public()
+  @SkipEnvelope()
+  @Get('db')
+  @ApiOperation({ summary: 'Oracle DB connectivity test', operationId: 'health_db' })
+  @ApiOkResponse({ description: 'Connectivity diagnostics (status=ok when connected).' })
+  async db() {
+    const diagnostics = await this.oracle.diagnose();
+    return { status: diagnostics.connected ? 'ok' : 'error', ...diagnostics };
   }
 }

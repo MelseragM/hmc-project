@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { AuditService } from '@core/audit/audit.service';
@@ -48,11 +48,27 @@ export class OnboardingService {
       this.logger.warn(`DEV bypass: synthesizing identity for "${dto.username}" (no LDAP).`);
       identity = devIdentity(dto.username);
     } else {
-      identity = await this.ldap.validate({
-        username: dto.username,
-        imei: dto.imeinumber,
-        platform: dto.platform,
-      });
+      if (!dto.password) {
+        this.audit.lifecycle(AuthLifecycleEvent.USER_VALIDATE_FAILURE, { ...ctx, status: 'error' });
+        return { status: 'error', message: 'Password is required.' };
+      }
+      try {
+        identity = await this.ldap.authenticate({
+          username: dto.username,
+          password: dto.password,
+          imei: dto.imeinumber,
+          platform: dto.platform,
+        });
+      } catch (err) {
+        if (err instanceof UnauthorizedException) {
+          this.audit.lifecycle(AuthLifecycleEvent.USER_VALIDATE_FAILURE, {
+            ...ctx,
+            status: 'error',
+          });
+          return { status: 'error', message: 'Invalid username or password.' };
+        }
+        throw err;
+      }
     }
 
     if (!identity.isEmployee) {

@@ -55,10 +55,19 @@ export const envValidationSchema = Joi.object({
   OTP_MAX_ATTEMPTS: Joi.number().default(5),
   OTP_RESEND_WINDOW_SECONDS: Joi.number().default(60),
 
-  // Auth framework — LDAP directory
-  LDAP_URL: Joi.string().allow('').default(''),
-  LDAP_BASE_DN: Joi.string().allow('').default(''),
+  // Auth framework — LDAP directory (corporate Active Directory)
   LDAP_ENABLED: Joi.boolean().default(false),
+  LDAP_HOST: Joi.string().allow('').default('HMC.ORG.QA'),
+  LDAP_PORT: Joi.number().default(636),
+  LDAP_USE_SSL: Joi.boolean().default(true),
+  LDAP_URL: Joi.string().allow('').default(''),
+  LDAP_BASE_DN: Joi.string().allow('').default('DC=hmc,DC=org,DC=qa'),
+  LDAP_SEARCH_FILTER: Joi.string().allow('').default('(sAMAccountName={username})'),
+  LDAP_USERNAME_ATTRIBUTE: Joi.string().allow('').default('sAMAccountName'),
+  LDAP_BIND_DN: Joi.string().allow('').default(''),
+  LDAP_BIND_PASSWORD: Joi.string().allow('').default(''),
+  LDAP_TLS_REJECT_UNAUTHORIZED: Joi.boolean().default(false),
+  LDAP_TIMEOUT_MS: Joi.number().default(10000),
 
   // Misc
   REQUEST_TIMEOUT_MS: Joi.number().default(30000),

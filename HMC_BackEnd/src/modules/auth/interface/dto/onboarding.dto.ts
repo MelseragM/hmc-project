@@ -1,9 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ClientContextDto } from './client-context.dto';
 
 /** API-2 — User Validate request. */
-export class UserValidateRequestDto extends ClientContextDto {}
+export class UserValidateRequestDto extends ClientContextDto {
+  @ApiPropertyOptional({
+    description:
+      'Active Directory password. Required when LDAP is enabled; verified at onboarding (API-2).',
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  password?: string;
+}
 
 /** API-2 — success carries onboarding info + requestid; failure carries status/message. */
 export class UserValidateResponseDto {

@@ -59,9 +59,29 @@ export interface OtpConfig {
 }
 
 export interface LdapConfig {
-  url: string;
-  baseDn: string;
   enabled: boolean;
+  /** Directory host, e.g. HMC.ORG.QA. */
+  host: string;
+  /** Directory port (636 = LDAPS, 389 = plain LDAP). */
+  port: number;
+  /** Use LDAPS (SSL) — true for port 636. */
+  useSsl: boolean;
+  /** Connection URL; derived from host/port/useSsl when LDAP_URL is unset. */
+  url: string;
+  /** Search base, e.g. DC=hmc,DC=org,DC=qa. */
+  baseDn: string;
+  /** User search filter; `{username}` is substituted at runtime. */
+  searchFilter: string;
+  /** Attribute holding the login name (e.g. sAMAccountName). */
+  usernameAttribute: string;
+  /** Service account DN used to bind before searching. */
+  bindDn: string;
+  /** Service account password. */
+  bindPassword: string;
+  /** Reject invalid/self-signed TLS certs (set true in production). */
+  tlsRejectUnauthorized: boolean;
+  /** Bind/search timeout in milliseconds. */
+  timeoutMs: number;
 }
 
 export interface RootConfig {
@@ -128,8 +148,21 @@ export default (): RootConfig => ({
     resendWindowSeconds: Number(process.env.OTP_RESEND_WINDOW_SECONDS ?? 60),
   },
   ldap: {
-    url: process.env.LDAP_URL ?? '',
-    baseDn: process.env.LDAP_BASE_DN ?? '',
     enabled: toBool(process.env.LDAP_ENABLED),
+    host: process.env.LDAP_HOST ?? 'HMC.ORG.QA',
+    port: Number(process.env.LDAP_PORT ?? 636),
+    useSsl: toBool(process.env.LDAP_USE_SSL ?? 'true'),
+    url:
+      process.env.LDAP_URL ??
+      `${toBool(process.env.LDAP_USE_SSL ?? 'true') ? 'ldaps' : 'ldap'}://${
+        process.env.LDAP_HOST ?? 'HMC.ORG.QA'
+      }:${Number(process.env.LDAP_PORT ?? 636)}`,
+    baseDn: process.env.LDAP_BASE_DN ?? 'DC=hmc,DC=org,DC=qa',
+    searchFilter: process.env.LDAP_SEARCH_FILTER ?? '(sAMAccountName={username})',
+    usernameAttribute: process.env.LDAP_USERNAME_ATTRIBUTE ?? 'sAMAccountName',
+    bindDn: process.env.LDAP_BIND_DN ?? '',
+    bindPassword: process.env.LDAP_BIND_PASSWORD ?? '',
+    tlsRejectUnauthorized: toBool(process.env.LDAP_TLS_REJECT_UNAUTHORIZED ?? 'false'),
+    timeoutMs: Number(process.env.LDAP_TIMEOUT_MS ?? 10000),
   },
 });

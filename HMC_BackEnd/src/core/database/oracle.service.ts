@@ -8,8 +8,23 @@ import {
 import { ConfigService } from '@nestjs/config';
 import oracledb = require('oracledb');
 import { OracleConfig } from '../config/configuration';
-import { ERROR_MESSAGES } from '@shared/constants/error-codes';
+import { ERROR_MESSAGES, extractOraCode } from '@shared/constants/error-codes';
 import { OracleQueryError } from './oracle.error';
+
+/** Rich result of a connectivity probe used by the DB health-test endpoint. */
+export interface OracleDiagnostics {
+  /** Pool was successfully created at startup. */
+  enabled: boolean;
+  /** A live connection was obtained and a test query executed. */
+  connected: boolean;
+  /** Round-trip time (ms) for acquiring a connection + running the probe. */
+  latencyMs: number | null;
+  connection: { user: string; dsn: string; poolMin: number; poolMax: number };
+  pool: { connectionsOpen: number; connectionsInUse: number } | null;
+  server: { version: string; dbTime: string } | null;
+  error: { message: string; oraCode?: number } | null;
+  checkedAt: string;
+}
 
 /**
  * Single `node-oracledb` connection pool for the whole app (thin mode).
@@ -154,6 +169,71 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     } finally {
       await this.safeClose(conn);
     }
+  }
+
+  /**
+   * Full connectivity probe for the DB health-test endpoint. Never throws:
+   * failures are captured in `error` (with the ORA code when available) so the
+   * caller can report exactly why the database is unreachable.
+   */
+  async diagnose(): Promise<OracleDiagnostics> {
+    const diag: OracleDiagnostics = {
+      enabled: this.pool !== undefined,
+      connected: false,
+      latencyMs: null,
+      connection: {
+        user: this.cfg.user || '(not set)',
+        dsn: this.cfg.dsn || '(not set)',
+        poolMin: this.cfg.poolMin,
+        poolMax: this.cfg.poolMax,
+      },
+      pool: null,
+      server: null,
+      error: null,
+      checkedAt: new Date().toISOString(),
+    };
+
+    if (this.cfg.disabled) {
+      diag.error = { message: 'ORACLE_DISABLED=true — connection pool not created.' };
+      return diag;
+    }
+    if (!this.pool) {
+      diag.error = {
+        message:
+          !this.cfg.user || !this.cfg.dsn
+            ? 'Oracle credentials/DSN missing — pool not initialized.'
+            : ERROR_MESSAGES.ORACLE_UNAVAILABLE,
+      };
+      return diag;
+    }
+
+    const start = Date.now();
+    let conn: oracledb.Connection | undefined;
+    try {
+      conn = await this.pool.getConnection();
+      const result = await conn.execute<{ DB_TIME: string }>(
+        "SELECT TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD\"T\"HH24:MI:SS.FF3TZH:TZM') AS DB_TIME FROM DUAL",
+        {},
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
+      );
+      diag.latencyMs = Date.now() - start;
+      diag.connected = true;
+      diag.server = {
+        version: conn.oracleServerVersionString,
+        dbTime: result.rows?.[0]?.DB_TIME ?? '',
+      };
+    } catch (err) {
+      diag.latencyMs = Date.now() - start;
+      const message = err instanceof Error ? err.message : String(err);
+      diag.error = { message, oraCode: extractOraCode(message) };
+    } finally {
+      if (conn) await this.safeClose(conn);
+      diag.pool = {
+        connectionsOpen: this.pool.connectionsOpen,
+        connectionsInUse: this.pool.connectionsInUse,
+      };
+    }
+    return diag;
   }
 
   private async safeClose(conn: oracledb.Connection): Promise<void> {
