@@ -41,9 +41,9 @@ cp .env.example .env   # then edit ORACLE_* and JWT_SECRET
 npm run start:dev
 ```
 
-- API base: `http://localhost:3000/api/v1`
-- Swagger UI: `http://localhost:3000/docs`
-- Health: `http://localhost:3000/api/v1/health`
+- API base: `http://localhost:443/api/v1`
+- Swagger UI: `http://localhost:443/docs`
+- Health: `http://localhost:443/api/v1/health`
 
 ### Running without Oracle (local dev)
 

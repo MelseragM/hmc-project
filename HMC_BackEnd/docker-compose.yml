@@ -9,9 +9,23 @@ services:
     # Runtime configuration is read from .env (copy from .env.example if missing).
     env_file:
       - .env
+    # Oracle DB settings come from the jumpstation/host environment (managed by
+    # DevOps), NOT from the image or a committed .env. Shell/server env vars take
+    # precedence over .env, and these entries override the env_file above.
+    #   * USER/PASSWORD/DSN are required: `docker compose up` fails fast (with the
+    #     message shown) if they are absent from both the server env and .env.
+    #   * pool/disabled fall back to sensible defaults when unset.
+    environment:
+      ORACLE_USER: "${ORACLE_USER:?set ORACLE_USER in the jumpstation environment}"
+      ORACLE_PASSWORD: "${ORACLE_PASSWORD:?set ORACLE_PASSWORD in the jumpstation environment}"
+      ORACLE_DSN: "${ORACLE_DSN:?set ORACLE_DSN in the jumpstation environment}"
+      ORACLE_POOL_MIN: "${ORACLE_POOL_MIN:-2}"
+      ORACLE_POOL_MAX: "${ORACLE_POOL_MAX:-10}"
+      ORACLE_POOL_TIMEOUT: "${ORACLE_POOL_TIMEOUT:-60}"
+      ORACLE_DISABLED: "${ORACLE_DISABLED:-false}"
     # Host:container port mapping stays in sync with PORT in .env.
     ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+      - "${PORT:-443}:${PORT:-443}"
     # Lets a container reach an Oracle DB running on the Windows host via
     # ORACLE_DSN=host.docker.internal:1521/<service>.
     extra_hosts:
@@ -21,7 +35,7 @@ services:
         - "CMD"
         - "node"
         - "-e"
-        - "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        - "fetch('http://127.0.0.1:'+(process.env.PORT||443)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
       interval: 30s
       timeout: 5s
       retries: 3

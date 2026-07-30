@@ -43,7 +43,7 @@ Use this minimal, clean-boot config (no database needed):
 ```powershell
 @"
 NODE_ENV=production
-PORT=3000
+PORT=443
 API_PREFIX=api/v1
 CORS_ORIGINS=*
 ORACLE_DISABLED=true
@@ -70,9 +70,9 @@ docker compose logs -f api
 
 Then open in a browser:
 
-- **Health:** http://localhost:3000/api/v1/health
-- **Swagger UI:** http://localhost:3000/docs
-- **API base:** http://localhost:3000/api/v1
+- **Health:** http://localhost:443/api/v1/health
+- **Swagger UI:** http://localhost:443/docs
+- **API base:** http://localhost:443/api/v1
 
 A healthy response from `/api/v1/health` looks like:
 
@@ -89,7 +89,7 @@ All variables are validated at boot (see `src/core/config/env.validation.ts`). M
 | Variable | Default | Notes |
 |---|---|---|
 | `NODE_ENV` | `production` | |
-| `PORT` | `3000` | Host + container port (kept in sync by compose). |
+| `PORT` | `443` | Host + container port (kept in sync by compose). |
 | `API_PREFIX` | `api/v1` | All routes are mounted under this prefix. |
 | `CORS_ORIGINS` | `*` | Comma-separated allow-list, or `*`. |
 | `ORACLE_DISABLED` | `true` (in this guide) | `true` boots without a DB pool. |
@@ -145,7 +145,7 @@ The app falls back to safe defaults (empty Oracle credentials = pool skipped), s
 
 ```powershell
 docker build -t hmc-sanaad-backend:latest .
-docker run -d --name hmc-sanaad-backend -p 3000:3000 hmc-sanaad-backend:latest
+docker run -d --name hmc-sanaad-backend -p 443:443 hmc-sanaad-backend:latest
 ```
 
 Stop and remove it with:
@@ -173,5 +173,5 @@ Change `PORT` in `.env` (compose maps `PORT` on both sides), then `docker compos
 **View health from the CLI**
 
 ```powershell
-curl http://localhost:3000/api/v1/health
+curl http://localhost:443/api/v1/health
 ```

@@ -2,7 +2,7 @@
   "info": {
     "name": "HMC Sanaad B2E API",
     "_postman_id": "b2e0a1c2-3d4e-5f60-8a90-hmc-sanaad-001",
-    "description": "NestJS backend re-exposing the 71 Sanaad B2E operations over Oracle XXHMC_SND_*.\n\nAll routes are under the `{{baseUrl}}` variable (default `http://localhost:3000/api/v1`).\n\nAuth: run `auth / op 1 - Login` first — its test script auto-saves `{{token}}`, which the collection-level Bearer auth uses for every other request.\n\nNotes:\n- `{{enum}}` = employee number (personid); some ops use the username form.\n- Write ops / unimplemented Oracle procs return 501 until bind signatures are wired; reads return 503 when Oracle is disabled.",
+    "description": "NestJS backend re-exposing the 71 Sanaad B2E operations over Oracle XXHMC_SND_*.\n\nAll routes are under the `{{baseUrl}}` variable (default `http://localhost:443/api/v1`).\n\nAuth: run `auth / op 1 - Login` first — its test script auto-saves `{{token}}`, which the collection-level Bearer auth uses for every other request.\n\nNotes:\n- `{{enum}}` = employee number (personid); some ops use the username form.\n- Write ops / unimplemented Oracle procs return 501 until bind signatures are wired; reads return 503 when Oracle is disabled.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -10,7 +10,7 @@
     "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000/api/v1", "type": "string" },
+    { "key": "baseUrl", "value": "http://localhost:443/api/v1", "type": "string" },
     { "key": "token", "value": "", "type": "string" },
     { "key": "enum", "value": "053613", "type": "string" },
     { "key": "username", "value": "V-NFERNANDO", "type": "string" },
