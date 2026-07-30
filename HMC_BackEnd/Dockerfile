@@ -37,7 +37,7 @@ RUN npm ci --omit=dev
 ############################
 FROM base AS runner
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=443
 
 # Copy production node_modules and compiled output, owned by the built-in
 # non-root `node` user provided by the official image.
@@ -46,10 +46,10 @@ COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node package.json ./
 
 USER node
-EXPOSE 3000
+EXPOSE 443
 
 # Container-native healthcheck (uses Node's global fetch — no curl needed).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-  CMD ["node","-e","fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+  CMD ["node","-e","fetch('http://127.0.0.1:'+(process.env.PORT||443)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 
 CMD ["node", "dist/main"]
