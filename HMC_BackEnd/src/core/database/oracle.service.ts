@@ -1,3 +1,4 @@
+import * as net from 'net';
 import {
   Injectable,
   Logger,
@@ -22,7 +23,16 @@ export interface OracleDiagnostics {
   connection: { user: string; dsn: string; poolMin: number; poolMax: number };
   pool: { connectionsOpen: number; connectionsInUse: number } | null;
   server: { version: string; dbTime: string } | null;
-  error: { message: string; oraCode?: number } | null;
+  error: {
+    /** Human-readable, actionable reason (network cause when the driver is opaque). */
+    message: string;
+    /** ORA/PLS code parsed from the driver message, when present. */
+    oraCode?: number;
+    /** Driver-level code (e.g. NJS-511) or socket errno, when present. */
+    driverCode?: string;
+    /** Result of a raw TCP reachability probe to the DSN host:port. */
+    tcp?: { host: string; port: number; reachable: boolean; code?: string; timeMs: number };
+  } | null;
   checkedAt: string;
 }
 
@@ -224,8 +234,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       };
     } catch (err) {
       diag.latencyMs = Date.now() - start;
-      const message = err instanceof Error ? err.message : String(err);
-      diag.error = { message, oraCode: extractOraCode(message) };
+      diag.error = await this.classifyConnectError(err);
     } finally {
       if (conn) await this.safeClose(conn);
       diag.pool = {
@@ -234,6 +243,96 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       };
     }
     return diag;
+  }
+
+  /**
+   * Turn a connection failure into a specific, actionable diagnostic. The thin
+   * driver frequently collapses network failures into an opaque "All options
+   * tried"; we re-probe the TCP endpoint to report exactly *why* it failed
+   * (refused / timed-out / no-route / DNS) instead of that generic message.
+   */
+  private async classifyConnectError(err: unknown): Promise<OracleDiagnostics['error']> {
+    const rawMessage = err instanceof Error ? err.message : String(err);
+    const driverCode = this.extractDriverCode(err, rawMessage);
+    const hostPort = this.parseHostPort(this.cfg.dsn);
+    if (!hostPort) {
+      return { message: rawMessage, oraCode: extractOraCode(rawMessage), driverCode };
+    }
+    const probe = await this.tcpProbe(hostPort.host, hostPort.port);
+    const tcp = { host: hostPort.host, port: hostPort.port, ...probe };
+    const message = probe.reachable
+      ? `Reached ${hostPort.host}:${hostPort.port} at the TCP level, but the Oracle connection failed: ${rawMessage}`
+      : `${this.explainTcpFailure(hostPort.host, hostPort.port, probe.code)} (driver: ${rawMessage})`;
+    return { message, oraCode: extractOraCode(rawMessage), driverCode, tcp };
+  }
+
+  /** Pull an NJS/DPY/ORA/PLS/TNS code from the driver error, if present. */
+  private extractDriverCode(err: unknown, message: string): string | undefined {
+    const direct = (err as { code?: unknown }).code;
+    if (typeof direct === 'string' && direct) return direct;
+    const match = /\b(?:NJS|DPY|ORA|PLS|TNS)-\d{3,5}\b/.exec(message);
+    return match ? match[0] : undefined;
+  }
+
+  /** Parse host + port from an Easy Connect (`host:port/service`) or TNS-descriptor DSN. */
+  private parseHostPort(dsn: string): { host: string; port: number } | null {
+    if (!dsn) return null;
+    // TNS descriptor: (DESCRIPTION=...(ADDRESS=(HOST=..)(PORT=..))..)
+    const descHost = /\(\s*HOST\s*=\s*([^)\s]+)\s*\)/i.exec(dsn);
+    if (descHost) {
+      const descPort = /\(\s*PORT\s*=\s*(\d+)\s*\)/i.exec(dsn);
+      return { host: descHost[1], port: descPort ? Number(descPort[1]) : 1521 };
+    }
+    // Easy Connect: [//]host[:port][/service]
+    const s = dsn.trim().replace(/^\/\//, '').split('/')[0];
+    const v6 = /^\[([^\]]+)\](?::(\d+))?$/.exec(s); // [ipv6]:port
+    if (v6) return { host: v6[1], port: v6[2] ? Number(v6[2]) : 1521 };
+    const [host, port] = s.split(':');
+    return host ? { host, port: port ? Number(port) : 1521 } : null;
+  }
+
+  /** Non-intrusive TCP reachability probe (no Oracle handshake). Never throws. */
+  private tcpProbe(
+    host: string,
+    port: number,
+    timeoutMs = 4000,
+  ): Promise<{ reachable: boolean; code?: string; timeMs: number }> {
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const socket = new net.Socket();
+      let settled = false;
+      const finish = (reachable: boolean, code?: string): void => {
+        if (settled) return;
+        settled = true;
+        socket.destroy();
+        resolve({ reachable, code, timeMs: Date.now() - start });
+      };
+      socket.setTimeout(timeoutMs);
+      socket.once('connect', () => finish(true));
+      socket.once('timeout', () => finish(false, 'ETIMEDOUT'));
+      socket.once('error', (e: NodeJS.ErrnoException) => finish(false, e.code ?? 'UNKNOWN'));
+      socket.connect(port, host);
+    });
+  }
+
+  /** Turn a socket errno into a human-readable, actionable explanation. */
+  private explainTcpFailure(host: string, port: number, code?: string): string {
+    const target = `${host}:${port}`;
+    switch (code) {
+      case 'ECONNREFUSED':
+        return `TCP connection to ${target} was refused — nothing is listening on that port (Oracle listener down) or a firewall is rejecting the request.`;
+      case 'ETIMEDOUT':
+        return `TCP connection to ${target} timed out — packets are being dropped (usually a firewall) or the host is down.`;
+      case 'EHOSTUNREACH':
+        return `No route to host ${target} — this server/container cannot reach that host.`;
+      case 'ENETUNREACH':
+        return `Network for ${target} is unreachable from this server/container.`;
+      case 'ENOTFOUND':
+      case 'EAI_AGAIN':
+        return `Host "${host}" could not be resolved (DNS failure).`;
+      default:
+        return `TCP connection to ${target} failed${code ? ` (${code})` : ''}.`;
+    }
   }
 
   private async safeClose(conn: oracledb.Connection): Promise<void> {
