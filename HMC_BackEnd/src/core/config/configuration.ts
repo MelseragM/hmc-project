@@ -158,8 +158,10 @@ export default (): RootConfig => ({
     host: process.env.LDAP_HOST ?? 'HMC.ORG.QA',
     port: Number(process.env.LDAP_PORT ?? 636),
     useSsl: toBool(process.env.LDAP_USE_SSL ?? 'true'),
+    // Use the explicit URL when provided; an empty/unset value derives it from
+    // host/port/ssl (matters in Docker where LDAP_URL is passed as "" by default).
     url:
-      process.env.LDAP_URL ??
+      process.env.LDAP_URL ||
       `${toBool(process.env.LDAP_USE_SSL ?? 'true') ? 'ldaps' : 'ldap'}://${
         process.env.LDAP_HOST ?? 'HMC.ORG.QA'
       }:${Number(process.env.LDAP_PORT ?? 636)}`,

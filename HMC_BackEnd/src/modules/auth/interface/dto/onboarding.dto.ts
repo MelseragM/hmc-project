@@ -1,18 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { ClientContextDto } from './client-context.dto';
 
-/** API-2 — User Validate request. */
-export class UserValidateRequestDto extends ClientContextDto {
-  @ApiPropertyOptional({
-    description:
-      'Active Directory password. Required when LDAP is enabled; verified at onboarding (API-2).',
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  password?: string;
-}
+/**
+ * API-2 — User Validate request. Per the auth framework doc, this call carries
+ * NO password: the username is looked up in LDAP (existence + valid-employee +
+ * registered phone) and an OTP is sent to that phone. Credential proof happens
+ * later via OTP (onboarding) and MPIN (login).
+ */
+export class UserValidateRequestDto extends ClientContextDto {}
 
 /** API-2 — success carries onboarding info + requestid; failure carries status/message. */
 export class UserValidateResponseDto {
