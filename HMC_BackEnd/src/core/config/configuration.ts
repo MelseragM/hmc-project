@@ -20,6 +20,10 @@ export interface OracleConfig {
   poolMax: number;
   poolTimeout: number;
   disabled: boolean;
+  /** Use node-oracledb Thick mode (requires Oracle Client libraries at runtime). */
+  thickMode: boolean;
+  /** Optional path to the Oracle Client / Instant Client libraries for Thick mode. */
+  libDir?: string;
 }
 
 export interface AuthConfig {
@@ -116,6 +120,8 @@ export default (): RootConfig => ({
     poolMax: Number(process.env.ORACLE_POOL_MAX ?? 10),
     poolTimeout: Number(process.env.ORACLE_POOL_TIMEOUT ?? 60),
     disabled: toBool(process.env.ORACLE_DISABLED),
+    thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
+    libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? 'dev-only-secret-change-me',

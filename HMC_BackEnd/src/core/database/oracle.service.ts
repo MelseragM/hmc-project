@@ -27,7 +27,9 @@ export interface OracleDiagnostics {
 }
 
 /**
- * Single `node-oracledb` connection pool for the whole app (thin mode).
+ * Single `node-oracledb` connection pool for the whole app. Runs in Thick mode
+ * (Oracle Client libraries) when `ORACLE_THICK_MODE` is enabled, otherwise the
+ * built-in Thin driver.
  * Exposes low-level primitives:
  *  - `query`   → parameterized SELECT against views/LOVs (Pattern A)
  *  - `call`    → anonymous PL/SQL block for `_PR`/`_PKG` with OUT binds (Pattern B/C)
@@ -55,6 +57,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     try {
+      this.enableThickModeIfConfigured();
       oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
       oracledb.fetchAsString = [oracledb.CLOB];
       this.pool = await oracledb.createPool({
@@ -78,6 +81,35 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     if (this.pool) {
       await this.pool.close(5);
       this.logger.log('Oracle pool closed.');
+    }
+  }
+
+  /**
+   * Enable node-oracledb Thick mode by loading the Oracle Client libraries.
+   * Must run before any pool/connection is created. Idempotent: skips if Thick
+   * mode is already active (initOracleClient can only be called once).
+   */
+  private enableThickModeIfConfigured(): void {
+    if (!this.cfg.thickMode) {
+      this.logger.log('Oracle Thin mode (ORACLE_THICK_MODE=false).');
+      return;
+    }
+    if (!oracledb.thin) {
+      // Client already initialized (e.g. a previous pool in the same process).
+      return;
+    }
+    try {
+      oracledb.initOracleClient(this.cfg.libDir ? { libDir: this.cfg.libDir } : undefined);
+      this.logger.log(
+        `Oracle Thick mode enabled${this.cfg.libDir ? ` (libDir=${this.cfg.libDir})` : ''}.`,
+      );
+    } catch (err) {
+      this.logger.error(
+        `Failed to enable Oracle Thick mode — are the Oracle Client libraries installed` +
+          `${this.cfg.libDir ? ` at ${this.cfg.libDir}` : ' and on the library path'}? ` +
+          `${(err as Error).message}`,
+      );
+      throw err;
     }
   }
 
