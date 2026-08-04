@@ -155,14 +155,17 @@ export class LdapUserRepository implements LdapUserPort {
       if (value === undefined || value === null) return undefined;
       return Buffer.isBuffer(value) ? value.toString('utf8') : String(value);
     };
+    const employeeNumber = read('employeeID');
     return {
       username: read(this.cfg.usernameAttribute) ?? username,
-      employeeNumber: read('employeeID'),
+      employeeNumber,
       employeeName: read('displayName') ?? read('cn'),
       department: read('department'),
       company: read('company'),
       phoneNumber: read('mobile') ?? read('telephoneNumber'),
-      isEmployee: entry !== undefined,
+      // Valid employee (API-2 "employeeflag") = found in the directory AND
+      // carries an employee id. Missing id => "Invalid employee id received."
+      isEmployee: entry !== undefined && !!employeeNumber,
       // MPIN existence is owned by the MPIN store, not the directory.
       isNewUser: false,
       roles: [Role.EMPLOYEE],

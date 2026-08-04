@@ -23,6 +23,25 @@ services:
       ORACLE_POOL_MAX: "${ORACLE_POOL_MAX:-10}"
       ORACLE_POOL_TIMEOUT: "${ORACLE_POOL_TIMEOUT:-60}"
       ORACLE_DISABLED: "${ORACLE_DISABLED:-false}"
+      # Thick mode needs the Oracle Client libs baked into the image (see Dockerfile/DOCKER.md).
+      ORACLE_THICK_MODE: "${ORACLE_THICK_MODE:-true}"
+      ORACLE_CLIENT_LIB_DIR: "${ORACLE_CLIENT_LIB_DIR:-}"
+      # ── LDAP / Active Directory (auth framework API-2/5) ──
+      # DevOps-managed via host env; enable with LDAP_ENABLED=true and provide a
+      # service/bind account. Secrets (LDAP_BIND_PASSWORD) must come from the host
+      # env, never a committed .env. Unset values fall back to the app defaults.
+      LDAP_ENABLED: "${LDAP_ENABLED:-false}"
+      LDAP_HOST: "${LDAP_HOST:-HMC.ORG.QA}"
+      LDAP_PORT: "${LDAP_PORT:-636}"
+      LDAP_USE_SSL: "${LDAP_USE_SSL:-true}"
+      LDAP_URL: "${LDAP_URL:-}"
+      LDAP_BASE_DN: "${LDAP_BASE_DN:-DC=hmc,DC=org,DC=qa}"
+      LDAP_SEARCH_FILTER: "${LDAP_SEARCH_FILTER:-(sAMAccountName={username})}"
+      LDAP_USERNAME_ATTRIBUTE: "${LDAP_USERNAME_ATTRIBUTE:-sAMAccountName}"
+      LDAP_BIND_DN: "${LDAP_BIND_DN:-}"
+      LDAP_BIND_PASSWORD: "${LDAP_BIND_PASSWORD:-}"
+      LDAP_TLS_REJECT_UNAUTHORIZED: "${LDAP_TLS_REJECT_UNAUTHORIZED:-false}"
+      LDAP_TIMEOUT_MS: "${LDAP_TIMEOUT_MS:-10000}"
     # Host:container port mapping stays in sync with PORT in .env.
     ports:
       - "${PORT:-443}:${PORT:-443}"
