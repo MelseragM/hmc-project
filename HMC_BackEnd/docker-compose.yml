@@ -23,6 +23,9 @@ services:
       ORACLE_POOL_MAX: "${ORACLE_POOL_MAX:-10}"
       ORACLE_POOL_TIMEOUT: "${ORACLE_POOL_TIMEOUT:-60}"
       ORACLE_DISABLED: "${ORACLE_DISABLED:-false}"
+      # Thick mode needs the Oracle Client libs baked into the image (see Dockerfile/DOCKER.md).
+      ORACLE_THICK_MODE: "${ORACLE_THICK_MODE:-true}"
+      ORACLE_CLIENT_LIB_DIR: "${ORACLE_CLIENT_LIB_DIR:-}"
     # Host:container port mapping stays in sync with PORT in .env.
     ports:
       - "${PORT:-443}:${PORT:-443}"
