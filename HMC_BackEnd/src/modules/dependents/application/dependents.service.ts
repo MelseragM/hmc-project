@@ -28,8 +28,13 @@ export class DependentService {
     return this.repo.update({ username: user.username, lang, fields });
   }
 
-  delete(dependentId: string, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {
-    return this.repo.delete({ username: user.username, lang, dependentId });
+  delete(
+    dependentId: string,
+    fields: Record<string, unknown>,
+    user: AuthenticatedUser,
+    lang: Lang,
+  ): Promise<SubmitResult> {
+    return this.repo.delete({ username: user.username, lang, dependentId, fields });
   }
 
   dependentLov(lang: Lang): Promise<LovItem[]> {

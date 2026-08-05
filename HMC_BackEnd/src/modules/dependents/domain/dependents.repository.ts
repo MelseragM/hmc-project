@@ -7,10 +7,16 @@ export interface DependentCommand {
   fields: Record<string, unknown>;
 }
 
+/**
+ * REMOVE_DEPENDENT_PR also takes the end date, contact type and relationship of
+ * the dependent being removed, plus attachment slots, so the remaining p_* body
+ * travels alongside the id.
+ */
 export interface DeleteDependentCommand {
   username: string;
   lang: Lang;
   dependentId: string;
+  fields: Record<string, unknown>;
 }
 
 export interface PassportCommand {

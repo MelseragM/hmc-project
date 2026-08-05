@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { toOracleLanguage } from '@shared/domain/lang';
@@ -50,6 +51,9 @@ const LEAVE_RETURN_PARAMS = [
   'p_language',
 ] as const;
 
+/** LEAVE_BALANCE_PR input params (Sanaad spec — LeaveBalance input). */
+const LEAVE_BALANCE_PARAMS = ['p_user_name', 'p_effective_date', 'p_language'] as const;
+
 /** CALC_LEAV_DUR_PR input params (Sanaad spec — LEAVE_CALCULATION body). */
 const LEAVE_CALC_PARAMS = [
   'p_user_name',
@@ -66,14 +70,24 @@ const LEAVE_CALC_PARAMS = [
  */
 @Injectable()
 export class LeaveOracleRepository extends BaseOracleRepository implements LeaveRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getBalance(_query: LeaveBalanceQuery): Promise<LeaveBalance[]> {
-    // TODO(bind): capture XXHMC_SND_LEAVE_BALANCE_PR signature (accrual plan + effective date).
-    return this.notImplemented(ORACLE_OBJECTS.LEAVE_BALANCE_PR);
+  /**
+   * op 9 — leave balance. LEAVE_BALANCE_PR takes the user, effective date and
+   * language and returns the accrual-plan balances through a REF CURSOR.
+   */
+  async getBalance(query: LeaveBalanceQuery): Promise<LeaveBalance[]> {
+    return this.callRowsProc<LeaveBalance>(
+      ORACLE_OBJECTS.LEAVE_BALANCE_PR,
+      LEAVE_BALANCE_PARAMS,
+      {
+        p_user_name: query.username,
+        p_effective_date: query.effectiveDate,
+        p_language: toOracleLanguage(query.lang),
+      },
+    );
   }
 
   async apply(cmd: LeaveApplyCommand): Promise<SubmitResult> {

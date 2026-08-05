@@ -30,12 +30,11 @@ export class PhoneService {
   }
 
   delete(
-    phoneId: string,
-    objectVersionNumber: string | undefined,
+    phone: { phoneId: string; phoneType?: string; phoneNumber?: string },
     user: AuthenticatedUser,
     lang: Lang,
   ): Promise<SubmitResult> {
-    return this.repo.delete({ username: user.username, lang, phoneId, objectVersionNumber });
+    return this.repo.delete({ username: user.username, lang, ...phone });
   }
 }
 

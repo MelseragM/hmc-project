@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
-import { OracleColumnResolver } from '@core/database/oracle-column.resolver';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
@@ -43,8 +43,8 @@ const APPROVE_REJECT_PARAMS = [
  */
 @Injectable()
 export class ApprovalsOracleRepository extends BaseOracleRepository implements ApprovalsRepository {
-  constructor(ora: OracleService, columns: OracleColumnResolver) {
-    super(ora, columns);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
   async getSummary(username: string, _lang: Lang): Promise<ApprovalsSummary> {

@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
+import { toOracleLanguage } from '@shared/domain/lang';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
-import { EMP_KEY_COLUMN } from '@shared/constants/oracle-columns';
+import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
 import {
   ChildDetail,
   ChildrenQuery,
@@ -11,27 +13,70 @@ import {
   SchoolFeeRepository,
 } from '../../domain/school-fees.repository';
 
+/** SCHOOL_FEE_PR input params (Sanaad spec — SCHOOL_FEE_REQ_PR request template). */
+const SCHOOL_FEE_PARAMS = [
+  'p_user_name',
+  'p_academic_year',
+  'p_acd_st_dt',
+  'p_acd_end_dt',
+  'p_child_name',
+  'p_child_date_birth',
+  'p_passport_number',
+  'p_rp_number',
+  'p_school_name',
+  'p_educational_stage',
+  'p_request_type',
+  'p_term',
+  'p_amount',
+  'p_receipt_number',
+  'p_spouse_working',
+  'p_comments',
+  ...BaseOracleRepository.attachmentParams(),
+  'p_language',
+] as const;
+
+/** CHILD_DETS_VIEW input params (Sanaad spec — GetSchoolChildListDetails). */
+const CHILD_DETS_PARAMS = ['user_name', 's_date', 'language'] as const;
+
 /**
- * op 39 — SCHOOL_FEE_PR submit (bind not captured → notImplemented).
- * op 52 — children read from CHILD_DETS_VIEW (Pattern A; column names TODO(verify)).
+ * op 39 — SCHOOL_FEE_PR submit. op 52 — child details.
+ *
+ * `CHILD_DETS_VIEW` is named like a view but is a program unit: selecting from it
+ * raised `ORA-04044: procedure, function, package, or type is not allowed here`.
+ * It is therefore invoked as a program unit returning a REF CURSOR, and only if
+ * the dictionary reports it as a table/view do we fall back to a SELECT.
  */
 @Injectable()
 export class SchoolFeeOracleRepository extends BaseOracleRepository implements SchoolFeeRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async apply(_cmd: SchoolFeeApplyCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.SCHOOL_FEE_PR);
+  async apply(cmd: SchoolFeeApplyCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.SCHOOL_FEE_PR, SCHOOL_FEE_PARAMS, {
+      ...cmd.fields,
+      p_language: toOracleLanguage(cmd.lang),
+      p_user_name: cmd.username,
+    });
   }
 
-  getChildren(query: ChildrenQuery): Promise<ChildDetail[]> {
-    // TODO(verify): confirm CHILD_DETS_VIEW key/date column names.
-    return this.query<ChildDetail>(
-      `SELECT * FROM ${ORACLE_OBJECTS.CHILD_DETS_VIEW}
-        WHERE ${EMP_KEY_COLUMN} = :enum AND acad_yr_start_date = :acad`,
-      { enum: query.employeeNumber, acad: query.academicYearStartDate },
-    );
+  async getChildren(query: ChildrenQuery): Promise<ChildDetail[]> {
+    const object = ORACLE_OBJECTS.CHILD_DETS_VIEW;
+    const declared = await this.schema?.resolveParams(object);
+
+    // No declared parameters means the object really is a table/view.
+    if (declared !== undefined && declared === null) {
+      return this.readByResolvedKey<ChildDetail>(
+        object,
+        query.employeeNumber,
+        USERNAME_KEY_CANDIDATES,
+      );
+    }
+
+    return this.callRowsProc<ChildDetail>(object, CHILD_DETS_PARAMS, {
+      user_name: query.employeeNumber,
+      s_date: query.academicYearStartDate,
+      language: toOracleLanguage(query.lang),
+    });
   }
 }

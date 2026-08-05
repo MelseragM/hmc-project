@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
@@ -28,8 +29,8 @@ export class EmploymentOracleRepository
   extends BaseOracleRepository
   implements EmploymentRepository
 {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
   async getEmployment(employeeNumber: string, _lang: Lang): Promise<EmploymentDetails | undefined> {
@@ -60,8 +61,8 @@ export class SupervisorOracleRepository
   extends BaseOracleRepository
   implements SupervisorRepository
 {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
   getSupervisorViews(employeeNumber: string, _lang: Lang): Promise<SupervisorView[]> {

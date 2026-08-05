@@ -5,7 +5,7 @@
  * view column names, and they differ per object (`USER_NAME` in the school-fee
  * and approval services, `USERNAME` elsewhere). Rather than guessing, adapters
  * pass the candidate lists below to `readByResolvedKey`, which asks the data
- * dictionary which column actually exists (see OracleColumnResolver) — the same
+ * dictionary which column actually exists (see OracleSchemaService) — the same
  * check is available at runtime via `GET /diagnostics/oracle-object`.
  */
 export const EMP_KEY_COLUMN = 'employee_number';

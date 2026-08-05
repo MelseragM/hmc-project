@@ -8,12 +8,7 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { AddressService, PhoneService } from '../application/contact.service';
-import {
-  CreateAddressRequestDto,
-  DeletePhoneRequestDto,
-  UpdateAddressRequestDto,
-  UpdatePhoneRequestDto,
-} from './dto/contact.dto';
+import { DeletePhoneRequestDto, UpdatePhoneRequestDto } from './dto/contact.dto';
 
 /** Contact endpoints (ops 25, 27, 28, 29, 30, 32). See Docs_Ai/API/README.md. */
 @ApiTags('contact')
@@ -51,29 +46,31 @@ export class ContactController {
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.phone.delete(dto.phoneId, dto.objectVersionNumber, user, lang);
+    return this.phone.delete(dto, user, lang);
   }
 
   @Post('address')
   @ApiOperation({ summary: 'op 29 — Create address', operationId: 'contact_createAddress' })
   @ApiOkResponse({ type: SubmitResultDto })
   createAddress(
-    @Body() dto: CreateAddressRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.address.create({ ...dto }, user, lang);
+    // Accepts the spec's CREATE_ADDRESS_PR body (p_* keys).
+    return this.address.create(body, user, lang);
   }
 
   @Post('address/update')
   @ApiOperation({ summary: 'op 25 — Update address', operationId: 'contact_updateAddress' })
   @ApiOkResponse({ type: SubmitResultDto })
   updateAddress(
-    @Body() dto: UpdateAddressRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.address.update({ ...dto }, user, lang);
+    // Accepts the spec's UPDATE_ADDRESS_PR body (p_* keys, incl. p_address_id).
+    return this.address.update(body, user, lang);
   }
 
   @Get('lov/country')

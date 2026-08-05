@@ -15,8 +15,14 @@ export class AnnualTicketService {
     private readonly lookups: LookupsService,
   ) {}
 
-  master(lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.TICKET_MASTER, lang);
+  /**
+   * op 66 — annual-ticket master values. The legacy service reads
+   * `ANNUAL_TICKT_LOV` scoped to the caller (`lovlookup?lovname=ANNUAL_TICKT_LOV`),
+   * which returns the employee's entitlement rows. Reading the unfiltered
+   * TICKET_MASTER table instead exceeded the request timeout (HTTP 408).
+   */
+  master(lang: Lang, username: string): Promise<LovItem[]> {
+    return this.lookups.getByObject(ORACLE_OBJECTS.ANNUAL_TICKT_LOV, lang, username);
   }
 
   apply(fields: Record<string, unknown>, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {

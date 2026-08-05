@@ -8,12 +8,7 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { DependentService, PassportService } from '../application/dependents.service';
-import {
-  AddDependentRequestDto,
-  DeleteDependentRequestDto,
-  PassportDetailRequestDto,
-  UpdateDependentRequestDto,
-} from './dto/dependents.dto';
+import { DeleteDependentRequestDto } from './dto/dependents.dto';
 
 /** Dependents endpoints (ops 24, 31, 33, 34, 49, 64, 65). See Docs_Ai/API/README.md. */
 @ApiTags('dependents')
@@ -29,22 +24,24 @@ export class DependentsController {
   @ApiOperation({ summary: 'op 65 — Add dependent', operationId: 'dependents_add' })
   @ApiOkResponse({ type: SubmitResultDto })
   add(
-    @Body() dto: AddDependentRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.dependents.add({ ...dto }, user, lang);
+    // Accepts the spec's ADD_DEPENDENT_PR body (p_* keys, incl. address + phone).
+    return this.dependents.add(body, user, lang);
   }
 
   @Post('update')
   @ApiOperation({ summary: 'op 24 — Update dependent', operationId: 'dependents_update' })
   @ApiOkResponse({ type: SubmitResultDto })
   update(
-    @Body() dto: UpdateDependentRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.dependents.update({ ...dto }, user, lang);
+    // Accepts the spec's UPDATE_DEPENDENT_PR body (p_* keys, incl. p_dependent_id).
+    return this.dependents.update(body, user, lang);
   }
 
   @Post('delete')
@@ -55,7 +52,8 @@ export class DependentsController {
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.dependents.delete(dto.dependentId, user, lang);
+    const { p_dependent_id: dependentId, ...fields } = dto;
+    return this.dependents.delete(dependentId, fields, user, lang);
   }
 
   @Get('lov')
@@ -76,11 +74,12 @@ export class DependentsController {
   @ApiOperation({ summary: 'op 34 — Passport detail request', operationId: 'dependents_passportApply' })
   @ApiOkResponse({ type: SubmitResultDto })
   passportApply(
-    @Body() dto: PassportDetailRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.passport.apply({ ...dto }, user, lang);
+    // Accepts the spec's PASSPORT_DET_REQ_PR body (p_* keys, incl. attachments).
+    return this.passport.apply(body, user, lang);
   }
 
   @Get('passport/issue-place')

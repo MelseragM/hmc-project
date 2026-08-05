@@ -41,46 +41,20 @@ export class UpdatePhoneRequestDto {
   phones!: PhoneItemDto[];
 }
 
-/** op 32 — DELETE_PHONE. */
+/** op 32 — DELETE_PHONE_DETAILS_SUBMIT (DEL_PHONE_NUMBER_PR). */
 export class DeletePhoneRequestDto {
   @ApiProperty({ example: '12345' })
   @IsString()
   @IsNotEmpty()
   phoneId!: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Qatar Mobile Number', description: 'Type of the phone to delete.' })
   @IsOptional()
   @IsString()
-  objectVersionNumber?: string;
-}
+  phoneType?: string;
 
-/** op 29 — CREATE_ADDRESS (placeholder fields; TODO(bind)). */
-export class CreateAddressRequestDto {
-  @ApiPropertyOptional({ example: 'HOME' })
+  @ApiPropertyOptional({ example: '+97455512345', description: 'Number of the phone to delete.' })
   @IsOptional()
   @IsString()
-  addressType?: string;
-
-  @ApiPropertyOptional({ example: 'QA' })
-  @IsOptional()
-  @IsString()
-  country?: string;
-
-  @ApiPropertyOptional({ example: 'Doha' })
-  @IsOptional()
-  @IsString()
-  city?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  addressLine1?: string;
-}
-
-/** op 25 — UPDATE_ADDRESS (placeholder fields; TODO(bind)). */
-export class UpdateAddressRequestDto extends CreateAddressRequestDto {
-  @ApiPropertyOptional({ example: '67890' })
-  @IsOptional()
-  @IsString()
-  addressId?: string;
+  phoneNumber?: string;
 }

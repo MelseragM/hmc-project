@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
-import { OracleColumnResolver } from '@core/database/oracle-column.resolver';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { Lang } from '@shared/domain/lang';
 import { LovItem } from '@shared/domain/lov-item';
 import { isKnownOracleObject } from '@shared/constants/oracle-objects';
@@ -23,7 +23,7 @@ import { LovMapper } from './lov.mapper';
 export class LovOracleRepository implements LovRepository {
   constructor(
     private readonly ora: OracleService,
-    private readonly columns: OracleColumnResolver,
+    private readonly schema: OracleSchemaService,
   ) {}
 
   async readLov(object: string, lang: Lang, username?: string): Promise<LovItem[]> {
@@ -41,7 +41,7 @@ export class LovOracleRepository implements LovRepository {
   /** The user column of a user-scoped LOV, or undefined when it has none. */
   private async userColumnOf(object: string): Promise<string | undefined> {
     for (const candidate of USERNAME_KEY_CANDIDATES) {
-      if (await this.columns.hasColumn(object, candidate)) return candidate;
+      if (await this.schema.hasColumn(object, candidate)) return candidate;
     }
     return undefined;
   }

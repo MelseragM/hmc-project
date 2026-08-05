@@ -116,10 +116,12 @@ export class LovMapper {
     const key = Object.keys(row).find((k) => {
       const lower = k.toLowerCase();
       if (codeColumn && lower === codeColumn.toLowerCase()) return false;
-      if (this.TECHNICAL_COLUMNS.has(lower) || lower.endsWith('_id') || lower.endsWith('id')) {
-        return false;
-      }
-      if (lower.endsWith('ar') || lower.endsWith('_ar')) return false;
+      if (this.TECHNICAL_COLUMNS.has(lower)) return false;
+      // Surrogate keys and Arabic twins are never the English label. Only a
+      // suffix on a word boundary counts, so `academic_year` is not read as
+      // Arabic and `visa_validity` is not read as an id.
+      if (lower === 'id' || lower.endsWith('_id')) return false;
+      if (lower.endsWith('_ar') || this.MEANING_AR_COLUMNS.includes(lower)) return false;
       return col(row, k) != null;
     });
     return key ? str(row, key) : undefined;
