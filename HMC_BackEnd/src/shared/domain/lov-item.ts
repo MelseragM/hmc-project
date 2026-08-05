@@ -8,4 +8,10 @@ export interface LovItem {
   code: string;
   meaning: string;
   meaningAr?: string;
+  /**
+   * Grouping key of the multi-type LOVs — DEP_LOOKUP_LOV returns address types,
+   * relationships, genders and sponsorship kinds in one result set, told apart by
+   * its `DATATYPE` column.
+   */
+  type?: string;
 }
