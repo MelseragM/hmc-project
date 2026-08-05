@@ -24,6 +24,9 @@ export const envValidationSchema = Joi.object({
   ORACLE_POOL_MAX: Joi.number().default(10),
   ORACLE_POOL_TIMEOUT: Joi.number().default(60),
   ORACLE_DISABLED: Joi.boolean().default(false),
+  // Thick mode: requires Oracle Client libraries installed at runtime.
+  ORACLE_THICK_MODE: Joi.boolean().default(true),
+  ORACLE_CLIENT_LIB_DIR: Joi.string().allow('').default(''),
 
   // Auth
   JWT_SECRET: Joi.string().min(8).default('dev-only-secret-change-me'),

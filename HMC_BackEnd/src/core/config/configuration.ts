@@ -20,6 +20,10 @@ export interface OracleConfig {
   poolMax: number;
   poolTimeout: number;
   disabled: boolean;
+  /** Use node-oracledb Thick mode (requires Oracle Client libraries at runtime). */
+  thickMode: boolean;
+  /** Optional path to the Oracle Client / Instant Client libraries for Thick mode. */
+  libDir?: string;
 }
 
 export interface AuthConfig {
@@ -116,6 +120,8 @@ export default (): RootConfig => ({
     poolMax: Number(process.env.ORACLE_POOL_MAX ?? 10),
     poolTimeout: Number(process.env.ORACLE_POOL_TIMEOUT ?? 60),
     disabled: toBool(process.env.ORACLE_DISABLED),
+    thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
+    libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? 'dev-only-secret-change-me',
@@ -152,8 +158,10 @@ export default (): RootConfig => ({
     host: process.env.LDAP_HOST ?? 'HMC.ORG.QA',
     port: Number(process.env.LDAP_PORT ?? 636),
     useSsl: toBool(process.env.LDAP_USE_SSL ?? 'true'),
+    // Use the explicit URL when provided; an empty/unset value derives it from
+    // host/port/ssl (matters in Docker where LDAP_URL is passed as "" by default).
     url:
-      process.env.LDAP_URL ??
+      process.env.LDAP_URL ||
       `${toBool(process.env.LDAP_USE_SSL ?? 'true') ? 'ldaps' : 'ldap'}://${
         process.env.LDAP_HOST ?? 'HMC.ORG.QA'
       }:${Number(process.env.LDAP_PORT ?? 636)}`,
