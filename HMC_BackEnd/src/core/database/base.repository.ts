@@ -72,26 +72,28 @@ export abstract class BaseOracleRepository {
 
   /**
    * Call a submit-style `_PR` using a FIXED named-argument list (taken from the
-   * Sanaad API spec) plus the repo-standard `p_status` / `p_message` OUT binds,
-   * mapping the result to a SubmitResult. Every documented param is always bound
-   * (NULL when absent from `values`) so the procedure's full argument list is
-   * satisfied — omitting named args raises PLS-00306.
+   * Sanaad API spec) plus the procedure's OUT binds, mapping the result to a
+   * SubmitResult. Every documented param is always bound (NULL when absent from
+   * `values`) so the procedure's full argument list is satisfied — omitting
+   * named args raises PLS-00306.
    *
-   * NOTE: the OUT contract (`p_status`/`p_message`) follows the repo convention
-   * used by the working PHONE_PKG call; if a procedure's real OUT parameter
-   * names differ, the OracleService call log surfaces the exact PLS error.
+   * Two OUT conventions exist in the Sanaad procedures: the `p_status` /
+   * `p_message` pair (used by the PHONE_PKG call) and the
+   * `p_success_flag` / `p_error_msg` / `p_error_msg_ar` triple documented for
+   * REASSIGN_PR. Pass `outBinds` to select the latter; `toSubmitResult` maps
+   * both shapes.
    */
   protected async callSubmitProc(
     object: string,
     params: readonly string[],
     values: Record<string, unknown>,
+    outBinds: oracledb.BindParameters = this.statusOutBinds(),
   ): Promise<SubmitResult> {
     const namedArgs = [
       ...params.map((p) => `${p} => :${p}`),
-      'p_status => :p_status',
-      'p_message => :p_message',
+      ...Object.keys(outBinds).map((o) => `${o} => :${o}`),
     ].join(',\n          ');
-    const binds: oracledb.BindParameters = { ...this.statusOutBinds() };
+    const binds: oracledb.BindParameters = { ...outBinds };
     for (const p of params) {
       (binds as Record<string, unknown>)[p] = values[p] ?? null;
     }
@@ -117,19 +119,35 @@ export abstract class BaseOracleRepository {
     };
   }
 
+  /**
+   * OUT binds for procedures that report `p_success_flag` + bilingual error
+   * messages (documented signature of REASSIGN_PR: `..., p_success_flag,
+   * p_error_msg, p_error_msg_ar`).
+   */
+  protected successFlagOutBinds(): oracledb.BindParameters {
+    return {
+      p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+      p_error_msg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+      p_error_msg_ar: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+    };
+  }
+
   /** A REF CURSOR OUT bind (default name `cursor`). */
   protected cursorOutBind(): oracledb.BindParameters {
     return { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } };
   }
 
   /**
-   * Map common OUT-bind shapes to a SubmitResult. Accepts either
-   * `{ p_status, p_message }` or `{ status, msg }` style out binds.
+   * Map common OUT-bind shapes to a SubmitResult. Accepts `{ p_status,
+   * p_message }`, `{ p_success_flag, p_error_msg, p_error_msg_ar }` or
+   * `{ status, msg }` style out binds.
    */
   protected toSubmitResult(out: Record<string, any>): SubmitResult {
-    const flagRaw = (out.p_status ?? out.status ?? out.successflag ?? '').toString().trim();
-    const message = (out.p_message ?? out.msg ?? out.errormessage ?? '').toString();
-    const messageAr = out.p_message_ar ?? out.errormessage_ar;
+    const flagRaw = (out.p_status ?? out.p_success_flag ?? out.status ?? out.successflag ?? '')
+      .toString()
+      .trim();
+    const message = (out.p_message ?? out.p_error_msg ?? out.msg ?? out.errormessage ?? '').toString();
+    const messageAr = out.p_message_ar ?? out.p_error_msg_ar ?? out.errormessage_ar;
     const isSuccess = flagRaw.toUpperCase() === 'S' || flagRaw === '0';
     return {
       successflag: isSuccess ? 'S' : 'N',

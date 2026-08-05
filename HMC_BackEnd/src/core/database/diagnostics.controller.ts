@@ -7,6 +7,7 @@ import {
   OracleCallStatus,
   OracleLogStore,
 } from './oracle-log.store';
+import { OracleMetadataService } from './oracle-metadata.service';
 
 /** Query filters for GET /diagnostics/oracle-logs. */
 export class OracleLogQueryDto {
@@ -53,6 +54,13 @@ export class OracleLogQueryDto {
   order?: 'asc' | 'desc';
 }
 
+/** Query for GET /diagnostics/oracle-object. */
+export class OracleObjectQueryDto {
+  /** Allow-listed `XXHMC_SND_*` object name, optionally `PACKAGE.PROCEDURE`. */
+  @IsString()
+  name!: string;
+}
+
 /**
  * Diagnostics API over the in-memory Oracle call log (see OracleLogStore).
  * Lets you list/filter every Oracle call the backend made (object, binds,
@@ -60,23 +68,37 @@ export class OracleLogQueryDto {
  * `[ora#N]` console logs. In-memory only; cleared on restart.
  */
 @ApiTags('diagnostics')
-@Controller('diagnostics/oracle-logs')
+@Controller('diagnostics')
 export class DiagnosticsController {
-  constructor(private readonly store: OracleLogStore) {}
+  constructor(
+    private readonly store: OracleLogStore,
+    private readonly metadata: OracleMetadataService,
+  ) {}
 
-  @Get()
+  /**
+   * Data-dictionary description of a known Oracle object: whether it is a view,
+   * procedure or package, its column list and its formal parameter list. Use it
+   * to confirm key columns / bind names instead of assuming them.
+   */
+  @Get('oracle-object')
+  @ApiOperation({ summary: 'Describe an Oracle object (type, columns, arguments)', operationId: 'diag_oracleObject' })
+  describeObject(@Query() query: OracleObjectQueryDto) {
+    return this.metadata.describe(query.name);
+  }
+
+  @Get('oracle-logs')
   @ApiOperation({ summary: 'List Oracle call logs (filterable)', operationId: 'diag_oracleLogs' })
   list(@Query() query: OracleLogQueryDto) {
     return this.store.list(query);
   }
 
-  @Get('stats')
+  @Get('oracle-logs/stats')
   @ApiOperation({ summary: 'Oracle call log aggregates', operationId: 'diag_oracleLogStats' })
   stats() {
     return this.store.stats();
   }
 
-  @Delete()
+  @Delete('oracle-logs')
   @ApiOperation({ summary: 'Clear the Oracle call log buffer', operationId: 'diag_oracleLogsClear' })
   clear() {
     return { cleared: this.store.clear() };
