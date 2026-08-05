@@ -1,6 +1,7 @@
 import { NotImplementedException } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from './oracle.service';
+import { OracleColumnResolver } from './oracle-column.resolver';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
@@ -14,7 +15,15 @@ import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-column
  * See Docs_Ai/Repository Pattern/README.md (Recommendations).
  */
 export abstract class BaseOracleRepository {
-  constructor(protected readonly ora: OracleService) {}
+  /**
+   * `columns` is optional: adapters that read views whose key column is not
+   * certain inject the resolver and use `readByResolvedKey`, the rest keep the
+   * single-argument constructor.
+   */
+  constructor(
+    protected readonly ora: OracleService,
+    protected readonly columns?: OracleColumnResolver,
+  ) {}
 
   /** Parameterized SELECT against a view/LOV (Pattern A). */
   protected query<T = Record<string, any>>(
@@ -60,6 +69,25 @@ export abstract class BaseOracleRepository {
     keyColumn: string = USERNAME_COLUMN,
   ): Promise<T[]> {
     return this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :u`, { u: username });
+  }
+
+  /**
+   * SELECT from a view filtered on whichever of `candidates` the view really
+   * exposes (see OracleColumnResolver). Use this instead of guessing between
+   * documented request-parameter names such as USER_NAME vs EMPLOYEE_NUMBER.
+   */
+  protected async readByResolvedKey<T = Record<string, any>>(
+    object: string,
+    value: string,
+    candidates: readonly string[],
+  ): Promise<T[]> {
+    if (!this.columns) {
+      throw new Error(
+        `${this.constructor.name} must inject OracleColumnResolver to use readByResolvedKey.`,
+      );
+    }
+    const keyColumn = await this.columns.resolveKeyColumn(object, candidates);
+    return this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :key`, { key: value });
   }
 
   /**

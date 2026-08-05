@@ -1,9 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleColumnResolver } from '@core/database/oracle-column.resolver';
 import { BaseOracleRepository } from '@core/database/base.repository';
-import { Lang } from '@shared/domain/lang';
+import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import {
+  ITEM_KEY_COLUMN,
+  ITEM_TYPE_COLUMN,
+  MORE_INFO_ROLE_COLUMN,
+  NOTIFICATION_ID_COLUMN,
+  RECIPIENT_ROLE_COLUMN,
+  USERNAME_KEY_CANDIDATES,
+} from '@shared/constants/oracle-columns';
 import {
   ApprovalRow,
   ApprovalsRepository,
@@ -14,68 +24,136 @@ import {
   WorklistRepository,
 } from '../../domain/approvals.repository';
 
-/** Approvals reads (APPROVE_SUMRY_V, NOTYFY_APPR_V, MY_REQEST_SUMMARY_V, PNDNG_QID_V). */
+/** APPROVE_REJECT_PR input params (Sanaad spec — ApproveReject request input). */
+const APPROVE_REJECT_PARAMS = [
+  'p_user_name',
+  'p_itemtype',
+  'p_item_key',
+  'p_result',
+  'p_notification_id',
+  'p_user_comment',
+  'p_language',
+] as const;
+
+/**
+ * Approvals reads (APPROVE_SUMRY_V, NOTYFY_APPR_V, MY_REQEST_SUMMARY_V,
+ * PNDNG_QID_V). The spec drives these services with USER_NAME, so the key column
+ * is resolved from the dictionary rather than assumed to be `employee_number`
+ * (which raised ORA-00904 for every approvals endpoint).
+ */
 @Injectable()
 export class ApprovalsOracleRepository extends BaseOracleRepository implements ApprovalsRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, columns: OracleColumnResolver) {
+    super(ora, columns);
   }
 
-  async getSummary(employeeNumber: string, _lang: Lang): Promise<ApprovalsSummary> {
+  async getSummary(username: string, _lang: Lang): Promise<ApprovalsSummary> {
     const [approvals, pendingQid] = await Promise.all([
-      this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.APPROVE_SUMRY_V, employeeNumber),
-      this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.PNDNG_QID_V, employeeNumber),
+      this.readByUser(ORACLE_OBJECTS.APPROVE_SUMRY_V, username),
+      this.readByUser(ORACLE_OBJECTS.PNDNG_QID_V, username),
     ]);
     return { approvals, pendingQid };
   }
 
   getDetails(approvalId: string, _lang: Lang): Promise<ApprovalRow[]> {
-    // TODO(verify): confirm the NOTYFY_APPR_V id column name.
+    // The detail service is keyed by the notification id the summary rows carry.
     return this.query<ApprovalRow>(
-      `SELECT * FROM ${ORACLE_OBJECTS.NOTYFY_APPR_V} WHERE notification_id = :id`,
+      `SELECT * FROM ${ORACLE_OBJECTS.NOTYFY_APPR_V} WHERE ${NOTIFICATION_ID_COLUMN} = :id`,
       { id: approvalId },
     );
   }
 
-  async getMyRequests(employeeNumber: string, _lang: Lang): Promise<MyRequests> {
+  async getMyRequests(username: string, _lang: Lang): Promise<MyRequests> {
     const [requests, pendingQid] = await Promise.all([
-      this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.MY_REQEST_SUMMARY_V, employeeNumber),
-      this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.PNDNG_QID_V, employeeNumber),
+      this.readByUser(ORACLE_OBJECTS.MY_REQEST_SUMMARY_V, username),
+      this.readByUser(ORACLE_OBJECTS.PNDNG_QID_V, username),
     ]);
     return { requests, pendingQid };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async decide(_cmd: DecisionCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.APPROVE_REJECT_PR);
+  async decide(cmd: DecisionCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.APPROVE_REJECT_PR, APPROVE_REJECT_PARAMS, {
+      p_user_name: cmd.username,
+      p_itemtype: cmd.itemType,
+      p_item_key: cmd.itemKey,
+      p_result: cmd.decision === 'APPROVE' ? 'Approve' : 'Reject',
+      p_notification_id: cmd.approvalId,
+      p_user_comment: cmd.comment,
+      p_language: toOracleLanguage(cmd.lang),
+    });
+  }
+
+  private readByUser(object: string, username: string): Promise<ApprovalRow[]> {
+    return this.readByResolvedKey<ApprovalRow>(object, username, USERNAME_KEY_CANDIDATES);
   }
 }
 
-/** Worklist reads (WORKLISTS_V, ACTION_HISTORY_V) + reassign (REASSIGN_PR). */
+/**
+ * Worklist reads (WORKLISTS_V, ACTION_HISTORY_V) + reassign (REASSIGN_PR).
+ * The WHERE clauses reproduce the SQL published in the Sanaad mapping: the
+ * worklist is scoped by workflow role (not by employee number) and the action
+ * history by item type + item key (not by a `request_id` column, which does not
+ * exist and raised ORA-00904).
+ */
 @Injectable()
 export class WorklistOracleRepository extends BaseOracleRepository implements WorklistRepository {
   constructor(ora: OracleService) {
     super(ora);
   }
 
-  getWorklist(employeeNumber: string, _lang: Lang): Promise<ApprovalRow[]> {
-    return this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.WORKLISTS_V, employeeNumber);
-  }
-
-  getWorklistSummary(employeeNumber: string, _lang: Lang): Promise<ApprovalRow[]> {
-    return this.readByEmployee<ApprovalRow>(ORACLE_OBJECTS.WORKLISTS_V, employeeNumber);
-  }
-
-  getActionHistory(approvalId: string, _lang: Lang): Promise<ApprovalRow[]> {
-    // TODO(verify): confirm the ACTION_HISTORY_V id column name.
+  getWorklist(username: string, _lang: Lang): Promise<ApprovalRow[]> {
     return this.query<ApprovalRow>(
-      `SELECT * FROM ${ORACLE_OBJECTS.ACTION_HISTORY_V} WHERE request_id = :id`,
-      { id: approvalId },
+      `SELECT * FROM ${ORACLE_OBJECTS.WORKLISTS_V}
+        WHERE (${RECIPIENT_ROLE_COLUMN} = :u AND ${MORE_INFO_ROLE_COLUMN} IS NULL)
+           OR ${MORE_INFO_ROLE_COLUMN} = :u`,
+      { u: username },
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async reassign(_cmd: ReassignCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.REASSIGN_PR);
+  getWorklistSummary(
+    username: string,
+    _lang: Lang,
+    notificationId?: string,
+  ): Promise<ApprovalRow[]> {
+    if (!notificationId) return this.getWorklist(username, _lang);
+    return this.query<ApprovalRow>(
+      `SELECT * FROM ${ORACLE_OBJECTS.WORKLISTS_V}
+        WHERE ${NOTIFICATION_ID_COLUMN} = :id
+          AND ((${RECIPIENT_ROLE_COLUMN} = :u AND ${MORE_INFO_ROLE_COLUMN} IS NULL)
+                OR ${MORE_INFO_ROLE_COLUMN} = :u)`,
+      { id: notificationId, u: username },
+    );
+  }
+
+  getActionHistory(itemKey: string, _lang: Lang, itemType = 'HRSSA'): Promise<ApprovalRow[]> {
+    return this.query<ApprovalRow>(
+      `SELECT rownum sequence_num, v.* FROM ${ORACLE_OBJECTS.ACTION_HISTORY_V} v
+        WHERE ${ITEM_TYPE_COLUMN} = :type AND ${ITEM_KEY_COLUMN} = :key`,
+      { type: itemType, key: itemKey },
+    );
+  }
+
+  /**
+   * REASSIGN_PR is documented with a positional signature and its own OUT
+   * contract: `(p_username, p_type, p_notification_id, p_dusername, p_comment,
+   * p_success_flag, p_error_msg, p_error_msg_ar)`.
+   */
+  async reassign(cmd: ReassignCommand): Promise<SubmitResult> {
+    const out = await this.call<Record<string, any>>(
+      `BEGIN ${ORACLE_OBJECTS.REASSIGN_PR}(
+          :p_username, :p_type, :p_notification_id, :p_dusername, :p_comment,
+          :p_success_flag, :p_error_msg, :p_error_msg_ar); END;`,
+      {
+        p_username: cmd.username,
+        p_type: cmd.type,
+        p_notification_id: cmd.approvalId,
+        p_dusername: cmd.assignTo,
+        p_comment: cmd.comment ?? null,
+        p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+        p_error_msg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+        p_error_msg_ar: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+      },
+    );
+    return this.toSubmitResult(out);
   }
 }

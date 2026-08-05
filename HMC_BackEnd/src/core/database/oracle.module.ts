@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { OracleService } from './oracle.service';
 import { OracleLogStore } from './oracle-log.store';
 import { OracleMetadataService } from './oracle-metadata.service';
+import { OracleColumnResolver } from './oracle-column.resolver';
 import { DiagnosticsController } from './diagnostics.controller';
 
 /**
@@ -12,7 +13,7 @@ import { DiagnosticsController } from './diagnostics.controller';
 @Global()
 @Module({
   controllers: [DiagnosticsController],
-  providers: [OracleService, OracleLogStore, OracleMetadataService],
-  exports: [OracleService, OracleLogStore, OracleMetadataService],
+  providers: [OracleService, OracleLogStore, OracleMetadataService, OracleColumnResolver],
+  exports: [OracleService, OracleLogStore, OracleMetadataService, OracleColumnResolver],
 })
 export class OracleModule {}

@@ -9,9 +9,11 @@ import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApprovalsService, WorklistService } from '../application/approvals.service';
 import {
+  ActionHistoryQueryDto,
   ApprovalDetailQueryDto,
   ApproveRejectRequestDto,
   ReassignApprovalRequestDto,
+  WorklistSummaryQueryDto,
 } from './dto/approvals.dto';
 
 /** Approvals/Worklist endpoints (ops 20-23, 68-71). APPROVER/SUPERVISOR only. */
@@ -45,14 +47,15 @@ export class ApprovalsController {
 
   @Get('worklist/summary')
   @ApiOperation({ summary: 'op 69 — Worklist summary', operationId: 'approvals_worklistSummary' })
-  worklistSummary(@Query() q: ProfileQueryDto) {
-    return this.worklist.worklistSummary(q.enum, q.lang);
+  worklistSummary(@Query() q: WorklistSummaryQueryDto) {
+    return this.worklist.worklistSummary(q.enum, q.lang, q.notificationId);
   }
 
+  /** `id` is the workflow ITEM_KEY that ACTION_HISTORY_V is keyed by. */
   @Get('worklist/:id/history')
   @ApiOperation({ summary: 'op 70 — Worklist action history', operationId: 'approvals_history' })
-  history(@Param('id') id: string, @Query() q: ApprovalDetailQueryDto) {
-    return this.worklist.history(id, q.lang);
+  history(@Param('id') id: string, @Query() q: ActionHistoryQueryDto) {
+    return this.worklist.history(id, q.lang, q.itemType);
   }
 
   @Get(':id/details')
@@ -70,7 +73,17 @@ export class ApprovalsController {
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.approvals.decide(id, dto.decision, dto.comment, user, lang);
+    return this.approvals.decide(
+      id,
+      {
+        decision: dto.decision,
+        itemKey: dto.itemKey,
+        itemType: dto.itemType ?? 'HRSSA',
+        comment: dto.comment,
+      },
+      user,
+      lang,
+    );
   }
 
   @Post(':id/reassign')
@@ -82,6 +95,11 @@ export class ApprovalsController {
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.worklist.reassign(id, dto.assignTo, dto.comment, user, lang);
+    return this.worklist.reassign(
+      id,
+      { assignTo: dto.assignTo, type: dto.type ?? 'DELEGATE', comment: dto.comment },
+      user,
+      lang,
+    );
   }
 }
