@@ -1,13 +1,17 @@
 import { Global, Module } from '@nestjs/common';
 import { OracleService } from './oracle.service';
+import { OracleLogStore } from './oracle-log.store';
+import { DiagnosticsController } from './diagnostics.controller';
 
 /**
  * Global module exposing the single OracleService pool to every data-touching
  * module (see Docs_Ai/Dependencies/README.md — OracleModule is @Global).
+ * Also provides the in-memory Oracle call log + its diagnostics API.
  */
 @Global()
 @Module({
-  providers: [OracleService],
-  exports: [OracleService],
+  controllers: [DiagnosticsController],
+  providers: [OracleService, OracleLogStore],
+  exports: [OracleService, OracleLogStore],
 })
 export class OracleModule {}

@@ -1,0 +1,386 @@
+[
+    {
+        "api": "api/v1/profile",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"EMPLOYEE_NUMBER\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/profile?lang=en&enum=V-ISIDDIQUI",
+            "correlationId": "841f6f58-a89c-4730-b83d-b4211b018df5",
+            "timestamp": "2026-08-05T07:38:16.520Z"
+        },
+        "actionNeeded": "add logs for every orcal function called "
+    },
+    {
+        "api": "api/v1/profile/personal",
+        "use": "",
+        "response": {
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_UPD_PERSONAL_INFO_PR]"
+        },
+        "actionNeeded": "need implement and add logs also "
+    },
+    {
+        "api": "api/v1/profile/lov/marital-status?lang=en",
+        "use": "",
+        "response": "working fine",
+        "actionNeeded": "add logs only"
+    },
+    {
+        "api": "api/v1/employee/employment?lang=en&enum=053613",
+        "use": "enum",
+        "response": "working fine",
+        "actionNeeded": "add logs only"
+    },
+    {
+        "api": "api/v1/employee/basic?lang=en&enum=V-ISIDDIQUI",
+        "use": "username",
+        "response": "working fine",
+        "actionNeeded": "add logs only"
+    },
+    {
+        "api": "api/v1/employee/performance?lang=en&enum=V-ISIDDIQUI",
+        "use": "usename",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"EMPLOYEE_NUMBER\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/employee/performance?lang=en&enum=V-ISIDDIQUI",
+            "correlationId": "0dd664d2-e644-474b-b29e-37901575dbbb",
+            "timestamp": "2026-08-05T07:59:15.725Z"
+        },
+        "actionNeeded": "add logs to check the error "
+    },
+    {
+        "api": "api/v1/employee/supervisor/views?lang=en&enum=053613",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-04044: procedure, function, package, or type is not allowed here\nHelp: https://docs.oracle.com/error-help/db/ora-04044/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/employee/supervisor/views?lang=en&enum=V-ISIDDIQUI",
+            "correlationId": "5c1b604a-80de-4a1b-a510-98361989eb00",
+            "timestamp": "2026-08-05T08:01:01.967Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/employee/supervisor",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_SUPERVISOR_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/employee/supervisor",
+            "correlationId": "a852a445-2651-43ff-bb82-f6abe942f2ed",
+            "timestamp": "2026-08-05T08:02:18.912Z"
+        },
+        "actionNeeded": "add logs and implmentations"
+    },
+    {
+        "api": "api/v1/payslip/periods?lang=en&enum=053613",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_GET_PAYSLIP_PERIODS]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/payslip/periods?lang=en&enum=053613",
+            "correlationId": "7bb8a0c9-0418-47a2-b24d-b7b18c1bd4fb",
+            "timestamp": "2026-08-05T08:13:24.445Z"
+        },
+        "actionNeeded": "add logs and implmentations"
+    },
+    {
+        "api": "api/v1/payslip/count?lang=en&enum=053613&payslipperiod=August%202024",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_CHK_PAYROLL_CNT]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/payslip/count?lang=en&enum=053613&payslipperiod=August%202024",
+            "correlationId": "f38b11b0-d208-4735-bf55-62a7bef5b6da",
+            "timestamp": "2026-08-05T08:14:56.894Z"
+        },
+        "actionNeeded": "add logs and implmentations"
+    },
+    {
+        "api": "api/v1/payslip?lang=en&enum=V-ISIDDIQUI&payperiod=January%202024&assignmentid=7179444713",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_PAYSLIP_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/payslip?lang=en&enum=V-ISIDDIQUI&payperiod=January%202024&assignmentid=7179444713",
+            "correlationId": "5e753471-0ee8-4853-bfcb-8bbcbe5f1946",
+            "timestamp": "2026-08-05T08:15:37.441Z"
+        },
+        "actionNeeded": "add logs and implmentations"
+    },
+    {
+        "api": "api/v1/leave/balance?lang=en&enum=VPAVITHRAN3",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_LEAVE_BALANCE_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/leave/balance?lang=en&enum=VPAVITHRAN",
+            "correlationId": "389da870-6d10-4deb-8234-e173eb8e8d33",
+            "timestamp": "2026-08-05T08:16:39.806Z"
+        },
+        "actionNeeded": "add logs and implmentations"
+    },
+    {
+        "api": "api/v1/leave/apply",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-06550: line 1, column 7:\nPLS-00306: wrong number or types of arguments in call to 'XXHMC_SND_LEAV_OF_ABSEN_NEW_PR'\nORA-06550: line 1, column 7:\nPL/SQL: Statement ignored\nHelp: https://docs.oracle.com/error-help/db/ora-06550/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/leave/apply",
+            "correlationId": "0ba6f0fa-3d0f-45b0-892a-804f00735833",
+            "timestamp": "2026-08-05T08:17:34.119Z"
+        },
+        "actionNeeded": "add logs and check the error "
+    },
+    {
+        "api": "api/v1/leave/calculate",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_CALC_LEAV_DUR_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/leave/calculate",
+            "correlationId": "c499148f-cb6d-4997-a12e-30cd62a05b8f",
+            "timestamp": "2026-08-05T08:18:36.003Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/leave/amend",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_HR_LEAV_AMEND_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/leave/amend",
+            "correlationId": "cef72aea-a709-4c37-bd68-50559766c2ab",
+            "timestamp": "2026-08-05T08:19:53.048Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/leave/cancel",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_HR_LEAV_CANCEL_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/leave/cancel",
+            "correlationId": "446d83ea-343a-459c-b69f-432bc231d7b8",
+            "timestamp": "2026-08-05T08:22:27.056Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "/api/v1/leave/return",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_RET_FRM_LEAV_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/leave/return",
+            "correlationId": "3c39da50-6d5c-4123-9d78-7d81850e6467",
+            "timestamp": "2026-08-05T08:23:35.208Z"
+        },
+        "actionNeeded": "add logs and check the error "
+    },
+    {
+        "api": "api/v1/leave/lov/types?lang=en",
+        "use": "",
+        "response": "working",
+        "actionNeeded": "add logs "
+    },
+    {
+        "api": "api/v1/leave/lov/reasons?lang=en",
+        "use": "",
+        "response": "working",
+        "actionNeeded": "add logs "
+    },
+    {
+        "api": "api/v1/leave/lov/classes?lang=en",
+        "use": "",
+        "response": "working",
+        "actionNeeded": "add logs "
+    },
+    {
+        "api": "api/v1/leave/lov/defaults?lang=en&enum=053613",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "Request timed out.",
+            "httpStatusCode": 408,
+            "path": "/api/v1/leave/lov/defaults?lang=en&enum=053613",
+            "correlationId": "a4eb7727-4afe-4689-8c28-32235e3f5922",
+            "timestamp": "2026-08-05T08:26:47.274Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/leave/lov/request-lov?lang=en&enum=053613",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "Request timed out.",
+            "httpStatusCode": 408,
+            "path": "/api/v1/leave/lov/request-lov?lang=en&enum=053613",
+            "correlationId": "a372fb9d-1e44-432a-bd40-31411d4f4633",
+            "timestamp": "2026-08-05T08:28:59.276Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/leave/lov/return?lang=en&username=V-ISIDDIQUI",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"USERNAME\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/leave/lov/return?lang=en&username=V-ISIDDIQUI",
+            "correlationId": "a20b05d4-e0bc-4efa-bba4-b2fb8190979a",
+            "timestamp": "2026-08-05T08:29:57.742Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/leave/lov/cancel?lang=en&username=V-ISIDDIQUI",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"USERNAME\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/leave/lov/cancel?lang=en&username=V-ISIDDIQUI",
+            "correlationId": "a8d992b1-9f51-4852-8442-2d90600a8e46",
+            "timestamp": "2026-08-05T08:31:01.623Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/leave/lov/amend?lang=en&username=V-ISIDDIQUI",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"USERNAME\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/leave/lov/amend?lang=en&username=V-ISIDDIQUI",
+            "correlationId": "01a94014-d3eb-4c62-8581-4a35f4a9c22a",
+            "timestamp": "2026-08-05T08:31:38.187Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/letters/lov?lang=en&enum=V-ISIDDIQUI",
+        "use": "username",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"USERNAME\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/letters/lov?lang=en&enum=V-ISIDDIQUI",
+            "correlationId": "b54aba51-861e-43d2-86c7-bd0d82439e5b",
+            "timestamp": "2026-08-05T08:32:37.942Z"
+        },
+        "actionNeeded": "add logs to check the error"
+    },
+    {
+        "api": "api/v1/letters/apply",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_HR_EMPLYMNT_LTR_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/letters/apply",
+            "correlationId": "bbdbb3bc-74d6-4a1d-bce0-19f095e3b89a",
+            "timestamp": "2026-08-05T08:33:20.796Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/identity/qid?lang=en&enum=053613",
+        "use": "enum",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "ORA-00904: \"EMPLOYEE_NUMBER\": invalid identifier\nHelp: https://docs.oracle.com/error-help/db/ora-00904/",
+            "httpStatusCode": 502,
+            "path": "/api/v1/identity/qid?lang=en&enum=053613",
+            "correlationId": "cc5928c4-6a1e-4c93-8fbb-95b108b940e1",
+            "timestamp": "2026-08-05T08:35:24.133Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/identity/qid/update",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_QID_CHG_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/identity/qid/update",
+            "correlationId": "5b7121b0-5d5d-4750-87d8-5bb7b25a089d",
+            "timestamp": "2026-08-05T08:37:07.061Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/identity/idcard/apply",
+        "use": "",
+        "response": {
+            "status": "error",
+            "opstatus": 1,
+            "errormessage": "This operation is not yet implemented (Oracle bind signature pending). [XXHMC_SND_COID_REQ_PR]",
+            "httpStatusCode": 501,
+            "path": "/api/v1/identity/idcard/apply",
+            "correlationId": "6420de53-c7f0-41f4-be94-ab0a2aecdc9c",
+            "timestamp": "2026-08-05T08:37:54.397Z"
+        },
+        "actionNeeded": "add logs and implmentations "
+    },
+    {
+        "api": "api/v1/identity/lov/work-location?lang=en",
+        "use": "",
+        "response": "working fine",
+        "actionNeeded": "add logs "
+    },
+    {
+        "api": "api/v1/identity/lov/delivery-location?lang=en",
+        "use": "",
+        "response": "working fine",
+        "actionNeeded": "add logs "
+    },
+    {
+        "api": "api/v1/identity/lov/reason?lang=en",
+        "use": "",
+        "response": "working fine",
+        "actionNeeded": "add logs "
+    }
+]

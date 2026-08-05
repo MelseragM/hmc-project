@@ -10,6 +10,8 @@ import oracledb = require('oracledb');
 import { OracleConfig } from '../config/configuration';
 import { ERROR_MESSAGES, extractOraCode } from '@shared/constants/error-codes';
 import { OracleQueryError } from './oracle.error';
+import { RequestContext } from '../http/request-context';
+import { OracleLogStore } from './oracle-log.store';
 
 /** Rich result of a connectivity probe used by the DB health-test endpoint. */
 export interface OracleDiagnostics {
@@ -32,6 +34,8 @@ interface OracleCallLog {
   op: 'query' | 'call' | 'callCursor';
   label: string;
   started: number;
+  sql: string;
+  binds: Record<string, string>;
 }
 
 /**
@@ -56,7 +60,10 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   /** Bind keys whose values must never be logged. */
   private static readonly SENSITIVE_BIND = /(mpin|password|pwd|otp|secret|token)/i;
 
-  constructor(config: ConfigService) {
+  constructor(
+    config: ConfigService,
+    private readonly logStore: OracleLogStore,
+  ) {
     this.cfg = config.getOrThrow<OracleConfig>('oracle');
   }
 
@@ -149,7 +156,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
       });
       const rows = (result.rows as T[]) ?? [];
-      this.logCallSuccess(call, `${rows.length} row(s)`);
+      this.logCallSuccess(call, { summary: `${rows.length} row(s)`, rowCount: rows.length });
       return rows;
     } catch (err) {
       throw this.logCallError(call, err);
@@ -173,7 +180,8 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         ...options,
       });
       const outBinds = (result.outBinds as T) ?? ({} as T);
-      this.logCallSuccess(call, `out={ ${Object.keys(outBinds as object).join(', ')} }`);
+      const outKeys = Object.keys(outBinds as object);
+      this.logCallSuccess(call, { summary: `out={ ${outKeys.join(', ')} }`, outKeys });
       return outBinds;
     } catch (err) {
       throw this.logCallError(call, err);
@@ -201,12 +209,12 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       const outBinds = (result.outBinds ?? {}) as Record<string, oracledb.ResultSet<T>>;
       const cursor = outBinds[cursorBindName];
       if (!cursor) {
-        this.logCallSuccess(call, 'no cursor');
+        this.logCallSuccess(call, { summary: 'no cursor', rowCount: 0 });
         return [];
       }
       const rows = (await cursor.getRows(0)) as T[];
       await cursor.close();
-      this.logCallSuccess(call, `${rows?.length ?? 0} row(s)`);
+      this.logCallSuccess(call, { summary: `${rows?.length ?? 0} row(s)`, rowCount: rows?.length ?? 0 });
       return rows ?? [];
     } catch (err) {
       throw this.logCallError(call, err);
@@ -226,15 +234,30 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     binds: oracledb.BindParameters,
   ): OracleCallLog {
     const id = ++this.callSeq;
-    const entry: OracleCallLog = { id, op, label: this.describeSql(sql), started: Date.now() };
-    this.logger.log(`[ora#${id}] ${op} → ${entry.label} binds=${this.formatBinds(binds)}`);
-    this.logger.debug(`[ora#${id}] SQL: ${this.compactSql(sql)}`);
+    const entry: OracleCallLog = {
+      id,
+      op,
+      label: this.describeSql(sql),
+      started: Date.now(),
+      sql: this.compactSql(sql),
+      binds: this.sanitizeBinds(binds),
+    };
+    this.logger.log(`[ora#${id}] ${op} → ${entry.label} binds=${this.formatBinds(entry.binds)}`);
+    this.logger.debug(`[ora#${id}] SQL: ${entry.sql}`);
     return entry;
   }
 
-  private logCallSuccess(entry: OracleCallLog, summary: string): void {
+  private logCallSuccess(
+    entry: OracleCallLog,
+    result: { summary: string; rowCount?: number; outKeys?: string[] },
+  ): void {
     const ms = Date.now() - entry.started;
-    this.logger.log(`[ora#${entry.id}] ${entry.op} done ${entry.label} ${summary} (${ms}ms)`);
+    this.logger.log(`[ora#${entry.id}] ${entry.op} done ${entry.label} ${result.summary} (${ms}ms)`);
+    this.recordEntry(entry, ms, {
+      status: 'success',
+      rowCount: result.rowCount,
+      outKeys: result.outKeys,
+    });
   }
 
   private logCallError(entry: OracleCallLog, err: unknown): OracleQueryError {
@@ -244,7 +267,44 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     this.logger.error(
       `[ora#${entry.id}] ${entry.op} FAILED ${entry.label} after ${ms}ms${code}: ${wrapped.message}`,
     );
+    this.recordEntry(entry, ms, {
+      status: 'error',
+      oraCode: wrapped.oraCode,
+      error: wrapped.message,
+    });
     return wrapped;
+  }
+
+  /** Persist a structured record to the in-memory store served by the diagnostics API. */
+  private recordEntry(
+    entry: OracleCallLog,
+    durationMs: number,
+    outcome: {
+      status: 'success' | 'error';
+      rowCount?: number;
+      outKeys?: string[];
+      oraCode?: number;
+      error?: string;
+    },
+  ): void {
+    const ctx = RequestContext.get();
+    this.logStore.record({
+      id: entry.id,
+      timestamp: new Date().toISOString(),
+      op: entry.op,
+      object: entry.label,
+      status: outcome.status,
+      durationMs,
+      rowCount: outcome.rowCount,
+      outKeys: outcome.outKeys,
+      oraCode: outcome.oraCode,
+      error: outcome.error,
+      correlationId: ctx?.correlationId,
+      method: ctx?.method,
+      path: ctx?.path,
+      binds: entry.binds,
+      sql: entry.sql,
+    });
   }
 
   /** Short label for a statement: the view/table read or the procedure invoked. */
@@ -261,14 +321,21 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     return sql.replace(/\s+/g, ' ').trim();
   }
 
-  /** Render binds for logging: OUT binds as `<OUT>`, sensitive keys redacted. */
-  private formatBinds(binds: oracledb.BindParameters): string {
-    const record = binds as Record<string, unknown>;
-    if (!record || Object.keys(record).length === 0) return '{}';
-    const parts = Object.entries(record).map(
-      ([key, value]) => `${key}=${this.formatBindValue(key, value)}`,
-    );
-    return `{ ${parts.join(', ')} }`;
+  /** Produce a loggable, safe key→value map: OUT binds as `<OUT>`, secrets redacted. */
+  private sanitizeBinds(binds: oracledb.BindParameters): Record<string, string> {
+    const record = (binds ?? {}) as Record<string, unknown>;
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(record)) {
+      out[key] = this.formatBindValue(key, value);
+    }
+    return out;
+  }
+
+  /** Render a sanitized bind map as `{ k=v, ... }` for the console line. */
+  private formatBinds(binds: Record<string, string>): string {
+    const keys = Object.keys(binds);
+    if (keys.length === 0) return '{}';
+    return `{ ${keys.map((k) => `${k}=${binds[k]}`).join(', ')} }`;
   }
 
   private formatBindValue(key: string, value: unknown): string {
