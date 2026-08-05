@@ -9,6 +9,7 @@ import {
   ApprovalsRepository,
   ApprovalsSummary,
   MyRequests,
+  ReassignType,
   WORKLIST_REPOSITORY,
   WorklistRepository,
 } from '../domain/approvals.repository';
@@ -18,8 +19,8 @@ import {
 export class ApprovalsService {
   constructor(@Inject(APPROVALS_REPOSITORY) private readonly repo: ApprovalsRepository) {}
 
-  summary(employeeNumber: string, lang: Lang): Promise<ApprovalsSummary> {
-    return this.repo.getSummary(employeeNumber, lang);
+  summary(username: string, lang: Lang): Promise<ApprovalsSummary> {
+    return this.repo.getSummary(username, lang);
   }
 
   details(approvalId: string, lang: Lang): Promise<ApprovalRow[]> {
@@ -28,16 +29,15 @@ export class ApprovalsService {
 
   decide(
     approvalId: string,
-    decision: ApprovalDecision,
-    comment: string | undefined,
+    dto: { decision: ApprovalDecision; itemType: string; itemKey: string; comment?: string },
     user: AuthenticatedUser,
     lang: Lang,
   ): Promise<SubmitResult> {
-    return this.repo.decide({ username: user.username, lang, approvalId, decision, comment });
+    return this.repo.decide({ username: user.username, lang, approvalId, ...dto });
   }
 
-  myRequests(employeeNumber: string, lang: Lang): Promise<MyRequests> {
-    return this.repo.getMyRequests(employeeNumber, lang);
+  myRequests(username: string, lang: Lang): Promise<MyRequests> {
+    return this.repo.getMyRequests(username, lang);
   }
 }
 
@@ -46,25 +46,24 @@ export class ApprovalsService {
 export class WorklistService {
   constructor(@Inject(WORKLIST_REPOSITORY) private readonly repo: WorklistRepository) {}
 
-  worklist(employeeNumber: string, lang: Lang): Promise<ApprovalRow[]> {
-    return this.repo.getWorklist(employeeNumber, lang);
+  worklist(username: string, lang: Lang): Promise<ApprovalRow[]> {
+    return this.repo.getWorklist(username, lang);
   }
 
-  worklistSummary(employeeNumber: string, lang: Lang): Promise<ApprovalRow[]> {
-    return this.repo.getWorklistSummary(employeeNumber, lang);
+  worklistSummary(username: string, lang: Lang, notificationId?: string): Promise<ApprovalRow[]> {
+    return this.repo.getWorklistSummary(username, lang, notificationId);
   }
 
-  history(approvalId: string, lang: Lang): Promise<ApprovalRow[]> {
-    return this.repo.getActionHistory(approvalId, lang);
+  history(itemKey: string, lang: Lang, itemType?: string): Promise<ApprovalRow[]> {
+    return this.repo.getActionHistory(itemKey, lang, itemType);
   }
 
   reassign(
     approvalId: string,
-    assignTo: string,
-    comment: string | undefined,
+    dto: { assignTo: string; type: ReassignType; comment?: string },
     user: AuthenticatedUser,
     lang: Lang,
   ): Promise<SubmitResult> {
-    return this.repo.reassign({ username: user.username, lang, approvalId, assignTo, comment });
+    return this.repo.reassign({ username: user.username, lang, approvalId, ...dto });
   }
 }

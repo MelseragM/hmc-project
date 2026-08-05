@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { toOracleLanguage } from '@shared/domain/lang';
@@ -22,8 +23,8 @@ const LETTER_SUBMIT_PARAMS = [
 /** op 17 — LetterReqSubmit (HR_EMPLYMNT_LTR_PR). */
 @Injectable()
 export class LettersOracleRepository extends BaseOracleRepository implements LetterRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
   async submit(cmd: LetterSubmitCommand): Promise<SubmitResult> {

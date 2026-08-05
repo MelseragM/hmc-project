@@ -106,7 +106,11 @@ export const ORACLE_OBJECTS = {
   EMP_LTR_DEFAULT_COPY: o('EMP_LTR_DEFAULT_COPY'),
 
   // ── Package procedure references (pkg.proc) ──────────────
+  // The dependent add/update procedures live inside ADD_DEPENDENT_PKG; calling
+  // them by their bare name raises PLS-00201 (identifier must be declared).
   PHONE_PKG_ADD_OR_UPDATE: `${o('PHONE_PKG')}.ADD_OR_UPDATE_PHONE`,
+  DEPENDENT_PKG_ADD: `${o('ADD_DEPENDENT_PKG')}.${o('ADD_DEPENDENT_PR')}`,
+  DEPENDENT_PKG_UPDATE: `${o('ADD_DEPENDENT_PKG')}.${o('UPDATE_DEPENDENT_PR')}`,
 } as const;
 
 export type OracleObjectKey = keyof typeof ORACLE_OBJECTS;

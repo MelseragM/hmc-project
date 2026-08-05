@@ -1,6 +1,7 @@
 import { NotImplementedException } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from './oracle.service';
+import { OracleSchemaService } from './oracle-schema.service';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
@@ -14,7 +15,16 @@ import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-column
  * See Docs_Ai/Repository Pattern/README.md (Recommendations).
  */
 export abstract class BaseOracleRepository {
-  constructor(protected readonly ora: OracleService) {}
+  /**
+   * `schema` is optional: adapters that read views whose key column is not
+   * certain, or that call procedures whose OUT contract is not certain, inject it
+   * and use `readByResolvedKey` / `callSubmitProc`; the rest keep the
+   * single-argument constructor.
+   */
+  constructor(
+    protected readonly ora: OracleService,
+    protected readonly schema?: OracleSchemaService,
+  ) {}
 
   /** Parameterized SELECT against a view/LOV (Pattern A). */
   protected query<T = Record<string, any>>(
@@ -63,6 +73,25 @@ export abstract class BaseOracleRepository {
   }
 
   /**
+   * SELECT from a view filtered on whichever of `candidates` the view really
+   * exposes (see OracleSchemaService). Use this instead of guessing between
+   * documented request-parameter names such as USER_NAME vs EMPLOYEE_NUMBER.
+   */
+  protected async readByResolvedKey<T = Record<string, any>>(
+    object: string,
+    value: string,
+    candidates: readonly string[],
+  ): Promise<T[]> {
+    if (!this.schema) {
+      throw new Error(
+        `${this.constructor.name} must inject OracleSchemaService to use readByResolvedKey.`,
+      );
+    }
+    const keyColumn = await this.schema.resolveKeyColumn(object, candidates);
+    return this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :key`, { key: value });
+  }
+
+  /**
    * Marks an adapter whose exact Oracle bind signature is not yet captured
    * (see Docs_Ai known gaps). Throws 501 until implemented.
    */
@@ -71,35 +100,95 @@ export abstract class BaseOracleRepository {
   }
 
   /**
-   * Call a submit-style `_PR` using a FIXED named-argument list (taken from the
-   * Sanaad API spec) plus the repo-standard `p_status` / `p_message` OUT binds,
-   * mapping the result to a SubmitResult. Every documented param is always bound
-   * (NULL when absent from `values`) so the procedure's full argument list is
-   * satisfied — omitting named args raises PLS-00306.
+   * Call a submit-style `_PR`/`_PKG` procedure and map its OUT binds to a
+   * SubmitResult.
    *
-   * NOTE: the OUT contract (`p_status`/`p_message`) follows the repo convention
-   * used by the working PHONE_PKG call; if a procedure's real OUT parameter
-   * names differ, the OracleService call log surfaces the exact PLS error.
+   * The argument list is taken from the data dictionary when it is readable, so
+   * the call always matches what the database declares — both the IN parameters
+   * and the OUT contract, which the Sanaad request-input tables do not list. That
+   * matters because the OUT names are not uniform (`p_status` / `p_message` for
+   * the phone package, `p_success_flag` / `p_error_msg` / `p_error_msg_ar` for
+   * REASSIGN_PR), and a named argument the procedure does not declare raises
+   * `PLS-00306: wrong number or types of arguments`.
+   *
+   * When the dictionary is unavailable it falls back to the documented `params`
+   * plus `outBinds`. Every parameter is always bound (NULL when absent from
+   * `values`) so the full argument list is satisfied.
    */
   protected async callSubmitProc(
     object: string,
     params: readonly string[],
     values: Record<string, unknown>,
+    outBinds: oracledb.BindParameters = this.statusOutBinds(),
   ): Promise<SubmitResult> {
-    const namedArgs = [
-      ...params.map((p) => `${p} => :${p}`),
-      'p_status => :p_status',
-      'p_message => :p_message',
-    ].join(',\n          ');
-    const binds: oracledb.BindParameters = { ...this.statusOutBinds() };
-    for (const p of params) {
-      (binds as Record<string, unknown>)[p] = values[p] ?? null;
+    const declared = await this.schema?.resolveParams(object);
+    const binds: oracledb.BindParameters = {};
+    const names: string[] = [];
+
+    if (declared?.length) {
+      for (const param of declared) {
+        names.push(param.name);
+        (binds as Record<string, unknown>)[param.name] = param.direction.includes('OUT')
+          ? { dir: oracledb.BIND_OUT, type: OracleSchemaService.outBindType(param.dataType), maxSize: 4000 }
+          : BaseOracleRepository.pick(values, param.name);
+      }
+    } else {
+      Object.assign(binds, outBinds);
+      names.push(...params, ...Object.keys(outBinds));
+      for (const p of params) {
+        (binds as Record<string, unknown>)[p] = BaseOracleRepository.pick(values, p);
+      }
     }
+
+    const namedArgs = names.map((n) => `${n} => :${n}`).join(',\n          ');
     const out = await this.call<Record<string, any>>(
       `BEGIN ${object}(\n          ${namedArgs}); END;`,
       binds,
     );
     return this.toSubmitResult(out);
+  }
+
+  /**
+   * Call a procedure that returns its rows through a REF CURSOR (leave balance,
+   * child details). Like `callSubmitProc` the argument list comes from the data
+   * dictionary when it is readable — including the real name of the cursor
+   * parameter, which differs between procedures — and falls back to the
+   * documented `params` plus `cursorParam` otherwise.
+   */
+  protected async callRowsProc<T = Record<string, any>>(
+    object: string,
+    params: readonly string[],
+    values: Record<string, unknown>,
+    cursorParam = 'p_cursor',
+  ): Promise<T[]> {
+    const declared = await this.schema?.resolveParams(object);
+    const inParams = declared?.length
+      ? declared.filter((p) => !p.direction.includes('OUT')).map((p) => p.name)
+      : [...params];
+    const cursorName =
+      declared?.find((p) => p.direction.includes('OUT') && p.dataType.toUpperCase() === 'REF CURSOR')
+        ?.name ?? cursorParam;
+
+    const binds: oracledb.BindParameters = { ...this.cursorOutBind() };
+    for (const p of inParams) {
+      (binds as Record<string, unknown>)[p] = BaseOracleRepository.pick(values, p);
+    }
+
+    const namedArgs = [...inParams.map((p) => `${p} => :${p}`), `${cursorName} => :cursor`].join(
+      ',\n          ',
+    );
+    return this.callCursor<T>(`BEGIN ${object}(\n          ${namedArgs}); END;`, binds);
+  }
+
+  /**
+   * Value for a formal parameter, tolerating the `p_` prefix being present on one
+   * side only: the Sanaad mapping documents some inputs bare (`PERSON_ID`,
+   * `PERIOD`) and others prefixed (`P_USER_NAME`), while the declared parameter
+   * name comes from the database. Returns null so the argument is still bound.
+   */
+  private static pick(values: Record<string, unknown>, param: string): unknown {
+    const bare = param.replace(/^p_/, '');
+    return values[param] ?? values[bare] ?? values[`p_${bare}`] ?? null;
   }
 
   /** `p_file_name1..N` / `p_attachment1..N` slot names shared by submit procs. */
@@ -117,19 +206,35 @@ export abstract class BaseOracleRepository {
     };
   }
 
+  /**
+   * OUT binds for procedures that report `p_success_flag` + bilingual error
+   * messages (documented signature of REASSIGN_PR: `..., p_success_flag,
+   * p_error_msg, p_error_msg_ar`).
+   */
+  protected successFlagOutBinds(): oracledb.BindParameters {
+    return {
+      p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+      p_error_msg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+      p_error_msg_ar: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
+    };
+  }
+
   /** A REF CURSOR OUT bind (default name `cursor`). */
   protected cursorOutBind(): oracledb.BindParameters {
     return { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } };
   }
 
   /**
-   * Map common OUT-bind shapes to a SubmitResult. Accepts either
-   * `{ p_status, p_message }` or `{ status, msg }` style out binds.
+   * Map common OUT-bind shapes to a SubmitResult. Accepts `{ p_status,
+   * p_message }`, `{ p_success_flag, p_error_msg, p_error_msg_ar }` or
+   * `{ status, msg }` style out binds.
    */
   protected toSubmitResult(out: Record<string, any>): SubmitResult {
-    const flagRaw = (out.p_status ?? out.status ?? out.successflag ?? '').toString().trim();
-    const message = (out.p_message ?? out.msg ?? out.errormessage ?? '').toString();
-    const messageAr = out.p_message_ar ?? out.errormessage_ar;
+    const flagRaw = (out.p_status ?? out.p_success_flag ?? out.status ?? out.successflag ?? '')
+      .toString()
+      .trim();
+    const message = (out.p_message ?? out.p_error_msg ?? out.msg ?? out.errormessage ?? '').toString();
+    const messageAr = out.p_message_ar ?? out.p_error_msg_ar ?? out.errormessage_ar;
     const isSuccess = flagRaw.toUpperCase() === 'S' || flagRaw === '0';
     return {
       successflag: isSuccess ? 'S' : 'N',

@@ -9,7 +9,7 @@ import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { SchoolFeeService } from '../application/school-fees.service';
-import { SchoolChildrenQueryDto, SchoolFeeRequestDto } from './dto/school-fees.dto';
+import { SchoolChildrenQueryDto } from './dto/school-fees.dto';
 
 /** School-fees endpoints (ops 37, 38, 39, 40, 50, 52, 53). op 51 is out of scope. */
 @ApiTags('school-fees')
@@ -22,11 +22,12 @@ export class SchoolFeesController {
   @ApiOperation({ summary: 'op 39 — School-fee request', operationId: 'schoolFees_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
-    @Body() dto: SchoolFeeRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.apply({ ...dto }, user, lang);
+    // Accepts the spec's SCHOOL_FEE_PR body (p_* keys, incl. attachments).
+    return this.service.apply(body, user, lang);
   }
 
   @Get('lov/schools')

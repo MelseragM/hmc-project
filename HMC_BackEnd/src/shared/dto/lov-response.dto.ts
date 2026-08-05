@@ -10,6 +10,12 @@ export class LovItemDto implements LovItem {
 
   @ApiPropertyOptional({ example: 'متزوج' })
   meaningAr?: string;
+
+  @ApiPropertyOptional({
+    example: 'CONTACT',
+    description: 'Grouping type, returned by the multi-type LOVs (e.g. DEP_LOOKUP_LOV).',
+  })
+  type?: string;
 }
 
 export class LovResponseDto {

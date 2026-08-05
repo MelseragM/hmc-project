@@ -15,11 +15,17 @@ export interface UpsertPhoneCommand {
   phones: PhoneInput[];
 }
 
+/**
+ * DEL_PHONE_NUMBER_PR identifies the row by id but also takes the type and
+ * number it is expected to hold (documented params P_PHONE_ID, P_PHONE_TYPE,
+ * P_PHONE_NUMBER).
+ */
 export interface DeletePhoneCommand {
   username: string;
   lang: Lang;
   phoneId: string;
-  objectVersionNumber?: string;
+  phoneType?: string;
+  phoneNumber?: string;
 }
 
 /** Port: phone upsert (28) + delete (32). Phone-type LOV (27) via Lookups. */

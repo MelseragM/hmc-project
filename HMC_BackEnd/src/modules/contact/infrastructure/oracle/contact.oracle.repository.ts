@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
+import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { toOracleLanguage } from '@shared/domain/lang';
@@ -12,17 +13,69 @@ import {
   UpsertPhoneCommand,
 } from '../../domain/contact.repository';
 
+/** PHONE_PKG.ADD_OR_UPDATE_PHONE input params (Sanaad spec — UPDATE_PHONE_NUMBER). */
+const UPSERT_PHONE_PARAMS = ['p_user_name', 'p_phone', 'p_language'] as const;
+
+/** DEL_PHONE_NUMBER_PR input params (Sanaad spec — DELETE_PHONE_DETAILS_SUBMIT). */
+const DELETE_PHONE_PARAMS = [
+  'p_user_name',
+  'p_phone_id',
+  'p_phone_type',
+  'p_phone_number',
+  'p_language',
+] as const;
+
+/** CREATE_ADDRESS_PR input params (Sanaad spec — CREATE_ADDRESS_PR). */
+const CREATE_ADDRESS_PARAMS = [
+  'p_user_name',
+  'p_effective_date',
+  'p_main_address',
+  'p_primary_flag',
+  'p_country',
+  'p_address_type',
+  'p_address_line1',
+  'p_address_line2',
+  'p_address_line3',
+  'p_town_or_city',
+  'p_region1',
+  'p_region2',
+  'p_region3',
+  'p_po_box',
+  'p_language',
+] as const;
+
+/** UPD_ADDRESS_PR input params (Sanaad spec — UPDATE_ADDRESS_SUBMIT). */
+const UPDATE_ADDRESS_PARAMS = [
+  'p_user_name',
+  'p_address_id',
+  'p_address_line1',
+  'p_address_line2',
+  'p_address_line3',
+  'p_city',
+  'p_region1',
+  'p_region2',
+  'p_region3',
+  'p_po_box',
+  'p_address_type',
+  'p_country',
+  'p_effective_date',
+  'p_language',
+] as const;
+
 /**
- * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE. The IN binds
- * are known from the mapping (p_user_name, p_phone [JSON array string], p_language);
- * Oracle parses the JSON. OUT param names use the standard p_status/p_message
- * convention — TODO(verify) against the real package spec. op 32 (delete) bind
- * signature not captured → notImplemented.
+ * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE, which takes the
+ * phone list as a JSON array string and parses it in Oracle. op 32 — delete via
+ * DEL_PHONE_NUMBER_PR.
+ *
+ * Both go through `callSubmitProc`, which builds the call from the procedure's
+ * declared arguments: the phone upsert previously appended assumed
+ * `p_status`/`p_message` OUT arguments and failed with `PLS-00306: wrong number
+ * or types of arguments`.
  */
 @Injectable()
 export class PhoneOracleRepository extends BaseOracleRepository implements PhoneRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
   async upsert(cmd: UpsertPhoneCommand): Promise<SubmitResult> {
@@ -33,44 +86,49 @@ export class PhoneOracleRepository extends BaseOracleRepository implements Phone
       P_PHONE_NUMBER: p.phoneNumber,
     }));
 
-    const out = await this.call<Record<string, any>>(
-      `BEGIN ${ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE}(
-          p_user_name => :p_user_name,
-          p_phone     => :p_phone,
-          p_language  => :p_language,
-          p_status    => :p_status,
-          p_message   => :p_message); END;`,
-      {
-        p_user_name: cmd.username,
-        p_phone: JSON.stringify(phonePayload),
-        p_language: toOracleLanguage(cmd.lang),
-        ...this.statusOutBinds(),
-      },
-    );
-    return this.toSubmitResult(out);
+    return this.callSubmitProc(ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE, UPSERT_PHONE_PARAMS, {
+      p_user_name: cmd.username,
+      p_phone: JSON.stringify(phonePayload),
+      p_language: toOracleLanguage(cmd.lang),
+    });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async delete(_cmd: DeletePhoneCommand): Promise<SubmitResult> {
-    // TODO(bind): capture XXHMC_SND_DEL_PHONE_NUMBER_PR signature.
-    return this.notImplemented(ORACLE_OBJECTS.DEL_PHONE_NUMBER_PR);
+  async delete(cmd: DeletePhoneCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.DEL_PHONE_NUMBER_PR, DELETE_PHONE_PARAMS, {
+      p_user_name: cmd.username,
+      p_phone_id: cmd.phoneId,
+      p_phone_type: cmd.phoneType,
+      p_phone_number: cmd.phoneNumber,
+      p_language: toOracleLanguage(cmd.lang),
+    });
   }
 }
 
-/** op 29 (create) / op 25 (update) address. Bind signatures not captured → notImplemented. */
+/** op 29 (CREATE_ADDRESS_PR) / op 25 (UPD_ADDRESS_PR). */
 @Injectable()
 export class AddressOracleRepository extends BaseOracleRepository implements AddressRepository {
-  constructor(ora: OracleService) {
-    super(ora);
+  constructor(ora: OracleService, schema: OracleSchemaService) {
+    super(ora, schema);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async create(_cmd: AddressCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.CREATE_ADDRESS_PR);
+  async create(cmd: AddressCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(
+      ORACLE_OBJECTS.CREATE_ADDRESS_PR,
+      CREATE_ADDRESS_PARAMS,
+      this.values(cmd),
+    );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async update(_cmd: AddressCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.UPD_ADDRESS_PR);
+  async update(cmd: AddressCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(
+      ORACLE_OBJECTS.UPD_ADDRESS_PR,
+      UPDATE_ADDRESS_PARAMS,
+      this.values(cmd),
+    );
+  }
+
+  /** Merge the posted p_* body with the enforced user + resolved language. */
+  private values(cmd: AddressCommand): Record<string, unknown> {
+    return { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
   }
 }
