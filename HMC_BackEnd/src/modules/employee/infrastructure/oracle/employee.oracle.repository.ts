@@ -5,7 +5,6 @@ import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
-import { USERNAME_COLUMN } from '@shared/constants/oracle-columns';
 
 /** SUPERVISOR_PR input params (Sanaad spec — SUPERVISOR_PR body). */
 const SUPERVISOR_PR_PARAMS = [
@@ -45,12 +44,8 @@ export class EmploymentOracleRepository
 
   async getPerformance(employeeNumber: string, _lang: Lang): Promise<PerformanceRecord[]> {
     // PERFORMANCE_V is keyed by USERNAME per the spec (Input: USERNAME,LANG);
-    // employee_number raised ORA-00904.
-    const rows = await this.readByEmployee(
-      ORACLE_OBJECTS.PERFORMANCE_V,
-      employeeNumber,
-      USERNAME_COLUMN,
-    );
+    // emitted as an inline literal: WHERE username = '<enum>'.
+    const rows = await this.readByUsername(ORACLE_OBJECTS.PERFORMANCE_V, employeeNumber);
     return rows.map((r) => EmployeeMapper.toPerformance(r));
   }
 }

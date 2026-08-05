@@ -31,10 +31,13 @@ export class LovOracleRepository implements LovRepository {
       throw new BadRequestException(`Unknown Oracle object: ${object}`);
     }
     const keyColumn = username ? await this.userColumnOf(object) : undefined;
-    const sql = keyColumn
-      ? `SELECT * FROM ${object} WHERE ${keyColumn} = :u`
-      : `SELECT * FROM ${object}`;
-    const rows = await this.ora.query<Record<string, any>>(sql, keyColumn ? { u: username } : {});
+    // The username is emitted as an inline single-quoted literal (escaped) per
+    // the Oracle team's guidance: WHERE <col> = 'AIBRAHIM39'.
+    const sql =
+      keyColumn && username !== undefined
+        ? `SELECT * FROM ${object} WHERE ${keyColumn} = '${username.replace(/'/g, "''")}'`
+        : `SELECT * FROM ${object}`;
+    const rows = await this.ora.query<Record<string, any>>(sql, {});
     return LovMapper.toItems(rows, lang);
   }
 

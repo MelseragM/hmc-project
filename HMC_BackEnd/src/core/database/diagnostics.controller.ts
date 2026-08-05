@@ -1,12 +1,15 @@
-import { Controller, Delete, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Delete, Get, Header, Query } from '@nestjs/common';
+import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Public } from '../auth/decorators/public.decorator';
+import { SkipEnvelope } from '../http/response.interceptor';
 import {
   OracleCallOp,
   OracleCallStatus,
   OracleLogStore,
 } from './oracle-log.store';
+import { ORACLE_LOG_VIEW_HTML } from './oracle-log.view';
 import { OracleMetadataService } from './oracle-metadata.service';
 
 /** Query filters for GET /diagnostics/oracle-logs. */
@@ -22,6 +25,10 @@ export class OracleLogQueryDto {
   @IsOptional()
   @IsString()
   object?: string;
+
+  @IsOptional()
+  @IsString()
+  enum?: string;
 
   @IsOptional()
   @IsString()
@@ -84,6 +91,20 @@ export class DiagnosticsController {
   @ApiOperation({ summary: 'Describe an Oracle object (type, columns, arguments)', operationId: 'diag_oracleObject' })
   describeObject(@Query() query: OracleObjectQueryDto) {
     return this.metadata.describe(query.name);
+  }
+
+  /**
+   * Browser view: a filterable table (enum, correlationId, object, oraCode, …)
+   * rendered from the JSON list endpoint. @Public so it loads in a browser;
+   * gate/remove it before production if the SQL log is sensitive.
+   */
+  @Public()
+  @SkipEnvelope()
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  @ApiExcludeEndpoint()
+  @Get('oracle-logs/view')
+  view(): string {
+    return ORACLE_LOG_VIEW_HTML;
   }
 
   @Get('oracle-logs')

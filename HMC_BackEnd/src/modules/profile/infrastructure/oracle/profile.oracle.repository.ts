@@ -5,7 +5,6 @@ import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
-import { USERNAME_COLUMN } from '@shared/constants/oracle-columns';
 import { EmployeeProfile } from '../../domain/entities/employee-profile';
 import { ProfileRepository, UpdatePersonalCommand } from '../../domain/profile.repository';
 import { ProfileMapper } from './profile.mapper';
@@ -43,15 +42,15 @@ export class ProfileOracleRepository extends BaseOracleRepository implements Pro
 
   async getProfile(employeeNumber: string, lang: Lang): Promise<EmployeeProfile> {
     // Per the API spec (GetPersonalDetails) these views are keyed by USERNAME
-    // (the V-xxx login the app passes as `enum`), not employee_number — the
-    // latter raised ORA-00904 "EMPLOYEE_NUMBER: invalid identifier".
+    // (the V-xxx login the app passes as `enum`), not employee_number. The
+    // username is emitted as an inline literal: WHERE username = '<enum>'.
     const [personalRows, phoneRows, addressRows, dependentPhoneRows, dependentAddressRows] =
       await Promise.all([
-        this.readByEmployee(ORACLE_OBJECTS.PERSONAL_DETAILS_V, employeeNumber, USERNAME_COLUMN),
-        this.readByEmployee(ORACLE_OBJECTS.EMP_PHONE_V, employeeNumber, USERNAME_COLUMN),
-        this.readByEmployee(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, employeeNumber, USERNAME_COLUMN),
-        this.readByEmployee(ORACLE_OBJECTS.DEP_PHONE_V, employeeNumber, USERNAME_COLUMN),
-        this.readByEmployee(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, employeeNumber, USERNAME_COLUMN),
+        this.readByUsername(ORACLE_OBJECTS.PERSONAL_DETAILS_V, employeeNumber),
+        this.readByUsername(ORACLE_OBJECTS.EMP_PHONE_V, employeeNumber),
+        this.readByUsername(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, employeeNumber),
+        this.readByUsername(ORACLE_OBJECTS.DEP_PHONE_V, employeeNumber),
+        this.readByUsername(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, employeeNumber),
       ]);
 
     return ProfileMapper.toProfile(

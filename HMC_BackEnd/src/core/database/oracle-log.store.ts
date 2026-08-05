@@ -29,6 +29,8 @@ export interface OracleLogQuery {
   op?: OracleCallOp;
   correlationId?: string;
   oraCode?: number;
+  /** Matches the enum/username value across binds, path (`?enum=`) and SQL. */
+  enum?: string;
   /** Only entries newer than this ISO timestamp. */
   since?: string;
   limit?: number;
@@ -89,6 +91,7 @@ export class OracleLogStore {
       if (query.oraCode !== undefined && e.oraCode !== query.oraCode) return false;
       if (query.object && !e.object.toUpperCase().includes(query.object.toUpperCase())) return false;
       if (query.since && e.timestamp < query.since) return false;
+      if (query.enum && !OracleLogStore.matchesEnum(e, query.enum)) return false;
       return true;
     });
 
@@ -133,5 +136,18 @@ export class OracleLogStore {
     const n = this.entries.length;
     this.entries.length = 0;
     return n;
+  }
+
+  /**
+   * Whether the enum/username `value` appears in an entry — matched across the
+   * bind values, the request path (`?enum=`/`?username=`) and the SQL literal,
+   * so it works whether the value was bound or inlined. Case-insensitive.
+   */
+  private static matchesEnum(entry: OracleLogEntry, value: string): boolean {
+    const needle = value.toLowerCase();
+    const bindHit = Object.values(entry.binds).some((v) => v.toLowerCase().includes(needle));
+    const pathHit = (entry.path ?? '').toLowerCase().includes(needle);
+    const sqlHit = (entry.sql ?? '').toLowerCase().includes(needle);
+    return bindHit || pathHit || sqlHit;
   }
 }
