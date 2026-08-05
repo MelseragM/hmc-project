@@ -9,7 +9,6 @@ import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { IdCardService, QidService } from '../application/identity.service';
-import { CompanyIdRequestDto, QidUpdateRequestDto } from './dto/identity.dto';
 
 /** Identity endpoints (ops 18, 19, 53b, 54, 59, 60). See Docs_Ai/API/README.md. */
 @ApiTags('identity')
@@ -31,22 +30,24 @@ export class IdentityController {
   @ApiOperation({ summary: 'op 19 — QID update', operationId: 'identity_qidUpdate' })
   @ApiOkResponse({ type: SubmitResultDto })
   updateQid(
-    @Body() dto: QidUpdateRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.qid.updateQid({ ...dto }, user, lang);
+    // Accepts the spec's QID_CHG_PR body (p_* keys, incl. attachments).
+    return this.qid.updateQid(body, user, lang);
   }
 
   @Post('idcard/apply')
   @ApiOperation({ summary: 'op 54 — Request company ID', operationId: 'identity_idCardApply' })
   @ApiOkResponse({ type: SubmitResultDto })
   requestCompanyId(
-    @Body() dto: CompanyIdRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.idCard.requestCompanyId({ ...dto }, user, lang);
+    // Accepts the spec's COID_REQ_PR body (p_* keys, incl. attachments).
+    return this.idCard.requestCompanyId(body, user, lang);
   }
 
   @Get('lov/work-location')

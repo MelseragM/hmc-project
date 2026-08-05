@@ -8,7 +8,6 @@ import { AuthenticatedUser, Role } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { EmployeeService, SupervisorService } from '../application/employee.service';
-import { SupervisorUpdateRequestDto } from './dto/supervisor-update.request.dto';
 
 /** Employee endpoints (ops 3, 7, 8, 35, 36). See Docs_Ai/API/README.md. */
 @ApiTags('employee')
@@ -50,10 +49,11 @@ export class EmployeeController {
   @ApiOperation({ summary: 'op 36 — Supervisor update', operationId: 'employee_supervisorUpdate' })
   @ApiOkResponse({ type: SubmitResultDto })
   supervisorUpdate(
-    @Body() dto: SupervisorUpdateRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.supervisor.update({ ...dto }, user, lang);
+    // Accepts the spec's SUPERVISOR_PR body (p_* keys, incl. attachments).
+    return this.supervisor.update(body, user, lang);
   }
 }

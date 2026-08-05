@@ -7,7 +7,6 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { LettersService } from '../application/letters.service';
-import { LetterReqSubmitDto } from './dto/letter.dto';
 
 /** Letters endpoints (ops 16, 17). See Docs_Ai/API/README.md. */
 @ApiTags('letters')
@@ -26,10 +25,11 @@ export class LettersController {
   @ApiOperation({ summary: 'op 17 — Submit letter request', operationId: 'letters_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
-    @Body() dto: LetterReqSubmitDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.submit({ ...dto }, user, lang);
+    // Accepts the spec's HR_EMPLYMNT_LTR_PR body (p_* keys).
+    return this.service.submit(body, user, lang);
   }
 }

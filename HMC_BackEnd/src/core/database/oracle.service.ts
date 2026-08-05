@@ -26,6 +26,14 @@ export interface OracleDiagnostics {
   checkedAt: string;
 }
 
+/** Per-call context threaded through the start/success/error log lines. */
+interface OracleCallLog {
+  id: number;
+  op: 'query' | 'call' | 'callCursor';
+  label: string;
+  started: number;
+}
+
 /**
  * Single `node-oracledb` connection pool for the whole app. Runs in Thick mode
  * (Oracle Client libraries) when `ORACLE_THICK_MODE` is enabled, otherwise the
@@ -42,6 +50,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OracleService.name);
   private pool: oracledb.Pool | undefined;
   private readonly cfg: OracleConfig;
+  /** Monotonic counter so each Oracle call's log lines can be correlated. */
+  private callSeq = 0;
+
+  /** Bind keys whose values must never be logged. */
+  private static readonly SENSITIVE_BIND = /(mpin|password|pwd|otp|secret|token)/i;
 
   constructor(config: ConfigService) {
     this.cfg = config.getOrThrow<OracleConfig>('oracle');
@@ -129,14 +142,17 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     sql: string,
     binds: oracledb.BindParameters = {},
   ): Promise<T[]> {
+    const call = this.logCallStart('query', sql, binds);
     const conn = await this.getPool().getConnection();
     try {
       const result = await conn.execute<T>(sql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
       });
-      return (result.rows as T[]) ?? [];
+      const rows = (result.rows as T[]) ?? [];
+      this.logCallSuccess(call, `${rows.length} row(s)`);
+      return rows;
     } catch (err) {
-      throw OracleQueryError.from(err);
+      throw this.logCallError(call, err);
     } finally {
       await this.safeClose(conn);
     }
@@ -148,6 +164,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     binds: oracledb.BindParameters,
     options: oracledb.ExecuteOptions = {},
   ): Promise<T> {
+    const call = this.logCallStart('call', plsql, binds);
     const conn = await this.getPool().getConnection();
     try {
       const result = await conn.execute(plsql, binds, {
@@ -155,9 +172,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         autoCommit: true,
         ...options,
       });
-      return (result.outBinds as T) ?? ({} as T);
+      const outBinds = (result.outBinds as T) ?? ({} as T);
+      this.logCallSuccess(call, `out={ ${Object.keys(outBinds as object).join(', ')} }`);
+      return outBinds;
     } catch (err) {
-      throw OracleQueryError.from(err);
+      throw this.logCallError(call, err);
     } finally {
       await this.safeClose(conn);
     }
@@ -172,6 +191,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     binds: oracledb.BindParameters,
     cursorBindName = 'cursor',
   ): Promise<T[]> {
+    const call = this.logCallStart('callCursor', plsql, binds);
     const conn = await this.getPool().getConnection();
     try {
       const result = await conn.execute(plsql, binds, {
@@ -180,15 +200,94 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       });
       const outBinds = (result.outBinds ?? {}) as Record<string, oracledb.ResultSet<T>>;
       const cursor = outBinds[cursorBindName];
-      if (!cursor) return [];
+      if (!cursor) {
+        this.logCallSuccess(call, 'no cursor');
+        return [];
+      }
       const rows = (await cursor.getRows(0)) as T[];
       await cursor.close();
+      this.logCallSuccess(call, `${rows?.length ?? 0} row(s)`);
       return rows ?? [];
     } catch (err) {
-      throw OracleQueryError.from(err);
+      throw this.logCallError(call, err);
     } finally {
       await this.safeClose(conn);
     }
+  }
+
+  // ── Oracle call logging ─────────────────────────────────────
+  // Every Oracle function call is logged (start + outcome) so failing/hanging
+  // calls can be traced to the exact object and (sanitized) binds. Correlated
+  // by a per-call id `[ora#N]`.
+
+  private logCallStart(
+    op: OracleCallLog['op'],
+    sql: string,
+    binds: oracledb.BindParameters,
+  ): OracleCallLog {
+    const id = ++this.callSeq;
+    const entry: OracleCallLog = { id, op, label: this.describeSql(sql), started: Date.now() };
+    this.logger.log(`[ora#${id}] ${op} → ${entry.label} binds=${this.formatBinds(binds)}`);
+    this.logger.debug(`[ora#${id}] SQL: ${this.compactSql(sql)}`);
+    return entry;
+  }
+
+  private logCallSuccess(entry: OracleCallLog, summary: string): void {
+    const ms = Date.now() - entry.started;
+    this.logger.log(`[ora#${entry.id}] ${entry.op} done ${entry.label} ${summary} (${ms}ms)`);
+  }
+
+  private logCallError(entry: OracleCallLog, err: unknown): OracleQueryError {
+    const ms = Date.now() - entry.started;
+    const wrapped = OracleQueryError.from(err);
+    const code = wrapped.oraCode ? ` [ORA-${wrapped.oraCode}]` : '';
+    this.logger.error(
+      `[ora#${entry.id}] ${entry.op} FAILED ${entry.label} after ${ms}ms${code}: ${wrapped.message}`,
+    );
+    return wrapped;
+  }
+
+  /** Short label for a statement: the view/table read or the procedure invoked. */
+  private describeSql(sql: string): string {
+    const compact = this.compactSql(sql);
+    const from = /\bfrom\s+([a-z0-9_$.]+)/i.exec(compact);
+    if (from) return from[1].toUpperCase();
+    const proc = /\b(?:begin\s+)?([a-z0-9_$]+(?:\.[a-z0-9_$]+)?)\s*\(/i.exec(compact);
+    if (proc) return proc[1].toUpperCase();
+    return compact.length > 60 ? `${compact.slice(0, 57)}...` : compact;
+  }
+
+  private compactSql(sql: string): string {
+    return sql.replace(/\s+/g, ' ').trim();
+  }
+
+  /** Render binds for logging: OUT binds as `<OUT>`, sensitive keys redacted. */
+  private formatBinds(binds: oracledb.BindParameters): string {
+    const record = binds as Record<string, unknown>;
+    if (!record || Object.keys(record).length === 0) return '{}';
+    const parts = Object.entries(record).map(
+      ([key, value]) => `${key}=${this.formatBindValue(key, value)}`,
+    );
+    return `{ ${parts.join(', ')} }`;
+  }
+
+  private formatBindValue(key: string, value: unknown): string {
+    if (OracleService.SENSITIVE_BIND.test(key)) return '***';
+    if (value !== null && typeof value === 'object') {
+      const v = value as Record<string, unknown>;
+      if ('dir' in v) {
+        if (v.dir === oracledb.BIND_OUT) return '<OUT>';
+        if (v.dir === oracledb.BIND_INOUT) return `<INOUT ${this.formatScalar(v.val)}>`;
+        return this.formatScalar(v.val);
+      }
+    }
+    return this.formatScalar(value);
+  }
+
+  private formatScalar(value: unknown): string {
+    if (value === null || value === undefined) return String(value);
+    const s = typeof value === 'string' ? value : JSON.stringify(value);
+    return s.length > 120 ? `${s.slice(0, 117)}...` : s;
   }
 
   /** Lightweight readiness check for the /health endpoint. */

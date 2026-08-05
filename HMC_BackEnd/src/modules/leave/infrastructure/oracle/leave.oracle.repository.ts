@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
+import { toOracleLanguage } from '@shared/domain/lang';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import {
   LeaveApplyCommand,
@@ -13,6 +15,49 @@ import {
   LeaveRepository,
 } from '../../domain/leave.repository';
 import { LeaveApplyBinds } from './leave-apply.binds';
+
+/** HR_LEAV_AMEND_PR input params (Sanaad spec — LEAVEAMEND body). */
+const LEAVE_AMEND_PARAMS = [
+  'p_user_name',
+  'p_leave_type',
+  'p_leave_to_amend',
+  'p_new_end_date',
+  'p_comments',
+  ...BaseOracleRepository.attachmentParams(),
+  'p_language',
+] as const;
+
+/** HR_LEAV_CANCEL_PR input params (Sanaad spec — LEAVECANCEL body). */
+const LEAVE_CANCEL_PARAMS = [
+  'p_user_name',
+  'p_leave_type',
+  'p_leave_to_cancel',
+  'p_reason_for_cancel',
+  'p_remarks',
+  ...BaseOracleRepository.attachmentParams(),
+  'p_language',
+] as const;
+
+/** RET_FRM_LEAV_PR input params (Sanaad spec — ReturnFromLeaveSubmit body). */
+const LEAVE_RETURN_PARAMS = [
+  'p_user_name',
+  'p_leave_details',
+  'p_related_leave1',
+  'p_related_leave2',
+  'p_return_date',
+  'p_comments',
+  ...BaseOracleRepository.attachmentParams(),
+  'p_language',
+] as const;
+
+/** CALC_LEAV_DUR_PR input params (Sanaad spec — LEAVE_CALCULATION body). */
+const LEAVE_CALC_PARAMS = [
+  'p_user_name',
+  'p_absence_type',
+  'p_start_date',
+  'p_end_date',
+  'p_language',
+] as const;
 
 /**
  * Leave procedures. `apply` (op 10) is implemented via the LeaveApplyBinds
@@ -40,24 +85,47 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
     return this.toSubmitResult(out);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async calculate(_cmd: LeaveCalcCommand): Promise<LeaveDuration> {
-    return this.notImplemented(ORACLE_OBJECTS.CALC_LEAV_DUR_PR);
+  async calculate(cmd: LeaveCalcCommand): Promise<LeaveDuration> {
+    const namedArgs = [
+      ...LEAVE_CALC_PARAMS.map((p) => `${p} => :${p}`),
+      'p_status => :p_status',
+      'p_message => :p_message',
+    ].join(',\n          ');
+    const out = await this.call<Record<string, any>>(
+      `BEGIN ${ORACLE_OBJECTS.CALC_LEAV_DUR_PR}(\n          ${namedArgs}); END;`,
+      {
+        p_user_name: cmd.username,
+        p_absence_type: cmd.absenceType,
+        p_start_date: cmd.startDate,
+        p_end_date: cmd.endDate,
+        p_language: toOracleLanguage(cmd.lang),
+        p_status: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
+        p_message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+      },
+    );
+    const days = Number(out.p_message);
+    return {
+      days: Number.isFinite(days) ? days : undefined,
+      successflag: out.p_status,
+      message: out.p_message,
+    };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async amend(_cmd: LeaveMutationCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.HR_LEAV_AMEND_PR);
+  async amend(cmd: LeaveMutationCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.HR_LEAV_AMEND_PR, LEAVE_AMEND_PARAMS, this.values(cmd));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async cancel(_cmd: LeaveMutationCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.HR_LEAV_CANCEL_PR);
+  async cancel(cmd: LeaveMutationCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.HR_LEAV_CANCEL_PR, LEAVE_CANCEL_PARAMS, this.values(cmd));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async returnFromLeave(_cmd: LeaveMutationCommand): Promise<SubmitResult> {
-    return this.notImplemented(ORACLE_OBJECTS.RET_FRM_LEAV_PR);
+  async returnFromLeave(cmd: LeaveMutationCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.RET_FRM_LEAV_PR, LEAVE_RETURN_PARAMS, this.values(cmd));
+  }
+
+  /** Merge the posted p_* body with the enforced user + resolved language. */
+  private values(cmd: LeaveMutationCommand): Record<string, unknown> {
+    return { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
   }
 
   async getEmploymentContext(

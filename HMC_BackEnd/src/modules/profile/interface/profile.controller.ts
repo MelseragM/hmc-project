@@ -9,7 +9,6 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ProfileService } from '../application/profile.service';
-import { UpdatePersonalRequestDto } from './dto/update-personal.request.dto';
 
 /** Profile endpoints (ops 2, 48, 63). See Docs_Ai/API/README.md. */
 @ApiTags('profile')
@@ -28,11 +27,12 @@ export class ProfileController {
   @ApiOperation({ summary: 'op 48 — Update personal details', operationId: 'profile_updatePersonal' })
   @ApiOkResponse({ type: SubmitResultDto })
   updatePersonal(
-    @Body() dto: UpdatePersonalRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.updatePersonal({ ...dto }, user, lang);
+    // Accepts the spec's UPDATE_PERSONAL_INFO_PR body (p_* keys, incl. attachments).
+    return this.service.updatePersonal(body, user, lang);
   }
 
   @Get('lov/marital-status')

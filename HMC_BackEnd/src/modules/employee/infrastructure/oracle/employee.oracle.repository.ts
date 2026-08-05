@@ -1,9 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
-import { Lang } from '@shared/domain/lang';
+import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { USERNAME_COLUMN } from '@shared/constants/oracle-columns';
+
+/** SUPERVISOR_PR input params (Sanaad spec — SUPERVISOR_PR body). */
+const SUPERVISOR_PR_PARAMS = [
+  'p_user_name',
+  'p_new_supervisor',
+  'p_reason',
+  'p_language',
+  ...BaseOracleRepository.attachmentParams(),
+] as const;
 import { EmploymentDetails, PerformanceRecord, SupervisorView } from '../../domain/entities/employment';
 import {
   EmploymentRepository,
@@ -33,7 +43,13 @@ export class EmploymentOracleRepository
   }
 
   async getPerformance(employeeNumber: string, _lang: Lang): Promise<PerformanceRecord[]> {
-    const rows = await this.readByEmployee(ORACLE_OBJECTS.PERFORMANCE_V, employeeNumber);
+    // PERFORMANCE_V is keyed by USERNAME per the spec (Input: USERNAME,LANG);
+    // employee_number raised ORA-00904.
+    const rows = await this.readByEmployee(
+      ORACLE_OBJECTS.PERFORMANCE_V,
+      employeeNumber,
+      USERNAME_COLUMN,
+    );
     return rows.map((r) => EmployeeMapper.toPerformance(r));
   }
 }
@@ -52,9 +68,8 @@ export class SupervisorOracleRepository
     return this.readByEmployee<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, employeeNumber);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async updateSupervisor(_cmd: SupervisorUpdateCommand): Promise<SubmitResult> {
-    // TODO(bind): capture XXHMC_SND_SUPERVISOR_PR signature (sample shows only p_user_name).
-    return this.notImplemented(ORACLE_OBJECTS.SUPERVISOR_PR);
+  async updateSupervisor(cmd: SupervisorUpdateCommand): Promise<SubmitResult> {
+    const values = { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
+    return this.callSubmitProc(ORACLE_OBJECTS.SUPERVISOR_PR, SUPERVISOR_PR_PARAMS, values);
   }
 }

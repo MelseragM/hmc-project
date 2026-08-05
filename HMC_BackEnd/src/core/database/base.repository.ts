@@ -70,6 +70,45 @@ export abstract class BaseOracleRepository {
     throw new NotImplementedException(`${ERROR_MESSAGES.NOT_IMPLEMENTED} [${object}]`);
   }
 
+  /**
+   * Call a submit-style `_PR` using a FIXED named-argument list (taken from the
+   * Sanaad API spec) plus the repo-standard `p_status` / `p_message` OUT binds,
+   * mapping the result to a SubmitResult. Every documented param is always bound
+   * (NULL when absent from `values`) so the procedure's full argument list is
+   * satisfied — omitting named args raises PLS-00306.
+   *
+   * NOTE: the OUT contract (`p_status`/`p_message`) follows the repo convention
+   * used by the working PHONE_PKG call; if a procedure's real OUT parameter
+   * names differ, the OracleService call log surfaces the exact PLS error.
+   */
+  protected async callSubmitProc(
+    object: string,
+    params: readonly string[],
+    values: Record<string, unknown>,
+  ): Promise<SubmitResult> {
+    const namedArgs = [
+      ...params.map((p) => `${p} => :${p}`),
+      'p_status => :p_status',
+      'p_message => :p_message',
+    ].join(',\n          ');
+    const binds: oracledb.BindParameters = { ...this.statusOutBinds() };
+    for (const p of params) {
+      (binds as Record<string, unknown>)[p] = values[p] ?? null;
+    }
+    const out = await this.call<Record<string, any>>(
+      `BEGIN ${object}(\n          ${namedArgs}); END;`,
+      binds,
+    );
+    return this.toSubmitResult(out);
+  }
+
+  /** `p_file_name1..N` / `p_attachment1..N` slot names shared by submit procs. */
+  static attachmentParams(n = 10): string[] {
+    const slots: string[] = [];
+    for (let i = 1; i <= n; i++) slots.push(`p_file_name${i}`, `p_attachment${i}`);
+    return slots;
+  }
+
   /** Standard OUT binds for a status flag + message returned by `_PR` procedures. */
   protected statusOutBinds(): oracledb.BindParameters {
     return {

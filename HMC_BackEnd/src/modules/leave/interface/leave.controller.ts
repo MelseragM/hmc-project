@@ -13,7 +13,6 @@ import {
   ApplyLeaveRequestDto,
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
-  LeaveMutationRequestDto,
 } from './dto/leave.dto';
 
 /** Leave endpoints (14 ops). See Docs_Ai/API/README.md — Module: leave. */
@@ -54,33 +53,36 @@ export class LeaveController {
   @ApiOperation({ summary: 'op 57 — Leave amend', operationId: 'leave_amend' })
   @ApiOkResponse({ type: SubmitResultDto })
   amend(
-    @Body() dto: LeaveMutationRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.amend({ ...dto }, user, lang);
+    // Accepts the spec's HR_LEAV_AMEND_PR body (p_* keys, incl. attachments).
+    return this.service.amend(body, user, lang);
   }
 
   @Post('cancel')
   @ApiOperation({ summary: 'op 58 — Leave cancel', operationId: 'leave_cancel' })
   @ApiOkResponse({ type: SubmitResultDto })
   cancel(
-    @Body() dto: LeaveMutationRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.cancel({ ...dto }, user, lang);
+    // Accepts the spec's HR_LEAV_CANCEL_PR body (p_* keys, incl. attachments).
+    return this.service.cancel(body, user, lang);
   }
 
   @Post('return')
   @ApiOperation({ summary: 'op 56 — Return from leave', operationId: 'leave_return' })
   @ApiOkResponse({ type: SubmitResultDto })
   returnFromLeave(
-    @Body() dto: LeaveMutationRequestDto,
+    @Body() body: Record<string, unknown>,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.returnFromLeave({ ...dto }, user, lang);
+    // Accepts the spec's RET_FRM_LEAV_PR body (p_* keys, incl. attachments).
+    return this.service.returnFromLeave(body, user, lang);
   }
 
   @Get('lov/types')
