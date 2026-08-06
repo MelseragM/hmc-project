@@ -20,6 +20,8 @@ export interface OracleLogEntry {
   path?: string;
   binds: Record<string, string>;
   sql?: string;
+  /** Sanitized preview of what Oracle returned (rows or OUT-bind values). */
+  response?: unknown;
 }
 
 /** Filter/pagination options for `list`. */

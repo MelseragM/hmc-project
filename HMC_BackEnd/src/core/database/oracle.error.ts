@@ -1,3 +1,4 @@
+import { ServiceUnavailableException } from '@nestjs/common';
 import { extractOraCode } from '@shared/constants/error-codes';
 
 /**
@@ -23,3 +24,12 @@ export class OracleQueryError extends Error {
     return new OracleQueryError(message, err);
   }
 }
+
+/**
+ * Thrown when the Oracle connection pool itself isn't available (disabled,
+ * missing credentials, or not yet created). A distinct type from
+ * ServiceUnavailableException so the global exception classifier can categorize
+ * it as a DATABASE_ERROR rather than lumping it in with genuinely external
+ * services (Cerner, LDAP).
+ */
+export class OracleUnavailableException extends ServiceUnavailableException {}

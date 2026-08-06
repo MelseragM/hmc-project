@@ -10,13 +10,14 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { AllExceptionsFilter } from './http/all-exceptions.filter';
 import { ResponseInterceptor } from './http/response.interceptor';
-import { LoggingInterceptor } from './http/logging.interceptor';
 import { TimeoutInterceptor } from './http/timeout.interceptor';
 import { CorrelationIdMiddleware } from './http/correlation-id.middleware';
 import { HealthController } from './health/health.controller';
 import { AuditModule } from './audit/audit.module';
 import { AuditInterceptor } from './audit/audit.interceptor';
 import { FunctionAccessGuard } from './auth/function-access.guard';
+import { ApiLogsModule } from './logging/api-logs.module';
+import { ApiLogInterceptor } from './logging/api-log.interceptor';
 
 /**
  * Framework-level cross-cutting concerns wired once for the whole app:
@@ -25,6 +26,10 @@ import { FunctionAccessGuard } from './auth/function-access.guard';
  *
  * A single global filter (AllExceptionsFilter) categorizes every exception —
  * including OracleQueryError — into a safe, consistent error envelope.
+ *
+ * ApiLogInterceptor is the OUTERMOST interceptor (first APP_INTERCEPTOR), so it
+ * observes the final response (success) or the original exception (failure)
+ * for every request and logs it automatically — see `logging/` module.
  */
 @Module({
   imports: [
@@ -38,6 +43,7 @@ import { FunctionAccessGuard } from './auth/function-access.guard';
     OracleModule,
     AuthModule,
     AuditModule,
+    ApiLogsModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -49,7 +55,7 @@ import { FunctionAccessGuard } from './auth/function-access.guard';
         transform: true,
       }),
     },
-    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ApiLogInterceptor },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
     { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { OracleQueryError } from '../database/oracle.error';
+import { OracleQueryError, OracleUnavailableException } from '../database/oracle.error';
 import { ORA_NO_DATA_FOUND } from '@shared/constants/error-codes';
 import { CATEGORY_MESSAGE, CATEGORY_STATUS, ErrorCategory } from './error-category';
 
@@ -32,6 +32,12 @@ function of(category: ErrorCategory, overrides: Partial<ClassifiedError> = {}): 
  * ordinary exceptions and never need to sanitize messages themselves.
  */
 export function classifyException(exception: unknown): ClassifiedError {
+  // The Oracle pool being unavailable is a database problem, not a call to a
+  // genuinely external service (Cerner, LDAP) — check before the generic
+  // ServiceUnavailableException → EXTERNAL_SERVICE_ERROR mapping below.
+  if (exception instanceof OracleUnavailableException) {
+    return of(ErrorCategory.DATABASE_ERROR, { httpStatus: exception.getStatus() });
+  }
   if (exception instanceof OracleQueryError) return classifyOracle(exception);
   if (exception instanceof HttpException) return classifyHttp(exception);
   // A thrown Error that isn't an HttpException is an application bug.
@@ -52,7 +58,7 @@ function classifyOracle(ex: OracleQueryError): ClassifiedError {
     code === 2292 ||
     (code! >= 20000 && code! <= 20999)
   ) {
-    return of(ErrorCategory.BUSINESS_RULE);
+    return of(ErrorCategory.BUSINESS_RULE_ERROR);
   }
   return of(ErrorCategory.DATABASE_ERROR);
 }
@@ -77,14 +83,14 @@ function classifyHttp(ex: HttpException): ClassifiedError {
     case HttpStatus.GATEWAY_TIMEOUT:
       return of(ErrorCategory.TIMEOUT, { httpStatus: status });
     case HttpStatus.CONFLICT:
-      return of(ErrorCategory.BUSINESS_RULE);
+      return of(ErrorCategory.BUSINESS_RULE_ERROR);
     case HttpStatus.BAD_GATEWAY:
     case HttpStatus.SERVICE_UNAVAILABLE:
       return of(ErrorCategory.EXTERNAL_SERVICE_ERROR, { httpStatus: status });
     default:
       if (status >= 500) return of(ErrorCategory.APPLICATION_ERROR, { httpStatus: status });
       // Any other 4xx: a client-side rule violation, message kept generic.
-      return of(ErrorCategory.BUSINESS_RULE, { httpStatus: status });
+      return of(ErrorCategory.BUSINESS_RULE_ERROR, { httpStatus: status });
   }
 }
 

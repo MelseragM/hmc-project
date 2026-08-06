@@ -1,15 +1,9 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import oracledb = require('oracledb');
 import { OracleConfig } from '../config/configuration';
 import { ERROR_MESSAGES, extractOraCode } from '@shared/constants/error-codes';
-import { OracleQueryError } from './oracle.error';
+import { OracleQueryError, OracleUnavailableException } from './oracle.error';
 import { RequestContext } from '../http/request-context';
 import { OracleLogStore } from './oracle-log.store';
 
@@ -57,8 +51,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   /** Monotonic counter so each Oracle call's log lines can be correlated. */
   private callSeq = 0;
 
-  /** Bind keys whose values must never be logged. */
+  /** Bind/column keys whose values must never be logged. */
   private static readonly SENSITIVE_BIND = /(mpin|password|pwd|otp|secret|token)/i;
+  /** Response preview caps so the diagnostics log never balloons in size. */
+  private static readonly MAX_RESPONSE_ROWS = 5;
+  private static readonly MAX_RESPONSE_STRING = 300;
 
   constructor(
     config: ConfigService,
@@ -139,7 +136,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
 
   private getPool(): oracledb.Pool {
     if (!this.pool) {
-      throw new ServiceUnavailableException(ERROR_MESSAGES.ORACLE_UNAVAILABLE);
+      throw new OracleUnavailableException(ERROR_MESSAGES.ORACLE_UNAVAILABLE);
     }
     return this.pool;
   }
@@ -156,7 +153,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
       });
       const rows = (result.rows as T[]) ?? [];
-      this.logCallSuccess(call, { summary: `${rows.length} row(s)`, rowCount: rows.length });
+      this.logCallSuccess(call, {
+        summary: `${rows.length} row(s)`,
+        rowCount: rows.length,
+        response: this.sanitizeResponseValue(rows),
+      });
       return rows;
     } catch (err) {
       throw this.logCallError(call, err);
@@ -181,7 +182,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       });
       const outBinds = (result.outBinds as T) ?? ({} as T);
       const outKeys = Object.keys(outBinds as object);
-      this.logCallSuccess(call, { summary: `out={ ${outKeys.join(', ')} }`, outKeys });
+      this.logCallSuccess(call, {
+        summary: `out={ ${outKeys.join(', ')} }`,
+        outKeys,
+        response: this.sanitizeResponseValue(outBinds),
+      });
       return outBinds;
     } catch (err) {
       throw this.logCallError(call, err);
@@ -214,7 +219,11 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       }
       const rows = (await cursor.getRows(0)) as T[];
       await cursor.close();
-      this.logCallSuccess(call, { summary: `${rows?.length ?? 0} row(s)`, rowCount: rows?.length ?? 0 });
+      this.logCallSuccess(call, {
+        summary: `${rows?.length ?? 0} row(s)`,
+        rowCount: rows?.length ?? 0,
+        response: this.sanitizeResponseValue(rows ?? []),
+      });
       return rows ?? [];
     } catch (err) {
       throw this.logCallError(call, err);
@@ -249,7 +258,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
 
   private logCallSuccess(
     entry: OracleCallLog,
-    result: { summary: string; rowCount?: number; outKeys?: string[] },
+    result: { summary: string; rowCount?: number; outKeys?: string[]; response?: unknown },
   ): void {
     const ms = Date.now() - entry.started;
     this.logger.log(`[ora#${entry.id}] ${entry.op} done ${entry.label} ${result.summary} (${ms}ms)`);
@@ -257,6 +266,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       status: 'success',
       rowCount: result.rowCount,
       outKeys: result.outKeys,
+      response: result.response,
     });
   }
 
@@ -285,6 +295,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       outKeys?: string[];
       oraCode?: number;
       error?: string;
+      response?: unknown;
     },
   ): void {
     const ctx = RequestContext.get();
@@ -304,7 +315,36 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       path: ctx?.path,
       binds: entry.binds,
       sql: entry.sql,
+      response: outcome.response,
     });
+  }
+
+  /**
+   * Render an Oracle result (rows or OUT-bind values) for the diagnostics log:
+   * sensitive columns redacted, strings truncated, and — for arrays — capped to
+   * a handful of rows with a note of how many were omitted. Keeps the log
+   * bounded regardless of how much data a call actually returned.
+   */
+  private sanitizeResponseValue(value: unknown): unknown {
+    if (value === null || value === undefined) return value;
+    if (typeof value === 'string') {
+      return value.length > OracleService.MAX_RESPONSE_STRING
+        ? `${value.slice(0, OracleService.MAX_RESPONSE_STRING)}…`
+        : value;
+    }
+    if (Array.isArray(value)) {
+      const shown = value.slice(0, OracleService.MAX_RESPONSE_ROWS).map((v) => this.sanitizeResponseValue(v));
+      const omitted = value.length - shown.length;
+      return omitted > 0 ? [...shown, `…(${omitted} more row(s) not shown)`] : shown;
+    }
+    if (typeof value === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+        out[key] = OracleService.SENSITIVE_BIND.test(key) ? '***' : this.sanitizeResponseValue(v);
+      }
+      return out;
+    }
+    return value;
   }
 
   /** Short label for a statement: the view/table read or the procedure invoked. */
