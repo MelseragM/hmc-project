@@ -5,6 +5,7 @@ import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
 import {
   CompanyIdCommand,
   IdCardRepository,
@@ -42,9 +43,13 @@ export class QidOracleRepository extends BaseOracleRepository implements QidRepo
   }
 
   async getQid(employeeNumber: string, _lang: Lang): Promise<QidDetail | undefined> {
-    // QID_DET_V is keyed by username per the spec (GET_QID_DET?USER_NAME=...);
-    // emitted as an inline literal: WHERE username = '<enum>'.
-    const rows = await this.readByUsername(ORACLE_OBJECTS.QID_DET_V, employeeNumber);
+    // QID_DET_V is keyed by the caller's login; resolve the real column name from
+    // the data dictionary (hard-coded `username` raised ORA-00904).
+    const rows = await this.readByResolvedKey(
+      ORACLE_OBJECTS.QID_DET_V,
+      employeeNumber,
+      USERNAME_KEY_CANDIDATES,
+    );
     return rows[0];
   }
 

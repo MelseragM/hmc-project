@@ -63,27 +63,13 @@ export abstract class BaseOracleRepository {
     });
   }
 
-  /**
-   * SELECT all rows from a username-scoped view/LOV (Pattern A).
-   *
-   * The username is emitted as an inline single-quoted literal rather than a
-   * bind — i.e. `WHERE username = 'AIBRAHIM39'` — per the Oracle team's guidance
-   * for these views. The value is escaped (single quotes doubled) so it stays
-   * injection-safe.
-   */
+  /** SELECT all rows from a username-scoped view/LOV (Pattern A). */
   protected readByUsername<T = Record<string, any>>(
     object: string,
     username: string,
     keyColumn: string = USERNAME_COLUMN,
   ): Promise<T[]> {
-    return this.query<T>(
-      `SELECT * FROM ${object} WHERE ${keyColumn} = ${BaseOracleRepository.quoteLiteral(username)}`,
-    );
-  }
-
-  /** Render a value as a safe Oracle string literal (`'value'`, quotes doubled). */
-  protected static quoteLiteral(value: string): string {
-    return `'${String(value).replace(/'/g, "''")}'`;
+    return this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :u`, { u: username });
   }
 
   /**

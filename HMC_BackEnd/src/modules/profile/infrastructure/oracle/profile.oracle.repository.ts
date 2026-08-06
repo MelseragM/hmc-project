@@ -5,6 +5,7 @@ import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
 import { EmployeeProfile } from '../../domain/entities/employee-profile';
 import { ProfileRepository, UpdatePersonalCommand } from '../../domain/profile.repository';
 import { ProfileMapper } from './profile.mapper';
@@ -41,16 +42,16 @@ export class ProfileOracleRepository extends BaseOracleRepository implements Pro
   }
 
   async getProfile(employeeNumber: string, lang: Lang): Promise<EmployeeProfile> {
-    // Per the API spec (GetPersonalDetails) these views are keyed by USERNAME
-    // (the V-xxx login the app passes as `enum`), not employee_number. The
-    // username is emitted as an inline literal: WHERE username = '<enum>'.
+    // These views are keyed by the caller's login, but the actual column name
+    // differs per object (hard-coded `username` raised ORA-00904). Resolve it
+    // from the data dictionary (USER_NAME → USERNAME) and bind the value.
     const [personalRows, phoneRows, addressRows, dependentPhoneRows, dependentAddressRows] =
       await Promise.all([
-        this.readByUsername(ORACLE_OBJECTS.PERSONAL_DETAILS_V, employeeNumber),
-        this.readByUsername(ORACLE_OBJECTS.EMP_PHONE_V, employeeNumber),
-        this.readByUsername(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, employeeNumber),
-        this.readByUsername(ORACLE_OBJECTS.DEP_PHONE_V, employeeNumber),
-        this.readByUsername(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, employeeNumber),
+        this.readByResolvedKey(ORACLE_OBJECTS.PERSONAL_DETAILS_V, employeeNumber, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_PHONE_V, employeeNumber, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, employeeNumber, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.DEP_PHONE_V, employeeNumber, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, employeeNumber, USERNAME_KEY_CANDIDATES),
       ]);
 
     return ProfileMapper.toProfile(

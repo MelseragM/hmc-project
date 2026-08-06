@@ -101,6 +101,12 @@ export class DiagnosticsController {
   @Public()
   @SkipEnvelope()
   @Header('Content-Type', 'text/html; charset=utf-8')
+  // helmet's default CSP blocks inline <script>/onclick; relax it for this
+  // self-contained diagnostics page (overrides the global header for this route).
+  @Header(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'",
+  )
   @ApiExcludeEndpoint()
   @Get('oracle-logs/view')
   view(): string {
