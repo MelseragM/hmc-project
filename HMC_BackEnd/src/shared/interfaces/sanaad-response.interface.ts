@@ -20,15 +20,26 @@ export interface SanaadActionEnvelope<T = unknown> {
   result?: T;
 }
 
+/**
+ * Error envelope produced by the global exception filter. The primary contract
+ * is `success` + `message` + `category` (+ `errors` for validation); the legacy
+ * `status`/`opstatus`/`errormessage` fields are retained for backward
+ * compatibility and always carry the SAME safe message (never technical detail).
+ */
 export interface SanaadErrorEnvelope {
+  success: false;
+  message: string;
+  category: string;
+  errors?: Record<string, unknown>;
+  httpStatusCode: number;
+  correlationId?: string;
+  timestamp?: string;
+  path?: string;
+  // ── Backward-compatible fields (safe values only) ──
   status: 'error';
   opstatus: 1;
   errormessage: string;
   errormessageAr?: string;
-  httpStatusCode: number;
-  path?: string;
-  correlationId?: string;
-  timestamp?: string;
 }
 
 export type SanaadEnvelope<T = unknown> =

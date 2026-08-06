@@ -1,65 +1,83 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { Response } from 'express';
 import { SanaadErrorEnvelope } from '@shared/interfaces/sanaad-response.interface';
-import { ERROR_MESSAGES } from '@shared/constants/error-codes';
+import { OracleQueryError } from '../database/oracle.error';
+import { classifyException } from './exception-classifier';
+
+interface RequestLike {
+  url?: string;
+  method?: string;
+  correlationId?: string;
+  user?: { username?: string; employeeNumber?: string };
+}
 
 /**
- * Catch-all filter (HttpException + unknown errors) → Sanaad error envelope.
- * OracleQueryError is handled by the more specific OracleExceptionFilter.
+ * Global exception filter — the single place errors become HTTP responses.
+ *
+ * It classifies EVERY thrown value (Oracle errors, Nest HttpExceptions, plain
+ * bugs) into a safe category + message and returns a consistent envelope. No
+ * technical detail (ORA codes, SQL, schema, stack traces, internal messages)
+ * ever reaches the client; the full exception is logged server-side instead.
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger(AllExceptionsFilter.name);
+  private readonly logger = new Logger('ExceptionFilter');
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
-    const req = ctx.getRequest<{ url?: string; correlationId?: string }>();
+    const req = ctx.getRequest<RequestLike>();
 
-    let httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let errormessage: string = ERROR_MESSAGES.UNEXPECTED;
+    const classified = classifyException(exception);
+    this.logInternal(exception, classified, req);
 
-    if (exception instanceof HttpException) {
-      httpStatusCode = exception.getStatus();
-      const response = exception.getResponse();
-      errormessage = this.extractMessage(response) ?? exception.message;
-    } else if (exception instanceof Error) {
-      errormessage = exception.message;
-    }
-
-    if (httpStatusCode >= 500) {
-      this.logger.error(
-        `Unhandled error on ${req?.url ?? ''}: ${errormessage}`,
-        exception instanceof Error ? exception.stack : undefined,
-      );
-    } else {
-      this.logger.warn(`${httpStatusCode} on ${req?.url ?? ''}: ${errormessage}`);
-    }
-
-    const envelope: SanaadErrorEnvelope = {
-      status: 'error',
-      opstatus: 1,
-      errormessage,
-      httpStatusCode,
-      path: req?.url,
+    const body: SanaadErrorEnvelope = {
+      success: false,
+      message: classified.message,
+      category: classified.category,
+      ...(classified.errors ? { errors: classified.errors } : {}),
+      httpStatusCode: classified.httpStatus,
       correlationId: req?.correlationId,
       timestamp: new Date().toISOString(),
+      path: req?.url,
+      // Backward-compatible fields — same safe message, never raw detail.
+      status: 'error',
+      opstatus: 1,
+      errormessage: classified.message,
     };
 
-    res.status(httpStatusCode).json(envelope);
+    res.status(classified.httpStatus).json(body);
   }
 
-  private extractMessage(response: string | object): string | undefined {
-    if (typeof response === 'string') return response;
-    const msg = (response as { message?: string | string[] }).message;
-    if (Array.isArray(msg)) return msg.join('; ');
-    return msg;
+  /**
+   * Log the COMPLETE exception for developers: original message, stack, ORA
+   * code, request URL/method, authenticated user, correlation id (timestamp is
+   * added by the logger). 5xx → error (with stack); 4xx → warn.
+   */
+  private logInternal(
+    exception: unknown,
+    classified: ReturnType<typeof classifyException>,
+    req: RequestLike,
+  ): void {
+    const detail = {
+      category: classified.category,
+      httpStatus: classified.httpStatus,
+      method: req?.method,
+      url: req?.url,
+      user: req?.user?.username ?? req?.user?.employeeNumber ?? 'anonymous',
+      correlationId: req?.correlationId ?? '-',
+      oraCode: exception instanceof OracleQueryError ? exception.oraCode : undefined,
+      originalMessage: exception instanceof Error ? exception.message : String(exception),
+    };
+    const line =
+      `${classified.category} ${classified.httpStatus} ${detail.method ?? ''} ${detail.url ?? ''} ` +
+      `user=${detail.user} cid=${detail.correlationId}` +
+      `${detail.oraCode ? ` ORA-${detail.oraCode}` : ''} :: ${detail.originalMessage}`;
+
+    if (classified.serverSide) {
+      this.logger.error(line, exception instanceof Error ? exception.stack : undefined);
+    } else {
+      this.logger.warn(line);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { NotImplementedException } from '@nestjs/common';
+import { Logger, NotImplementedException } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from './oracle.service';
 import { OracleSchemaService } from './oracle-schema.service';
@@ -6,6 +6,7 @@ import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
 import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-columns';
+import { CATEGORY_MESSAGE, ErrorCategory, looksSensitive } from '../http/error-category';
 
 /**
  * Base class for Oracle adapters. Centralizes the OUT-bind conventions
@@ -15,6 +16,9 @@ import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-column
  * See Docs_Ai/Repository Pattern/README.md (Recommendations).
  */
 export abstract class BaseOracleRepository {
+  /** Named after the concrete subclass so log lines identify the adapter. */
+  private readonly logger = new Logger(this.constructor.name);
+
   /**
    * `schema` is optional: adapters that read views whose key column is not
    * certain, or that call procedures whose OUT contract is not certain, inject it
@@ -236,11 +240,23 @@ export abstract class BaseOracleRepository {
     const message = (out.p_message ?? out.p_error_msg ?? out.msg ?? out.errormessage ?? '').toString();
     const messageAr = out.p_message_ar ?? out.p_error_msg_ar ?? out.errormessage_ar;
     const isSuccess = flagRaw.toUpperCase() === 'S' || flagRaw === '0';
+    let errormessage = message || (isSuccess ? 'Success' : 'Operation failed');
+    let safeMessageAr = messageAr ? safeDecodeUri(messageAr) : undefined;
+
+    // This channel (op result, HTTP 200) bypasses the exception filter, so an
+    // Oracle proc surfacing an ORA-/PLS- error or SQL text in p_message must be
+    // sanitized here too — never forward technical detail to the client.
+    if (!isSuccess && looksSensitive(errormessage)) {
+      this.logger.warn(`Suppressed technical proc message: ${errormessage}`);
+      errormessage = CATEGORY_MESSAGE[ErrorCategory.DATABASE_ERROR];
+      safeMessageAr = undefined;
+    }
+
     return {
       successflag: isSuccess ? 'S' : 'N',
       status: isSuccess ? 'success' : 'error',
-      errormessage: message || (isSuccess ? 'Success' : 'Operation failed'),
-      errormessageAr: messageAr ? safeDecodeUri(messageAr) : undefined,
+      errormessage,
+      errormessageAr: safeMessageAr,
     };
   }
 }

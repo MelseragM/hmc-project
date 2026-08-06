@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { AllExceptionsFilter } from './http/all-exceptions.filter';
-import { OracleExceptionFilter } from './http/oracle-exception.filter';
 import { ResponseInterceptor } from './http/response.interceptor';
 import { LoggingInterceptor } from './http/logging.interceptor';
 import { TimeoutInterceptor } from './http/timeout.interceptor';
@@ -24,8 +23,8 @@ import { FunctionAccessGuard } from './auth/function-access.guard';
  * validated config, Oracle pool, auth, global pipe/guards/interceptors/filters,
  * and the correlation-id middleware.
  *
- * Filter precedence: OracleExceptionFilter is declared LAST so it takes
- * precedence over the catch-all AllExceptionsFilter for OracleQueryError.
+ * A single global filter (AllExceptionsFilter) categorizes every exception —
+ * including OracleQueryError — into a safe, consistent error envelope.
  */
 @Module({
   imports: [
@@ -58,7 +57,6 @@ import { FunctionAccessGuard } from './auth/function-access.guard';
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: FunctionAccessGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
-    { provide: APP_FILTER, useClass: OracleExceptionFilter },
   ],
 })
 export class CoreModule implements NestModule {
