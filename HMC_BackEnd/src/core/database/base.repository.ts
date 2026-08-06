@@ -7,6 +7,8 @@ import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
 import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-columns';
 import { CATEGORY_MESSAGE, ErrorCategory, looksSensitive } from '../http/error-category';
+import { SchemaColumnNotFoundException } from './schema-column-not-found.error';
+import { RequestContext } from '../http/request-context';
 
 /**
  * Base class for Oracle adapters. Centralizes the OUT-bind conventions
@@ -80,6 +82,14 @@ export abstract class BaseOracleRepository {
    * SELECT from a view filtered on whichever of `candidates` the view really
    * exposes (see OracleSchemaService). Use this instead of guessing between
    * documented request-parameter names such as USER_NAME vs EMPLOYEE_NUMBER.
+   *
+   * A schema mismatch (none of the candidates exist on `object`) is NOT
+   * allowed to fail the request: it's logged as a SCHEMA_MISMATCH warning
+   * (with the view, missing/available columns and calling repository) and
+   * this read degrades to an empty result, so the rest of the response —
+   * built from whichever OTHER reads/views succeeded — is still returned as
+   * HTTP 200. Any other failure (connectivity, permissions, timeouts, real
+   * SQL errors) is untouched and still propagates to the global handler.
    */
   protected async readByResolvedKey<T = Record<string, any>>(
     object: string,
@@ -91,8 +101,30 @@ export abstract class BaseOracleRepository {
         `${this.constructor.name} must inject OracleSchemaService to use readByResolvedKey.`,
       );
     }
-    const keyColumn = await this.schema.resolveKeyColumn(object, candidates);
-    return this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :key`, { key: value });
+    try {
+      const keyColumn = await this.schema.resolveKeyColumn(object, candidates);
+      return await this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :key`, {
+        key: value,
+      });
+    } catch (err) {
+      if (err instanceof SchemaColumnNotFoundException) {
+        this.logSchemaMismatch(err);
+        return [];
+      }
+      throw err;
+    }
+  }
+
+  /** Structured, internal-only WARNING for a caught schema mismatch (never a fatal error). */
+  private logSchemaMismatch(err: SchemaColumnNotFoundException): void {
+    const requestId = RequestContext.get()?.correlationId ?? '-';
+    this.logger.warn(
+      `[SCHEMA_MISMATCH] requestId=${requestId} repository=${this.constructor.name} ` +
+        `object=${err.object} missingCandidates=[${err.candidates.join(', ')}] ` +
+        `availableColumns=[${err.availableColumns.join(', ')}] — degrading to an empty result ` +
+        `instead of failing the request.`,
+      err.stack,
+    );
   }
 
   /**

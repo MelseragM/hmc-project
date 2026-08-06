@@ -15,6 +15,12 @@ export enum ErrorCategory {
   TIMEOUT = 'TIMEOUT',
   APPLICATION_ERROR = 'APPLICATION_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  /**
+   * Internal-only: a resolvable Oracle column/view mismatch. Always caught and
+   * degraded to a partial-but-successful response (see readByResolvedKey /
+   * AllExceptionsFilter) — never actually sent to a client as an error.
+   */
+  SCHEMA_MISMATCH = 'SCHEMA_MISMATCH',
 }
 
 /** Safe, high-level message shown to clients per category. */
@@ -30,6 +36,7 @@ export const CATEGORY_MESSAGE: Readonly<Record<ErrorCategory, string>> = Object.
   [ErrorCategory.TIMEOUT]: 'The request took too long to process. Please try again.',
   [ErrorCategory.APPLICATION_ERROR]: 'An unexpected application error occurred.',
   [ErrorCategory.UNKNOWN_ERROR]: 'An unexpected error occurred.',
+  [ErrorCategory.SCHEMA_MISMATCH]: 'Success.',
 });
 
 /** Default HTTP status per category (a concrete HttpException status wins over this). */
@@ -44,6 +51,9 @@ export const CATEGORY_STATUS: Readonly<Record<ErrorCategory, number>> = Object.f
   [ErrorCategory.TIMEOUT]: 408,
   [ErrorCategory.APPLICATION_ERROR]: 500,
   [ErrorCategory.UNKNOWN_ERROR]: 500,
+  // Not used for an error response — AllExceptionsFilter special-cases this
+  // category and responds 200 (see the SchemaColumnNotFoundException branch).
+  [ErrorCategory.SCHEMA_MISMATCH]: 200,
 });
 
 /**

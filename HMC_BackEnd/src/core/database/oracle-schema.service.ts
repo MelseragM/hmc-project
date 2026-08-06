@@ -1,6 +1,7 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleArgumentInfo, OracleMetadataService } from './oracle-metadata.service';
+import { SchemaColumnNotFoundException } from './schema-column-not-found.error';
 
 /** One formal parameter of a procedure, reduced to what binding needs. */
 export interface ProcedureParam {
@@ -48,10 +49,10 @@ export class OracleSchemaService {
     const match = candidates.find((c) => available.has(c.toUpperCase()));
     if (match) return match;
 
-    throw new ServiceUnavailableException(
-      `None of the expected key columns [${candidates.join(', ')}] exist on ${object}. ` +
-        `Available columns: ${[...available].join(', ')}.`,
-    );
+    // A schema mismatch (missing/renamed column) — NOT a connectivity/timeout/
+    // permission problem. Distinct type so callers can degrade gracefully
+    // instead of failing the whole request (see readByResolvedKey).
+    throw new SchemaColumnNotFoundException(object, candidates, [...available]);
   }
 
   /** True when `object` exposes `column`. */

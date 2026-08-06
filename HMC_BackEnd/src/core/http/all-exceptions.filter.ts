@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { SanaadErrorEnvelope } from '@shared/interfaces/sanaad-response.interface';
 import { OracleQueryError } from '../database/oracle.error';
 import { classifyException } from './exception-classifier';
+import { ErrorCategory } from './error-category';
 
 interface RequestLike {
   url?: string;
@@ -30,6 +31,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const classified = classifyException(exception);
     this.logInternal(exception, classified, req);
+
+    // Safety net for a schema mismatch that escaped uncaught (see
+    // SchemaColumnNotFoundException): never surface it as a failure — respond
+    // like a normal (if incomplete) success instead of an error envelope.
+    if (classified.category === ErrorCategory.SCHEMA_MISMATCH) {
+      res.status(200).json({ result: {}, opstatus: 0, status: 'success', httpStatusCode: 200 });
+      return;
+    }
 
     const body: SanaadErrorEnvelope = {
       success: false,

@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { AuthenticatedUser } from '../auth/auth-user.interface';
 import { OracleQueryError } from '../database/oracle.error';
 import { classifyException } from '../http/exception-classifier';
+import { ErrorCategory } from '../http/error-category';
 import { ApiLogEntry } from './api-log.model';
 import { ApiLogStore } from './api-log.store';
 import { ApiLogFileWriter } from './api-log-file-writer.service';
@@ -26,15 +27,27 @@ type RequestWithContext = Request & {
  */
 @Injectable()
 export class ApiLogInterceptor implements NestInterceptor {
+  /**
+   * Path segments never logged: the monitoring endpoints themselves. Without
+   * this, the dashboards' own polling (stats/list, every few seconds) fills
+   * the log with entries about the log — a self-referential feedback loop.
+   */
+  private static readonly EXCLUDED_PATH_MARKERS = ['/api-logs', '/diagnostics/oracle-logs'];
+
   constructor(
     private readonly store: ApiLogStore,
     private readonly fileWriter: ApiLogFileWriter,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const started = Date.now();
     const http = context.switchToHttp();
     const req = http.getRequest<RequestWithContext>();
+
+    if (this.isExcluded(req)) {
+      return next.handle();
+    }
+
+    const started = Date.now();
     const res = http.getResponse<Response>();
     const base = this.baseContext(context, req, started);
 
@@ -52,11 +65,14 @@ export class ApiLogInterceptor implements NestInterceptor {
         const classified = classifyException(err);
         const stack = err instanceof Error ? err.stack : undefined;
         const { file, functionName } = topStackFrame(stack);
+        // Defense-in-depth schema-mismatch safety net (see AllExceptionsFilter):
+        // it responds 200, so log it as a successful-but-degraded request, not a failure.
+        const isSchemaMismatch = classified.category === ErrorCategory.SCHEMA_MISMATCH;
         this.persist({
           ...base,
           statusCode: classified.httpStatus,
           responseTimeMs: Date.now() - started,
-          success: false,
+          success: isSchemaMismatch,
           errorCategory: classified.category,
           errorMessage: classified.message,
           errors: classified.errors,
@@ -93,6 +109,12 @@ export class ApiLogInterceptor implements NestInterceptor {
       action: handler?.name,
       environment: process.env.NODE_ENV ?? 'development',
     };
+  }
+
+  /** True for the API-logs and Oracle-logs monitoring endpoints themselves (and their sub-routes). */
+  private isExcluded(req: RequestWithContext): boolean {
+    const path = (req?.originalUrl ?? req?.url ?? '').split('?')[0];
+    return ApiLogInterceptor.EXCLUDED_PATH_MARKERS.some((marker) => path.includes(marker));
   }
 
   private routeTemplate(req: RequestWithContext): string | undefined {
