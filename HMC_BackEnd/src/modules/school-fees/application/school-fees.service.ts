@@ -5,6 +5,7 @@ import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LookupsService } from '@lookups/application/lookups.service';
+import { LovReadOptions } from '@lookups/domain/lov.repository';
 import {
   ChildDetail,
   SCHOOL_FEE_REPOSITORY,
@@ -27,8 +28,12 @@ export class SchoolFeeService {
     return this.repo.getChildren({ employeeNumber, academicYearStartDate, lang });
   }
 
-  schoolsLov(lang: Lang, username: string): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.SCHOOL_NAME_LOV, lang, username);
+  schoolsLov(
+    lang: Lang,
+    username: string,
+    options?: LovReadOptions,
+  ): Promise<LovItem[]> {
+    return this.lookups.getByObject(ORACLE_OBJECTS.SCHOOL_NAME_LOV, lang, username, options);
   }
   termsLov(lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.SCHOOL_TERM_LOV, lang);

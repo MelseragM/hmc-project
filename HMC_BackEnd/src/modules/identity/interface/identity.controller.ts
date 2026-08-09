@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -27,6 +27,7 @@ export class IdentityController {
   }
 
   @Post('qid/update')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 19 — QID update', operationId: 'identity_qidUpdate' })
   @ApiOkResponse({ type: SubmitResultDto })
   updateQid(
@@ -39,6 +40,7 @@ export class IdentityController {
   }
 
   @Post('idcard/apply')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 54 — Request company ID', operationId: 'identity_idCardApply' })
   @ApiOkResponse({ type: SubmitResultDto })
   requestCompanyId(

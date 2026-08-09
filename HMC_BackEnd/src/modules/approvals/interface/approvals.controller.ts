@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -65,6 +65,7 @@ export class ApprovalsController {
   }
 
   @Post(':id/decision')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 22 — Approve/Reject', operationId: 'approvals_decision' })
   @ApiOkResponse({ type: SubmitResultDto })
   decision(
@@ -87,6 +88,7 @@ export class ApprovalsController {
   }
 
   @Post(':id/reassign')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 71 — Reassign approval', operationId: 'approvals_reassign' })
   @ApiOkResponse({ type: SubmitResultDto })
   reassign(

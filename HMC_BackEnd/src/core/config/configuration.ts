@@ -9,6 +9,7 @@ export interface AppConfig {
   corsOrigins: string[];
   gatewayBaseUrl: string;
   requestTimeoutMs: number;
+  lovCacheTtlMs: number;
   logLevel: string;
 }
 
@@ -19,6 +20,8 @@ export interface OracleConfig {
   poolMin: number;
   poolMax: number;
   poolTimeout: number;
+  queueTimeout: number;
+  callTimeout: number;
   disabled: boolean;
   /** Use node-oracledb Thick mode (requires Oracle Client libraries at runtime). */
   thickMode: boolean;
@@ -110,6 +113,7 @@ export default (): RootConfig => ({
     gatewayBaseUrl:
       process.env.SANAAD_GATEWAY_BASE_URL ?? 'https://apigwuat.api.hamad.qa/sanaad',
     requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS ?? 30000),
+    lovCacheTtlMs: Number(process.env.LOV_CACHE_TTL_MS ?? 300000),
     logLevel: process.env.LOG_LEVEL ?? 'debug',
   },
   oracle: {
@@ -119,6 +123,8 @@ export default (): RootConfig => ({
     poolMin: Number(process.env.ORACLE_POOL_MIN ?? 2),
     poolMax: Number(process.env.ORACLE_POOL_MAX ?? 10),
     poolTimeout: Number(process.env.ORACLE_POOL_TIMEOUT ?? 60),
+    queueTimeout: Number(process.env.ORACLE_QUEUE_TIMEOUT_MS ?? 25000),
+    callTimeout: Number(process.env.ORACLE_CALL_TIMEOUT_MS ?? 25000),
     disabled: toBool(process.env.ORACLE_DISABLED),
     thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,

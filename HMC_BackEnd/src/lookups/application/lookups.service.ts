@@ -7,7 +7,7 @@ import {
   MASTER_LOOKUP_OBJECT,
   resolveLovObject,
 } from '@shared/constants/lov-names';
-import { LOV_REPOSITORY, LovRepository } from '../domain/lov.repository';
+import { LOV_REPOSITORY, LovReadOptions, LovRepository } from '../domain/lov.repository';
 
 /**
  * Shared-kernel lookup service (ops 15, 26 + generic `/data/lovlookup` &
@@ -20,8 +20,13 @@ export class LookupsService {
   constructor(@Inject(LOV_REPOSITORY) private readonly lov: LovRepository) {}
 
   /** Read a LOV directly by resolved Oracle object (used by feature modules). */
-  getByObject(object: string, lang: Lang, username?: string): Promise<LovItem[]> {
-    return this.lov.readLov(object, lang, username);
+  getByObject(
+    object: string,
+    lang: Lang,
+    username?: string,
+    options?: LovReadOptions,
+  ): Promise<LovItem[]> {
+    return this.lov.readLov(object, lang, username, options);
   }
 
   /** Generic `/lookups/lov?lovname=` — resolves via the LOV_OBJECT registry. */

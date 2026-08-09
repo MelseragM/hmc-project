@@ -14,7 +14,14 @@ import {
 } from '../../domain/contact.repository';
 
 /** PHONE_PKG.ADD_OR_UPDATE_PHONE input params (Sanaad spec — UPDATE_PHONE_NUMBER). */
-const UPSERT_PHONE_PARAMS = ['p_user_name', 'p_phone', 'p_language'] as const;
+const UPSERT_PHONE_PARAMS = [
+  'p_user_name',
+  'p_phone_id',
+  'p_object_version_number',
+  'p_phone_type',
+  'p_phone_number',
+  'p_language',
+] as const;
 
 /** DEL_PHONE_NUMBER_PR input params (Sanaad spec — DELETE_PHONE_DETAILS_SUBMIT). */
 const DELETE_PHONE_PARAMS = [
@@ -63,9 +70,9 @@ const UPDATE_ADDRESS_PARAMS = [
 ] as const;
 
 /**
- * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE, which takes the
- * phone list as a JSON array string and parses it in Oracle. op 32 — delete via
- * DEL_PHONE_NUMBER_PR.
+ * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE. Each phone is
+ * submitted through the scalar package signature so one failed item stops the
+ * batch. op 32 — delete via DEL_PHONE_NUMBER_PR.
  *
  * Both go through `callSubmitProc`, which builds the call from the procedure's
  * declared arguments: the phone upsert previously appended assumed
@@ -79,18 +86,27 @@ export class PhoneOracleRepository extends BaseOracleRepository implements Phone
   }
 
   async upsert(cmd: UpsertPhoneCommand): Promise<SubmitResult> {
-    const phonePayload = cmd.phones.map((p) => ({
-      P_PHONE_ID: p.phoneId ?? null,
-      P_OBJECT_VERSION_NUMBER: p.objectVersionNumber ?? null,
-      P_PHONE_TYPE: p.phoneType,
-      P_PHONE_NUMBER: p.phoneNumber,
-    }));
-
-    return this.callSubmitProc(ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE, UPSERT_PHONE_PARAMS, {
-      p_user_name: cmd.username,
-      p_phone: JSON.stringify(phonePayload),
-      p_language: toOracleLanguage(cmd.lang),
-    });
+    let result: SubmitResult = {
+      status: 'success',
+      successflag: 'S',
+      errormessage: 'Success',
+    };
+    for (const phone of cmd.phones) {
+      result = await this.callSubmitProc(
+        ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE,
+        UPSERT_PHONE_PARAMS,
+        {
+          p_user_name: cmd.username,
+          p_phone_id: phone.phoneId ?? null,
+          p_object_version_number: phone.objectVersionNumber ?? null,
+          p_phone_type: phone.phoneType,
+          p_phone_number: phone.phoneNumber,
+          p_language: toOracleLanguage(cmd.lang),
+        },
+      );
+      if (result.successflag === 'N') return result;
+    }
+    return result;
   }
 
   async delete(cmd: DeletePhoneCommand): Promise<SubmitResult> {

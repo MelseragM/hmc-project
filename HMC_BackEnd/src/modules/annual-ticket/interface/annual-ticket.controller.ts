@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -27,6 +27,7 @@ export class AnnualTicketController {
   }
 
   @Post('apply')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 67 — Submit annual ticket', operationId: 'annualTicket_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(

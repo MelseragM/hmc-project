@@ -50,7 +50,7 @@ export class DependentOracleRepository extends BaseOracleRepository implements D
 
   async delete(cmd: DeleteDependentCommand): Promise<SubmitResult> {
     return this.callSubmitProc(ORACLE_OBJECTS.REMOVE_DEPENDENT_PR, REMOVE_DEPENDENT_PARAMS, {
-      ...cmd.fields,
+      ...this.withAliases(cmd.fields),
       p_user_name: cmd.username,
       p_dependent_id: cmd.dependentId,
       p_language: toOracleLanguage(cmd.lang),
@@ -59,7 +59,32 @@ export class DependentOracleRepository extends BaseOracleRepository implements D
 
   /** Merge the posted p_* body with the enforced user + resolved language. */
   private values(cmd: DependentCommand): Record<string, unknown> {
-    return { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
+    return {
+      ...this.withAliases(cmd.fields),
+      p_language: toOracleLanguage(cmd.lang),
+      p_user_name: cmd.username,
+    };
+  }
+
+  private withAliases(fields: Record<string, unknown>): Record<string, unknown> {
+    const values = { ...fields };
+    const pairs = [
+      ['p_relationship', 'p_relation_ship'],
+      ['p_relationship_start_date', 'p_relation_ship_start_date'],
+      ['p_relationship_end_date', 'p_relation_ship_end_date'],
+      ['p_gender', 'p_gendar'],
+      ['p_visa_validity', 'p_visa_validy'],
+      ['p_date_of_issue_qid', 'p_date_of_issuue_qid'],
+      ['p_type_of_sponsorship', 'p_type_of_sponsership'],
+    ] as const;
+    for (const [canonical, legacy] of pairs) {
+      const value = values[canonical] ?? values[legacy];
+      if (value !== undefined) {
+        values[canonical] = value;
+        values[legacy] = value;
+      }
+    }
+    return values;
   }
 }
 

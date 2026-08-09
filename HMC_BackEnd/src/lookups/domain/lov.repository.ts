@@ -6,8 +6,19 @@ import { LovItem } from '@shared/domain/lov-item';
  * allow-listed Oracle `_LOV`/`_V` object. Implemented by the infrastructure
  * adapter and bound via the LOV_REPOSITORY token.
  */
+export interface LovReadOptions {
+  search?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export interface LovRepository {
-  readLov(object: string, lang: Lang, username?: string): Promise<LovItem[]>;
+  readLov(
+    object: string,
+    lang: Lang,
+    username?: string,
+    options?: LovReadOptions,
+  ): Promise<LovItem[]>;
 }
 
 export const LOV_REPOSITORY = Symbol('LOV_REPOSITORY');

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -8,7 +8,12 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { AddressService, PhoneService } from '../application/contact.service';
-import { DeletePhoneRequestDto, UpdatePhoneRequestDto } from './dto/contact.dto';
+import {
+  CreateAddressRequestDto,
+  DeletePhoneRequestDto,
+  UpdateAddressRequestDto,
+  UpdatePhoneRequestDto,
+} from './dto/contact.dto';
 
 /** Contact endpoints (ops 25, 27, 28, 29, 30, 32). See Docs_Ai/API/README.md. */
 @ApiTags('contact')
@@ -28,6 +33,7 @@ export class ContactController {
   }
 
   @Post('phone')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 28 — Update phone number(s)', operationId: 'contact_upsertPhone' })
   @ApiOkResponse({ type: SubmitResultDto })
   upsertPhone(
@@ -39,6 +45,7 @@ export class ContactController {
   }
 
   @Post('phone/delete')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 32 — Delete phone', operationId: 'contact_deletePhone' })
   @ApiOkResponse({ type: SubmitResultDto })
   deletePhone(
@@ -50,10 +57,11 @@ export class ContactController {
   }
 
   @Post('address')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 29 — Create address', operationId: 'contact_createAddress' })
   @ApiOkResponse({ type: SubmitResultDto })
   createAddress(
-    @Body() body: Record<string, unknown>,
+    @Body() body: CreateAddressRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -62,10 +70,11 @@ export class ContactController {
   }
 
   @Post('address/update')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 25 — Update address', operationId: 'contact_updateAddress' })
   @ApiOkResponse({ type: SubmitResultDto })
   updateAddress(
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateAddressRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

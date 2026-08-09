@@ -84,6 +84,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         poolMin: this.cfg.poolMin,
         poolMax: this.cfg.poolMax,
         poolTimeout: this.cfg.poolTimeout,
+        queueTimeout: this.cfg.queueTimeout,
       });
       this.logger.log(
         `Oracle pool created (min=${this.cfg.poolMin}, max=${this.cfg.poolMax}) → ${this.cfg.dsn}`,
@@ -148,6 +149,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T[]> {
     const call = this.logCallStart('query', sql, binds);
     const conn = await this.getPool().getConnection();
+    this.configureConnection(conn);
     try {
       const result = await conn.execute<T>(sql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -174,6 +176,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T> {
     const call = this.logCallStart('call', plsql, binds);
     const conn = await this.getPool().getConnection();
+    this.configureConnection(conn);
     try {
       const result = await conn.execute(plsql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -206,6 +209,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T[]> {
     const call = this.logCallStart('callCursor', plsql, binds);
     const conn = await this.getPool().getConnection();
+    this.configureConnection(conn);
     try {
       const result = await conn.execute(plsql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -472,6 +476,10 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       };
     }
     return diag;
+  }
+
+  private configureConnection(conn: oracledb.Connection): void {
+    conn.callTimeout = this.cfg.callTimeout;
   }
 
   private async safeClose(conn: oracledb.Connection): Promise<void> {

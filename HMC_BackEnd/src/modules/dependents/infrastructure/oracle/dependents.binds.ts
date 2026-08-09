@@ -63,6 +63,8 @@ export const ADD_DEPENDENT_PARAMS = [
   'p_region3',
   'p_po_box',
   ...BaseOracleRepository.attachmentParams(),
+  'p_employment_status',
+  'p_comments',
   'p_language',
 ] as const;
 
@@ -119,6 +121,8 @@ export const UPDATE_DEPENDENT_PARAMS = [
   'p_phone_number1',
   'p_phone_enabled1',
   ...BaseOracleRepository.attachmentParams(),
+  'p_employment_status',
+  'p_comments',
   'p_language',
 ] as const;
 

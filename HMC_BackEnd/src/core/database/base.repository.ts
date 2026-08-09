@@ -1,7 +1,7 @@
 import { Logger, NotImplementedException } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from './oracle.service';
-import { OracleSchemaService } from './oracle-schema.service';
+import { OracleSchemaService, ProcedureParam } from './oracle-schema.service';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { ERROR_MESSAGES } from '@shared/constants/error-codes';
@@ -157,16 +157,34 @@ export abstract class BaseOracleRepository {
     values: Record<string, unknown>,
     outBinds: oracledb.BindParameters = this.statusOutBinds(),
   ): Promise<SubmitResult> {
-    const declared = await this.schema?.resolveParams(object);
+    const declared = await this.schema?.resolveParams(object, params);
     const binds: oracledb.BindParameters = {};
     const names: string[] = [];
 
     if (declared?.length) {
       for (const param of declared) {
         names.push(param.name);
-        (binds as Record<string, unknown>)[param.name] = param.direction.includes('OUT')
-          ? { dir: oracledb.BIND_OUT, type: OracleSchemaService.outBindType(param.dataType), maxSize: 4000 }
-          : BaseOracleRepository.pick(values, param.name);
+        if (param.direction.includes('OUT')) {
+          (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.outBind(
+            param,
+            BaseOracleRepository.pick(values, param.name),
+          );
+          continue;
+        }
+        if (
+          !param.defaulted &&
+          !BaseOracleRepository.hasValue(values, param.name) &&
+          !BaseOracleRepository.isExpected(params, param.name)
+        ) {
+          // The dictionary declares a parameter the mapping does not know. Keep
+          // the call alive (NULL bind, the legacy services do the same) but
+          // surface the drift so the documented param list gets updated.
+          this.logger.warn(`Unmapped Oracle parameter ${object}.${param.name} bound as NULL`);
+        }
+        (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.inBind(
+          param,
+          BaseOracleRepository.pick(values, param.name),
+        );
       }
     } else {
       Object.assign(binds, outBinds);
@@ -197,7 +215,7 @@ export abstract class BaseOracleRepository {
     values: Record<string, unknown>,
     cursorParam = 'p_cursor',
   ): Promise<T[]> {
-    const declared = await this.schema?.resolveParams(object);
+    const declared = await this.schema?.resolveParams(object, params);
     const inParams = declared?.length
       ? declared.filter((p) => !p.direction.includes('OUT')).map((p) => p.name)
       : [...params];
@@ -225,6 +243,29 @@ export abstract class BaseOracleRepository {
   private static pick(values: Record<string, unknown>, param: string): unknown {
     const bare = param.replace(/^p_/, '');
     return values[param] ?? values[bare] ?? values[`p_${bare}`] ?? null;
+  }
+
+  private static hasValue(values: Record<string, unknown>, param: string): boolean {
+    const bare = param.replace(/^p_/, '');
+    return [param, bare, `p_${bare}`].some((key) => Object.prototype.hasOwnProperty.call(values, key));
+  }
+
+  private static isExpected(params: readonly string[], param: string): boolean {
+    const bare = param.replace(/^p_/, '');
+    return params.some((candidate) => candidate.replace(/^p_/, '') === bare);
+  }
+
+  private static inBind(param: ProcedureParam, value: unknown): unknown {
+    const type = OracleSchemaService.outBindType(param);
+    return typeof type === 'string' ? { type, val: value } : value;
+  }
+
+  private static outBind(param: ProcedureParam, value: unknown): oracledb.BindParameter {
+    const type = OracleSchemaService.outBindType(param);
+    const dir = param.direction.includes('IN') ? oracledb.BIND_INOUT : oracledb.BIND_OUT;
+    return type === oracledb.DB_TYPE_VARCHAR
+      ? { dir, type, maxSize: 4000, ...(dir === oracledb.BIND_INOUT ? { val: value } : {}) }
+      : { dir, type, ...(dir === oracledb.BIND_INOUT ? { val: value } : {}) };
   }
 
   /** `p_file_name1..N` / `p_attachment1..N` slot names shared by submit procs. */

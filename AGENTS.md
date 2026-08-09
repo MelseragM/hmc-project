@@ -49,7 +49,30 @@ Because of (2), adapters ask the data dictionary rather than hard-coding:
   actually exposes (`BaseOracleRepository.readByResolvedKey`).
 - `OracleSchemaService.resolveParams` — the declared argument list of a procedure,
   used by `callSubmitProc` and `callRowsProc` so the call matches the database
-  including its OUT contract.
+  including its OUT contract. It reads `ALL_ARGUMENTS` with
+  `OWNER`/`OVERLOAD`/`SUBPROGRAM_ID`/`DATA_LEVEL`/`TYPE_*`, keeps only
+  `DATA_LEVEL = 0` formals (collection attributes are not procedure arguments),
+  and picks one overload by scoring it against the adapter's documented
+  parameter list; a truly ambiguous overload set throws instead of merging.
+  Composite (`PL/SQL TABLE`/`RECORD`/`OBJECT`) parameters bind by their declared
+  type name.
+
+Related runtime behaviour:
+
+- Submit endpoints have strict request DTOs (required business fields, unknown
+  keys rejected 400). Dependent legacy spellings (`p_gendar`,
+  `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`,
+  `p_type_of_sponsership`) are accepted and mirrored to the canonical names.
+- Submit `POST`s return HTTP 200 (Sanaad convention: business result is in
+  `successflag`), not Nest's default 201.
+- Phone upsert (op 28) submits per phone through the scalar
+  `ADD_OR_UPDATE_PHONE` signature and stops at the first failed item.
+- LOV reads cache per (object, lang, username, options) for `LOV_CACHE_TTL_MS`
+  (default 5 min) and coalesce concurrent identical reads. `SCHOOL_NAME_LOV`
+  supports `search`/`page`/`pageSize` (Oracle-side `OFFSET/FETCH`).
+- Oracle calls carry `ORACLE_CALL_TIMEOUT_MS` (connection `callTimeout`) and the
+  pool `ORACLE_QUEUE_TIMEOUT_MS`, both default 25 s, so a hung statement cannot
+  outlive the HTTP 30 s timeout or exhaust the pool.
 
 Diagnostics endpoints for investigating a failure:
 

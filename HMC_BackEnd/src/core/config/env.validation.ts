@@ -23,6 +23,8 @@ export const envValidationSchema = Joi.object({
   ORACLE_POOL_MIN: Joi.number().default(2),
   ORACLE_POOL_MAX: Joi.number().default(10),
   ORACLE_POOL_TIMEOUT: Joi.number().default(60),
+  ORACLE_QUEUE_TIMEOUT_MS: Joi.number().min(1).default(25000),
+  ORACLE_CALL_TIMEOUT_MS: Joi.number().min(1).default(25000),
   ORACLE_DISABLED: Joi.boolean().default(false),
   // Thick mode: requires Oracle Client libraries installed at runtime.
   ORACLE_THICK_MODE: Joi.boolean().default(true),
@@ -74,6 +76,7 @@ export const envValidationSchema = Joi.object({
 
   // Misc
   REQUEST_TIMEOUT_MS: Joi.number().default(30000),
+  LOV_CACHE_TTL_MS: Joi.number().min(0).default(300000),
   LOG_LEVEL: Joi.string()
     .valid('error', 'warn', 'log', 'debug', 'verbose')
     .default('debug'),

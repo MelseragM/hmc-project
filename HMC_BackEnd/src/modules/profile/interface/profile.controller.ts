@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -31,6 +31,7 @@ export class ProfileController {
   }
 
   @Post('personal')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 48 — Update personal details', operationId: 'profile_updatePersonal' })
   @ApiBody(PROFILE_UPDATE_PERSONAL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })

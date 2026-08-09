@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -54,6 +54,7 @@ export class EmployeeController {
   }
 
   @Post('supervisor')
+  @HttpCode(200)
   @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 36 — Supervisor update', operationId: 'employee_supervisorUpdate' })
   @ApiBody(EMPLOYEE_SUPERVISOR_UPDATE_BODY)

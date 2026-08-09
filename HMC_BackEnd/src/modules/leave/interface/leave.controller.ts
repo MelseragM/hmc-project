@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -38,6 +38,7 @@ export class LeaveController {
   }
 
   @Post('apply')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 10 — Leave submission', operationId: 'leave_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
@@ -49,6 +50,7 @@ export class LeaveController {
   }
 
   @Post('calculate')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 47 — Leave duration calculation', operationId: 'leave_calculate' })
   calculate(
     @Body() dto: LeaveCalcRequestDto,
@@ -59,6 +61,7 @@ export class LeaveController {
   }
 
   @Post('amend')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 57 — Leave amend', operationId: 'leave_amend' })
   @ApiBody(LEAVE_AMEND_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
@@ -72,6 +75,7 @@ export class LeaveController {
   }
 
   @Post('cancel')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 58 — Leave cancel', operationId: 'leave_cancel' })
   @ApiBody(LEAVE_CANCEL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
@@ -85,6 +89,7 @@ export class LeaveController {
   }
 
   @Post('return')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 56 — Return from leave', operationId: 'leave_return' })
   @ApiBody(LEAVE_RETURN_BODY)
   @ApiOkResponse({ type: SubmitResultDto })

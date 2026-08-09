@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
@@ -8,7 +8,12 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { DependentService, PassportService } from '../application/dependents.service';
-import { DeleteDependentRequestDto } from './dto/dependents.dto';
+import {
+  AddDependentRequestDto,
+  DeleteDependentRequestDto,
+  PassportApplyRequestDto,
+  UpdateDependentRequestDto,
+} from './dto/dependents.dto';
 
 /** Dependents endpoints (ops 24, 31, 33, 34, 49, 64, 65). See Docs_Ai/API/README.md. */
 @ApiTags('dependents')
@@ -21,10 +26,11 @@ export class DependentsController {
   ) {}
 
   @Post()
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 65 — Add dependent', operationId: 'dependents_add' })
   @ApiOkResponse({ type: SubmitResultDto })
   add(
-    @Body() body: Record<string, unknown>,
+    @Body() body: AddDependentRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -33,10 +39,11 @@ export class DependentsController {
   }
 
   @Post('update')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 24 — Update dependent', operationId: 'dependents_update' })
   @ApiOkResponse({ type: SubmitResultDto })
   update(
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateDependentRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -45,6 +52,7 @@ export class DependentsController {
   }
 
   @Post('delete')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 31 — Delete dependent', operationId: 'dependents_delete' })
   @ApiOkResponse({ type: SubmitResultDto })
   delete(
@@ -71,10 +79,11 @@ export class DependentsController {
   }
 
   @Post('passport/apply')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 34 — Passport detail request', operationId: 'dependents_passportApply' })
   @ApiOkResponse({ type: SubmitResultDto })
   passportApply(
-    @Body() body: Record<string, unknown>,
+    @Body() body: PassportApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

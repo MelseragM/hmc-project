@@ -17,8 +17,20 @@ describe('OracleSchemaService', () => {
       { name: 'USER_NAME', dataType: 'VARCHAR2', nullable: false, position: 1 },
     ]);
     const describeArguments = jest.fn().mockResolvedValue([
-      { packageName: null, objectName: 'XXHMC_SND_GET_PAYSLIP_PERIODS', name: 'P_USER_NAME', position: 1, dataType: 'VARCHAR2', direction: 'IN', defaulted: false },
-      { packageName: null, objectName: 'XXHMC_SND_GET_PAYSLIP_PERIODS', name: 'P_GET_PERIODS', position: 2, dataType: 'REF CURSOR', direction: 'OUT', defaulted: false },
+      {
+        owner: 'APPS', ownerRank: 1, packageName: null,
+        objectName: 'XXHMC_SND_GET_PAYSLIP_PERIODS', overload: null, subprogramId: 1,
+        name: 'P_USER_NAME', position: 1, sequence: 1, dataLevel: 0,
+        dataType: 'VARCHAR2', typeOwner: null, typeName: null, typeSubname: null,
+        direction: 'IN', defaulted: false,
+      },
+      {
+        owner: 'APPS', ownerRank: 1, packageName: null,
+        objectName: 'XXHMC_SND_GET_PAYSLIP_PERIODS', overload: null, subprogramId: 1,
+        name: 'P_GET_PERIODS', position: 2, sequence: 2, dataLevel: 0,
+        dataType: 'REF CURSOR', typeOwner: null, typeName: null, typeSubname: null,
+        direction: 'OUT', defaulted: false,
+      },
     ]);
     const metadata = { describe, describeColumns, describeArguments, ...overrides } as unknown as OracleMetadataService;
     return { service: new OracleSchemaService(metadata), describe, describeColumns, describeArguments };
@@ -45,5 +57,62 @@ describe('OracleSchemaService', () => {
     expect(params?.map((p) => p.name)).toEqual(['p_user_name', 'p_get_periods']);
     expect(describeArguments).toHaveBeenCalledWith('XXHMC_SND_GET_PAYSLIP_PERIODS');
     expect(describe).not.toHaveBeenCalled();
+  });
+
+  it('ignores nested collection attributes and selects the matching overload', async () => {
+    const base = {
+      owner: 'APPS',
+      ownerRank: 1,
+      packageName: 'XXHMC_SND_PHONE_PKG',
+      objectName: 'ADD_OR_UPDATE_PHONE',
+      typeOwner: null,
+      typeName: null,
+      typeSubname: null,
+      defaulted: false,
+    };
+    const describeArguments = jest.fn().mockResolvedValue([
+      { ...base, overload: '1', subprogramId: 1, name: 'P_USER_NAME', position: 1, sequence: 1, dataLevel: 0, dataType: 'VARCHAR2', direction: 'IN' },
+      { ...base, overload: '1', subprogramId: 1, name: 'P_PHONE', position: 2, sequence: 2, dataLevel: 0, dataType: 'TABLE', direction: 'IN', typeOwner: 'APPS', typeName: 'XXHMC_SND_PHONE_PKG', typeSubname: 'PHONE_TAB' },
+      { ...base, overload: '1', subprogramId: 1, name: 'P_PHONE_ID', position: 1, sequence: 3, dataLevel: 1, dataType: 'NUMBER', direction: 'IN' },
+      { ...base, overload: '2', subprogramId: 2, name: 'P_USER_NAME', position: 1, sequence: 1, dataLevel: 0, dataType: 'VARCHAR2', direction: 'IN' },
+      { ...base, overload: '2', subprogramId: 2, name: 'P_PHONE_ID', position: 2, sequence: 2, dataLevel: 0, dataType: 'NUMBER', direction: 'IN' },
+      { ...base, overload: '2', subprogramId: 2, name: 'P_PHONE_TYPE', position: 3, sequence: 3, dataLevel: 0, dataType: 'VARCHAR2', direction: 'IN' },
+      { ...base, overload: '2', subprogramId: 2, name: 'P_PHONE_NUMBER', position: 4, sequence: 4, dataLevel: 0, dataType: 'VARCHAR2', direction: 'IN' },
+    ]);
+    const { service } = make({ describeArguments } as Partial<jest.Mocked<OracleMetadataService>>);
+    const params = await service.resolveParams('XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE', [
+      'p_user_name',
+      'p_phone_id',
+      'p_phone_type',
+      'p_phone_number',
+    ]);
+    expect(params?.map((p) => p.name)).toEqual([
+      'p_user_name',
+      'p_phone_id',
+      'p_phone_type',
+      'p_phone_number',
+    ]);
+  });
+
+  it('binds composite parameters by their declared type but keeps cursors native', () => {
+    const composite = {
+      name: 'p_phone', direction: 'IN', dataType: 'PL/SQL TABLE', defaulted: false,
+      typeOwner: 'APPS', typeName: 'XXHMC_SND_PHONE_PKG', typeSubname: 'PHONE_TAB',
+    };
+    expect(OracleSchemaService.outBindType(composite)).toBe('APPS.XXHMC_SND_PHONE_PKG.PHONE_TAB');
+
+    const typedCursor = {
+      name: 'p_cursor', direction: 'OUT', dataType: 'REF CURSOR', defaulted: false,
+      typeOwner: 'APPS', typeName: 'XXHMC_SND_PHONE_PKG', typeSubname: 'PHONE_CUR',
+    };
+    expect(OracleSchemaService.outBindType(typedCursor)).not.toBe(
+      'APPS.XXHMC_SND_PHONE_PKG.PHONE_CUR',
+    );
+  });
+
+  it('returns null when an object has no formal parameters', async () => {
+    const describeArguments = jest.fn().mockResolvedValue([]);
+    const { service } = make({ describeArguments } as Partial<jest.Mocked<OracleMetadataService>>);
+    await expect(service.resolveParams('XXHMC_SND_CHILD_DETS_VIEW')).resolves.toBeNull();
   });
 });

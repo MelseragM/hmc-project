@@ -12,12 +12,21 @@ export interface OracleColumnInfo {
 
 /** One formal parameter of a procedure/function, as reported by ALL_ARGUMENTS. */
 export interface OracleArgumentInfo {
+  owner: string;
+  ownerRank: number;
   packageName: string | null;
   objectName: string;
+  overload: string | null;
+  subprogramId: number;
   /** NULL position/name marks a function return value. */
   name: string | null;
   position: number;
+  sequence: number;
+  dataLevel: number;
   dataType: string | null;
+  typeOwner: string | null;
+  typeName: string | null;
+  typeSubname: string | null;
   direction: string | null;
   defaulted: boolean;
 }
@@ -139,19 +148,43 @@ export class OracleMetadataService {
   private async readArguments(object: string): Promise<OracleArgumentInfo[]> {
     const [pkg, member] = object.split('.');
     const rows = await this.ora.query<Record<string, any>>(
-      `SELECT package_name, object_name, argument_name, position,
-              data_type, in_out, defaulted
-         FROM all_arguments
-        WHERE object_name IN (:pkg, :member) OR package_name = :pkg2
-        ORDER BY package_name, object_name, position`,
-      { pkg, member: member ?? pkg, pkg2: pkg },
+      `SELECT a.owner,
+              CASE
+                WHEN a.owner = SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') THEN 0
+                WHEN EXISTS (
+                  SELECT 1
+                    FROM all_synonyms s
+                   WHERE s.synonym_name = :pkg
+                     AND s.table_owner = a.owner
+                     AND s.owner IN (SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA'), 'PUBLIC')
+                ) THEN 1
+                WHEN a.owner = 'APPS' THEN 2
+                ELSE 3
+              END owner_rank,
+              a.package_name, a.object_name, a.overload, a.subprogram_id,
+              a.argument_name, a.position, a.sequence, a.data_level, a.data_type,
+              a.type_owner, a.type_name, a.type_subname, a.in_out, a.defaulted
+         FROM all_arguments a
+        WHERE (:member IS NOT NULL AND a.package_name = :pkg AND a.object_name = :member)
+           OR (:member IS NULL AND a.package_name IS NULL AND a.object_name = :pkg)
+        ORDER BY owner_rank, a.owner, a.subprogram_id, a.overload NULLS FIRST, a.sequence`,
+      { pkg, member: member ?? null },
     );
     return rows.map((r) => ({
+      owner: String(r.OWNER),
+      ownerRank: Number(r.OWNER_RANK),
       packageName: r.PACKAGE_NAME ? String(r.PACKAGE_NAME) : null,
       objectName: String(r.OBJECT_NAME),
+      overload: r.OVERLOAD ? String(r.OVERLOAD) : null,
+      subprogramId: Number(r.SUBPROGRAM_ID),
       name: r.ARGUMENT_NAME ? String(r.ARGUMENT_NAME) : null,
       position: Number(r.POSITION),
+      sequence: Number(r.SEQUENCE),
+      dataLevel: Number(r.DATA_LEVEL),
       dataType: r.DATA_TYPE ? String(r.DATA_TYPE) : null,
+      typeOwner: r.TYPE_OWNER ? String(r.TYPE_OWNER) : null,
+      typeName: r.TYPE_NAME ? String(r.TYPE_NAME) : null,
+      typeSubname: r.TYPE_SUBNAME ? String(r.TYPE_SUBNAME) : null,
       direction: r.IN_OUT ? String(r.IN_OUT) : null,
       defaulted: r.DEFAULTED === 'Y',
     }));

@@ -1,15 +1,18 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
-import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { SchoolFeeService } from '../application/school-fees.service';
-import { SchoolChildrenQueryDto } from './dto/school-fees.dto';
+import {
+  SchoolChildrenQueryDto,
+  SchoolFeeApplyRequestDto,
+  SchoolLovQueryDto,
+} from './dto/school-fees.dto';
 
 /** School-fees endpoints (ops 37, 38, 39, 40, 50, 52, 53). op 51 is out of scope. */
 @ApiTags('school-fees')
@@ -19,10 +22,11 @@ export class SchoolFeesController {
   constructor(private readonly service: SchoolFeeService) {}
 
   @Post('apply')
+  @HttpCode(200)
   @ApiOperation({ summary: 'op 39 — School-fee request', operationId: 'schoolFees_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
-    @Body() body: Record<string, unknown>,
+    @Body() body: SchoolFeeApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -33,8 +37,14 @@ export class SchoolFeesController {
   @Get('lov/schools')
   @ApiOperation({ summary: 'op 37 — School name LOV', operationId: 'schoolFees_schoolsLov' })
   @ApiOkResponse({ type: LovResponseDto })
-  async schools(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.schoolsLov(q.lang, q.username) };
+  async schools(@Query() q: SchoolLovQueryDto): Promise<LovResponseDto> {
+    return {
+      items: await this.service.schoolsLov(q.lang, q.username, {
+        search: q.search,
+        offset: (q.page - 1) * q.pageSize,
+        limit: q.pageSize,
+      }),
+    };
   }
 
   @Get('lov/terms')
@@ -61,7 +71,7 @@ export class SchoolFeesController {
   @Get('lov/request-type')
   @ApiOperation({ summary: 'op 53 — Request type LOV', operationId: 'schoolFees_requestTypeLov' })
   @ApiOkResponse({ type: LovResponseDto })
-  async requestType(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
+  async requestType(@Query() q: SchoolLovQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.requestTypeLov(q.lang, q.username) };
   }
 
