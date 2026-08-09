@@ -9,6 +9,7 @@ import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { EmployeeService, SupervisorService } from '../application/employee.service';
+import { SupervisorUpdateRequestDto } from './dto/supervisor-update.request.dto';
 import {
   EMPLOYEE_EMPLOYMENT_EXAMPLE,
   EMPLOYEE_PERFORMANCE_EXAMPLE,
@@ -60,7 +61,7 @@ export class EmployeeController {
   @ApiBody(EMPLOYEE_SUPERVISOR_UPDATE_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   supervisorUpdate(
-    @Body() body: Record<string, unknown>,
+    @Body() body: SupervisorUpdateRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

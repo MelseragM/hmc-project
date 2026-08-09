@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { LettersService } from '../application/letters.service';
+import { LetterApplyRequestDto } from './dto/letters.dto';
 
 /** Letters endpoints (ops 16, 17). See Docs_Ai/API/README.md. */
 @ApiTags('letters')
@@ -26,7 +27,7 @@ export class LettersController {
   @ApiOperation({ summary: 'op 17 — Submit letter request', operationId: 'letters_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
-    @Body() body: Record<string, unknown>,
+    @Body() body: LetterApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

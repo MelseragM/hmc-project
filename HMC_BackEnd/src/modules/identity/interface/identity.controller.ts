@@ -9,6 +9,7 @@ import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { IdCardService, QidService } from '../application/identity.service';
+import { CompanyIdApplyRequestDto, QidUpdateRequestDto } from './dto/identity.dto';
 
 /** Identity endpoints (ops 18, 19, 53b, 54, 59, 60). See Docs_Ai/API/README.md. */
 @ApiTags('identity')
@@ -31,7 +32,7 @@ export class IdentityController {
   @ApiOperation({ summary: 'op 19 — QID update', operationId: 'identity_qidUpdate' })
   @ApiOkResponse({ type: SubmitResultDto })
   updateQid(
-    @Body() body: Record<string, unknown>,
+    @Body() body: QidUpdateRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -44,7 +45,7 @@ export class IdentityController {
   @ApiOperation({ summary: 'op 54 — Request company ID', operationId: 'identity_idCardApply' })
   @ApiOkResponse({ type: SubmitResultDto })
   requestCompanyId(
-    @Body() body: Record<string, unknown>,
+    @Body() body: CompanyIdApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

@@ -2,6 +2,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches } from 'class-validator';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { EFFECTIVE_DATE_ALL } from '@shared/utils/date.util';
+import {
+  ATTACHMENT_FIELDS,
+  defineOptionalStringFields,
+  RequiredString,
+} from '@shared/dto/oracle-submit.dto';
 
 /** `dd-Mon-yyyy` display dates as used in the mapping (e.g. 12-Jun-2025). */
 const DISPLAY_DATE = /^\d{2}-[A-Za-z]{3}-\d{4}$/;
@@ -58,15 +63,52 @@ export class LeaveCalcRequestDto {
   endDate!: string;
 }
 
-/** ops 57/58/56 — amend/cancel/return (placeholder fields; TODO(bind)). */
-export class LeaveMutationRequestDto {
-  @ApiPropertyOptional({ example: '99001', description: 'Absence/leave request id.' })
-  @IsOptional()
-  @IsString()
-  leaveRequestId?: string;
+/** op 57 — POST /leave/amend (HR_LEAV_AMEND_PR request template). */
+export class LeaveAmendRequestDto {
+  @RequiredString('Annual Leave')
+  p_leave_type!: string;
 
-  @ApiPropertyOptional({ example: '14-Jun-2025' })
-  @IsOptional()
-  @IsString()
-  effectiveDate?: string;
+  @RequiredString('62')
+  p_leave_to_amend!: string;
+
+  @RequiredString('20-Jun-2026')
+  p_new_end_date!: string;
+
+  [key: string]: unknown;
 }
+
+defineOptionalStringFields(LeaveAmendRequestDto, ['p_comments', ...ATTACHMENT_FIELDS]);
+
+/** op 58 — POST /leave/cancel (HR_LEAV_CANCEL_PR request template). */
+export class LeaveCancelRequestDto {
+  @RequiredString('Annual Leave')
+  p_leave_type!: string;
+
+  @RequiredString('62')
+  p_leave_to_cancel!: string;
+
+  @RequiredString('Plans changed')
+  p_reason_for_cancel!: string;
+
+  [key: string]: unknown;
+}
+
+defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FIELDS]);
+
+/** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
+export class LeaveReturnRequestDto {
+  @RequiredString('62')
+  p_leave_details!: string;
+
+  @RequiredString('15-Jun-2026')
+  p_return_date!: string;
+
+  [key: string]: unknown;
+}
+
+defineOptionalStringFields(LeaveReturnRequestDto, [
+  'p_related_leave1',
+  'p_related_leave2',
+  'p_comments',
+  ...ATTACHMENT_FIELDS,
+]);
