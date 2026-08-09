@@ -12,8 +12,13 @@ import {
   PayslipRepository,
 } from '../../domain/payslip.repository';
 
-/** GET_PAYSLIP_PERIODS input params (Sanaad spec — GET_PAYSLIP_PERIOD). */
-const PERIODS_PARAMS = ['person_id', 'language'] as const;
+/**
+ * GET_PAYSLIP_PERIODS input params. The procedure is keyed by the caller's login
+ * (`p_user_name`), not the person id — binding `person_id` left `p_user_name`
+ * NULL and the call returned no periods. The cursor OUT parameter is
+ * `p_get_periods` (used only when the data dictionary is unreadable).
+ */
+const PERIODS_PARAMS = ['user_name', 'language'] as const;
 
 /** CHK_PAYROLL_CNT input params (Sanaad spec — CHECK_PAYSLIP_COUNT: PERSON_ID, LANGUAGE, PERIOD). */
 const COUNT_PARAMS = ['person_id', 'language', 'period'] as const;
@@ -36,11 +41,16 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
     super(ora, schema);
   }
 
-  getPeriods(employeeNumber: string, lang: Lang): Promise<PayslipPeriod[]> {
-    return this.callRowsProc<PayslipPeriod>(ORACLE_OBJECTS.GET_PAYSLIP_PERIODS, PERIODS_PARAMS, {
-      person_id: employeeNumber,
-      language: toOracleLanguage(lang),
-    });
+  getPeriods(username: string, lang: Lang): Promise<PayslipPeriod[]> {
+    return this.callRowsProc<PayslipPeriod>(
+      ORACLE_OBJECTS.GET_PAYSLIP_PERIODS,
+      PERIODS_PARAMS,
+      {
+        user_name: username,
+        language: toOracleLanguage(lang),
+      },
+      'p_get_periods',
+    );
   }
 
   async checkCount(

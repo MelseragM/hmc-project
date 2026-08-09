@@ -94,8 +94,8 @@ export class OracleSchemaService {
     const [pkg, member] = object.toUpperCase().split('.');
     const target = member ?? pkg;
     try {
-      const described = await this.metadata.describe(object);
-      const args = described.arguments.filter(
+      const described = await this.metadata.describeArguments(object);
+      const args = described.filter(
         (a) => a.objectName === target && a.name && a.position > 0,
       );
       return args.length ? args.map((a) => this.toParam(a)) : null;
@@ -120,8 +120,8 @@ export class OracleSchemaService {
 
     let names = new Set<string>();
     try {
-      const described = await this.metadata.describe(object);
-      names = new Set(described.columns.map((c) => c.name.toUpperCase()));
+      const columns = await this.metadata.describeColumns(object);
+      names = new Set(columns.map((c) => c.name.toUpperCase()));
     } catch (err) {
       this.logger.warn(`Could not describe ${object}: ${(err as Error).message}`);
     }

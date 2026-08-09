@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -8,7 +8,13 @@ import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { ProfileService } from '../application/profile.service';
+import {
+  PROFILE_GET_EXAMPLE,
+  PROFILE_MARITAL_LOV_EXAMPLE,
+  PROFILE_UPDATE_PERSONAL_BODY,
+} from './profile.examples';
 
 /** Profile endpoints (ops 2, 48, 63). See Docs_Ai/API/README.md. */
 @ApiTags('profile')
@@ -19,12 +25,14 @@ export class ProfileController {
 
   @Get()
   @ApiOperation({ summary: 'op 2 — Personal detail', operationId: 'profile_get' })
+  @ApiReadOkResponse({ example: PROFILE_GET_EXAMPLE })
   get(@Query() q: ProfileQueryDto) {
     return this.service.getProfile(q.enum, q.lang);
   }
 
   @Post('personal')
   @ApiOperation({ summary: 'op 48 — Update personal details', operationId: 'profile_updatePersonal' })
+  @ApiBody(PROFILE_UPDATE_PERSONAL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   updatePersonal(
     @Body() body: Record<string, unknown>,
@@ -38,6 +46,7 @@ export class ProfileController {
   @Get('lov/marital-status')
   @ApiOperation({ summary: 'op 63 — Marital status LOV', operationId: 'profile_maritalLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: PROFILE_MARITAL_LOV_EXAMPLE })
   async maritalStatusLov(@Query() q: LangQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.maritalStatusLov(q.lang) };
   }

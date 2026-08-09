@@ -72,6 +72,27 @@ export class OracleMetadataService {
     };
   }
 
+  /**
+   * Columns of a known object, without the object-kind and argument lookups that
+   * `describe()` also performs. Used by the hot path that only needs to know
+   * whether a view exposes a key column (see OracleSchemaService.hasColumn):
+   * running the full `describe()` there fired the expensive ALL_ARGUMENTS query
+   * (`... OR package_name = :pkg`) on every user-scoped LOV read, which was the
+   * cause of the request timeouts, and held three pool connections instead of one.
+   */
+  async describeColumns(name: string): Promise<OracleColumnInfo[]> {
+    return this.readColumns(this.normalize(name));
+  }
+
+  /**
+   * Formal parameters of a known program unit, without the column and
+   * object-kind lookups `describe()` also performs. Used when only the bind
+   * signature is needed (see OracleSchemaService.resolveParams).
+   */
+  async describeArguments(name: string): Promise<OracleArgumentInfo[]> {
+    return this.readArguments(this.normalize(name));
+  }
+
   private normalize(name: string): string {
     const object = (name ?? '').trim().toUpperCase();
     // A package member (PKG.PROC) is described by its package name.

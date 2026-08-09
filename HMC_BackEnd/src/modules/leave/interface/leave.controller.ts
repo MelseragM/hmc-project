@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -8,12 +8,21 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { ProfileQueryDto, LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { LeaveService } from '../application/leave.service';
 import {
   ApplyLeaveRequestDto,
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
 } from './dto/leave.dto';
+import {
+  LEAVE_AMEND_BODY,
+  LEAVE_CANCEL_BODY,
+  LEAVE_CLASSES_LOV_EXAMPLE,
+  LEAVE_REASONS_LOV_EXAMPLE,
+  LEAVE_RETURN_BODY,
+  LEAVE_TYPES_LOV_EXAMPLE,
+} from './leave.examples';
 
 /** Leave endpoints (14 ops). See Docs_Ai/API/README.md — Module: leave. */
 @ApiTags('leave')
@@ -51,6 +60,7 @@ export class LeaveController {
 
   @Post('amend')
   @ApiOperation({ summary: 'op 57 — Leave amend', operationId: 'leave_amend' })
+  @ApiBody(LEAVE_AMEND_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   amend(
     @Body() body: Record<string, unknown>,
@@ -63,6 +73,7 @@ export class LeaveController {
 
   @Post('cancel')
   @ApiOperation({ summary: 'op 58 — Leave cancel', operationId: 'leave_cancel' })
+  @ApiBody(LEAVE_CANCEL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   cancel(
     @Body() body: Record<string, unknown>,
@@ -75,6 +86,7 @@ export class LeaveController {
 
   @Post('return')
   @ApiOperation({ summary: 'op 56 — Return from leave', operationId: 'leave_return' })
+  @ApiBody(LEAVE_RETURN_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   returnFromLeave(
     @Body() body: Record<string, unknown>,
@@ -88,6 +100,7 @@ export class LeaveController {
   @Get('lov/types')
   @ApiOperation({ summary: 'op 12 — Leave types LOV', operationId: 'leave_typesLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_TYPES_LOV_EXAMPLE })
   async types(@Query() q: LangQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.types(q.lang) };
   }
@@ -95,6 +108,7 @@ export class LeaveController {
   @Get('lov/reasons')
   @ApiOperation({ summary: 'op 13 — Leave reasons LOV', operationId: 'leave_reasonsLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_REASONS_LOV_EXAMPLE })
   async reasons(@Query() q: LangQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.reasons(q.lang) };
   }
@@ -102,6 +116,7 @@ export class LeaveController {
   @Get('lov/classes')
   @ApiOperation({ summary: 'op 14 — Leave classes LOV', operationId: 'leave_classesLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_CLASSES_LOV_EXAMPLE })
   async classes(@Query() q: LangQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.classes(q.lang) };
   }
