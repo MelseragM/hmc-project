@@ -1,24 +1,36 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import {
+  ATTACHMENT_FIELDS,
+  defineOptionalStringFields,
+  RequiredString,
+} from '@shared/dto/oracle-submit.dto';
 
-/**
- * op 48 — PersonalDetsUpdate. The full UPD_PERSONAL_INFO_PR signature is not
- * captured in the mapping (sample shows only p_user_name + p_language), so these
- * are placeholder fields. TODO(bind): finalize once the procedure spec is known.
- */
+/** op 48 — PersonalDetsUpdate (UPD_PERSONAL_INFO_PR request template). */
 export class UpdatePersonalRequestDto {
-  @ApiPropertyOptional({ example: 'M', description: 'Marital status code (EMP_MARITAL_LOV).' })
-  @IsOptional()
-  @IsString()
-  maritalStatus?: string;
+  @RequiredString('01-Jan-2026')
+  p_effective_date!: string;
 
-  @ApiPropertyOptional({ example: 'name@hamad.qa' })
-  @IsOptional()
-  @IsString()
-  email?: string;
+  @RequiredString('Amir')
+  p_first_name!: string;
 
-  @ApiPropertyOptional({ example: 'QA', description: 'Nationality code.' })
-  @IsOptional()
-  @IsString()
-  nationality?: string;
+  @RequiredString('Ibrahim')
+  p_last_name!: string;
+
+  @RequiredString('Married')
+  p_marital_status!: string;
+
+  [key: string]: unknown;
 }
+
+defineOptionalStringFields(UpdatePersonalRequestDto, [
+  'p_middle_name',
+  'p_name_in_arabic',
+  'p_title',
+  'p_relationship',
+  'p_place_of_issue',
+  'p_country_of_issue',
+  'p_visa_type',
+  'p_visa_number',
+  'p_visa_validity',
+  'p_type_of_sponsership',
+  ...ATTACHMENT_FIELDS,
+]);

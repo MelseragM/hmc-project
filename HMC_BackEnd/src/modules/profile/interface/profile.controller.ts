@@ -10,6 +10,7 @@ import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { ProfileService } from '../application/profile.service';
+import { UpdatePersonalRequestDto } from './dto/update-personal.request.dto';
 import {
   PROFILE_GET_EXAMPLE,
   PROFILE_MARITAL_LOV_EXAMPLE,
@@ -36,7 +37,7 @@ export class ProfileController {
   @ApiBody(PROFILE_UPDATE_PERSONAL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   updatePersonal(
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdatePersonalRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {

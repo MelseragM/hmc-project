@@ -12,8 +12,11 @@ import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorato
 import { LeaveService } from '../application/leave.service';
 import {
   ApplyLeaveRequestDto,
+  LeaveAmendRequestDto,
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
+  LeaveCancelRequestDto,
+  LeaveReturnRequestDto,
 } from './dto/leave.dto';
 import {
   LEAVE_AMEND_BODY,
@@ -66,7 +69,7 @@ export class LeaveController {
   @ApiBody(LEAVE_AMEND_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   amend(
-    @Body() body: Record<string, unknown>,
+    @Body() body: LeaveAmendRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -80,7 +83,7 @@ export class LeaveController {
   @ApiBody(LEAVE_CANCEL_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   cancel(
-    @Body() body: Record<string, unknown>,
+    @Body() body: LeaveCancelRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
@@ -94,7 +97,7 @@ export class LeaveController {
   @ApiBody(LEAVE_RETURN_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   returnFromLeave(
-    @Body() body: Record<string, unknown>,
+    @Body() body: LeaveReturnRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
