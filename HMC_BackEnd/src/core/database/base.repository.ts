@@ -276,6 +276,15 @@ export abstract class BaseOracleRepository {
     return values[param] ?? values[bare] ?? values[`p_${bare}`] ?? null;
   }
 
+  /** First value that is non-null/undefined AND non-blank once trimmed to a string. */
+  private static firstNonEmpty(...values: unknown[]): string {
+    for (const v of values) {
+      const s = (v ?? '').toString().trim();
+      if (s) return s;
+    }
+    return '';
+  }
+
   private static hasValue(values: Record<string, unknown>, param: string): boolean {
     const bare = param.replace(/^p_/, '');
     return [param, bare, `p_${bare}`].some((key) => Object.prototype.hasOwnProperty.call(values, key));
@@ -319,11 +328,18 @@ export abstract class BaseOracleRepository {
     return slots;
   }
 
-  /** Standard OUT binds for a status flag + message returned by `_PR` procedures. */
+  /**
+   * Standard OUT binds for a status flag + message returned by `_PR`
+   * procedures — used as the fallback in `callSubmitProc` when the data
+   * dictionary can't be read. `p_success_flag` was added as a third OUT param
+   * across all submit procedures; omitting it raises `PLS-00306: wrong number
+   * or types of arguments` now that the procedures declare it.
+   */
   protected statusOutBinds(): oracledb.BindParameters {
     return {
       p_status: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
       p_message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+      p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 2500 },
     };
   }
 
@@ -351,9 +367,16 @@ export abstract class BaseOracleRepository {
    * `{ status, msg }` style out binds.
    */
   protected toSubmitResult(out: Record<string, any>): SubmitResult {
-    const flagRaw = (out.p_status ?? out.p_success_flag ?? out.status ?? out.successflag ?? '')
-      .toString()
-      .trim();
+    // `p_status` is now bound alongside `p_success_flag` on every submit proc
+    // (see statusOutBinds); prefer whichever one actually came back non-empty
+    // instead of a plain `??` chain, which would get stuck on an empty string
+    // from a bound-but-unused param.
+    const flagRaw = BaseOracleRepository.firstNonEmpty(
+      out.p_success_flag,
+      out.p_status,
+      out.status,
+      out.successflag,
+    );
     const message = (out.p_message ?? out.p_error_msg ?? out.msg ?? out.errormessage ?? '').toString();
     const messageAr = out.p_message_ar ?? out.p_error_msg_ar ?? out.errormessage_ar;
     const isSuccess = flagRaw.toUpperCase() === 'S' || flagRaw === '0';
