@@ -20,6 +20,13 @@ export interface OracleLogEntry {
   path?: string;
   binds: Record<string, string>;
   sql?: string;
+  /**
+   * The SQL with its bind values substituted in — string values single-quoted,
+   * NULLs and OUT markers preserved — i.e. the statement as Oracle effectively
+   * receives it. Built from the sanitized binds, so redacted/OUT values stay
+   * redacted. A diagnostic aid, not the literal wire text.
+   */
+  finalSql?: string;
   /** Sanitized preview of what Oracle returned (rows or OUT-bind values). */
   response?: unknown;
 }
@@ -150,6 +157,7 @@ export class OracleLogStore {
     const bindHit = Object.values(entry.binds).some((v) => v.toLowerCase().includes(needle));
     const pathHit = (entry.path ?? '').toLowerCase().includes(needle);
     const sqlHit = (entry.sql ?? '').toLowerCase().includes(needle);
-    return bindHit || pathHit || sqlHit;
+    const finalSqlHit = (entry.finalSql ?? '').toLowerCase().includes(needle);
+    return bindHit || pathHit || sqlHit || finalSqlHit;
   }
 }

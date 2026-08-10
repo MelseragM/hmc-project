@@ -58,7 +58,7 @@ export const ORACLE_LOG_VIEW_HTML = `<!doctype html>
     <thead><tr>
       <th>#</th><th>time</th><th>op</th><th>object</th><th>status</th><th>ms</th>
       <th>ORA</th><th>correlationId</th><th>request</th><th>binds</th><th>sql</th>
-      <th>oracle response</th><th>error</th>
+      <th>final sql</th><th>oracle response</th><th>error</th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table>
@@ -95,6 +95,7 @@ export const ORACLE_LOG_VIEW_HTML = `<!doctype html>
       + "<td class='muted'>" + esc(e.method || "") + " " + esc(e.path || "") + "</td>"
       + "<td class='mono'>" + esc(binds) + "</td>"
       + "<td class='mono'>" + esc(e.sql || "") + "</td>"
+      + "<td class='mono'>" + esc(e.finalSql || "") + "</td>"
       + "<td class='mono'>" + esc(response) + "</td>"
       + "<td class='mono'>" + esc(e.error || "") + "</td>"
       + "</tr>";
@@ -108,7 +109,7 @@ export const ORACLE_LOG_VIEW_HTML = `<!doctype html>
         document.getElementById("meta").textContent =
           "showing " + items.length + " of " + d.total + " matched";
         document.getElementById("rows").innerHTML =
-          items.map(row).join("") || "<tr><td colspan='13' class='muted'>no matching logs</td></tr>";
+          items.map(row).join("") || "<tr><td colspan='14' class='muted'>no matching logs</td></tr>";
       })
       .catch(function (err) {
         document.getElementById("meta").textContent = "load error: " + err;

@@ -319,8 +319,37 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       path: ctx?.path,
       binds: entry.binds,
       sql: entry.sql,
+      finalSql: this.buildFinalSql(entry.sql, entry.binds),
       response: outcome.response,
     });
+  }
+
+  /**
+   * Substitute each `:bind` in the SQL with its (sanitized) value so the log
+   * shows the statement as Oracle effectively receives it. Names are replaced
+   * longest-first and only when not followed by another identifier char, so
+   * `:p_attachment1` never clobbers `:p_attachment10`. Values are rendered by
+   * `toSqlLiteral` (strings single-quoted, NULL/OUT markers preserved). This is
+   * a readability aid built from redacted binds — not the literal wire text.
+   */
+  private buildFinalSql(sql: string, binds: Record<string, string>): string {
+    let out = sql;
+    const names = Object.keys(binds).sort((a, b) => b.length - a.length);
+    for (const name of names) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const token = new RegExp(`:${escaped}(?![A-Za-z0-9_$])`, 'g');
+      out = out.replace(token, () => this.toSqlLiteral(binds[name]));
+    }
+    return out;
+  }
+
+  /** Render a sanitized bind value as an Oracle literal for `buildFinalSql`. */
+  private toSqlLiteral(value: string): string {
+    if (value === 'null' || value === 'undefined') return 'NULL';
+    // OUT / INOUT markers are not input literals — keep them as-is so the
+    // direction is still visible in the rendered statement.
+    if (value === '<OUT>' || value.startsWith('<INOUT ')) return value;
+    return `'${value.replace(/'/g, "''")}'`;
   }
 
   /**
