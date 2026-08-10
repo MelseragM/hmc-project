@@ -9,6 +9,12 @@ export interface AppConfig {
   corsOrigins: string[];
   gatewayBaseUrl: string;
   requestTimeoutMs: number;
+  /**
+   * Per-sub-read deadline (ms) for endpoints that fan out several Oracle reads
+   * in parallel (e.g. leave defaults). Kept well under `requestTimeoutMs` so one
+   * slow view degrades to a partial result instead of a whole-request timeout.
+   */
+  aggregateReadTimeoutMs: number;
   lovCacheTtlMs: number;
   logLevel: string;
 }
@@ -113,6 +119,8 @@ export default (): RootConfig => ({
     gatewayBaseUrl:
       process.env.SANAAD_GATEWAY_BASE_URL ?? 'https://apigwuat.api.hamad.qa/sanaad',
     requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS ?? 30000),
+    // Set directly for now (not env-driven). Kept under `requestTimeoutMs`.
+    aggregateReadTimeoutMs: 20000,
     lovCacheTtlMs: Number(process.env.LOV_CACHE_TTL_MS ?? 300000),
     logLevel: process.env.LOG_LEVEL ?? 'debug',
   },

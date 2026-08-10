@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Lang } from '@shared/domain/lang';
 import { LovItem } from '@shared/domain/lov-item';
 import { SubmitResult } from '@shared/domain/submit-result';
@@ -20,9 +21,12 @@ import {
  */
 @Injectable()
 export class LeaveService {
+  private readonly logger = new Logger(LeaveService.name);
+
   constructor(
     @Inject(LEAVE_REPOSITORY) private readonly repo: LeaveRepository,
     private readonly lookups: LookupsService,
+    private readonly config: ConfigService,
   ) {}
 
   // ── Procedures ────────────────────────────────────────────
@@ -79,24 +83,47 @@ export class LeaveService {
     return this.lookups.getByObject(ORACLE_OBJECTS.RFL_REL_LEAVE1_V, lang, username);
   }
   cancelLov(username: string, lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_CANCEL_V, lang, username);
+    const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
+    return this.settle('LEAVE_CANCEL_V', t, [] as LovItem[], () =>
+      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_CANCEL_V, lang, username),
+    );
   }
   amendLov(username: string, lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_AMEND_V, lang, username);
+    const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
+    return this.settle('LEAVE_AMEND_V', t, [] as LovItem[], () =>
+      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_AMEND_V, lang, username),
+    );
   }
 
   // ── Aggregated LOVs (fan-out; parallelized) ───────────────
   async requestLov(lang: Lang): Promise<Record<string, LovItem[]>> {
+    const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
     const [numOfChild, leaveClass, examCentre, bereavement, contractYear, types, reasons, leaveType] =
       await Promise.all([
-        this.lookups.getByObject(ORACLE_OBJECTS.NUM_OF_CHILD_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.LEAV_CLASS_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.EXAM_CENTRE_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.BEREAV_RELAT_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.CONTRACT_YEAR_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_TYPE_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_REASON_V, lang),
-        this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_TYPE_V, lang),
+        this.settle('NUM_OF_CHILD_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.NUM_OF_CHILD_V, lang),
+        ),
+        this.settle('LEAV_CLASS_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.LEAV_CLASS_V, lang),
+        ),
+        this.settle('EXAM_CENTRE_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.EXAM_CENTRE_V, lang),
+        ),
+        this.settle('BEREAV_RELAT_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.BEREAV_RELAT_V, lang),
+        ),
+        this.settle('CONTRACT_YEAR_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.CONTRACT_YEAR_V, lang),
+        ),
+        this.settle('ABSENCE_TYPE_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_TYPE_V, lang),
+        ),
+        this.settle('ABSENCE_REASON_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_REASON_V, lang),
+        ),
+        this.settle('LEAVE_TYPE_V', t, [] as LovItem[], () =>
+          this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_TYPE_V, lang),
+        ),
       ]);
     return {
       numOfChild,
@@ -114,13 +141,61 @@ export class LeaveService {
     employeeNumber: string,
     lang: Lang,
   ): Promise<{ employment?: Record<string, unknown>; lovs: Record<string, LovItem[]> }> {
+    const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
     const [employment, annualTicket, library, alsr, contractYear] = await Promise.all([
-      this.repo.getEmploymentContext(employeeNumber),
-      this.lookups.getByObject(ORACLE_OBJECTS.ANNUAL_TICKT_LOV, lang),
-      this.lookups.getByObject(ORACLE_OBJECTS.LIBR_DFALT_LOV, lang),
-      this.lookups.getByObject(ORACLE_OBJECTS.ALSR_DFALT_LOV, lang),
-      this.lookups.getByObject(ORACLE_OBJECTS.CONTRACT_YEAR_V, lang),
+      this.settle('EMPLOYMENT_DETAILS_V', t, undefined, () =>
+        this.repo.getEmploymentContext(employeeNumber),
+      ),
+      this.settle('ANNUAL_TICKT_LOV', t, [] as LovItem[], () =>
+        this.lookups.getByObject(ORACLE_OBJECTS.ANNUAL_TICKT_LOV, lang),
+      ),
+      this.settle('LIBR_DFALT_LOV', t, [] as LovItem[], () =>
+        this.lookups.getByObject(ORACLE_OBJECTS.LIBR_DFALT_LOV, lang),
+      ),
+      this.settle('ALSR_DFALT_LOV', t, [] as LovItem[], () =>
+        this.lookups.getByObject(ORACLE_OBJECTS.ALSR_DFALT_LOV, lang),
+      ),
+      this.settle('CONTRACT_YEAR_V', t, [] as LovItem[], () =>
+        this.lookups.getByObject(ORACLE_OBJECTS.CONTRACT_YEAR_V, lang),
+      ),
     ]);
     return { employment, lovs: { annualTicket, library, alsr, contractYear } };
+  }
+
+  /**
+   * Run one Oracle read against a deadline. A slow OR failing read degrades to
+   * `fallback` (logged with the object name), so a single misbehaving view
+   * yields a partial/empty 200 instead of a whole-request 408. Used both for
+   * fan-out aggregates (defaults, request-lov) and single user-scoped LOVs
+   * (cancel, amend). The underlying Oracle call is left to be reclaimed by the
+   * pool `callTimeout`; its later result/rejection is swallowed so it cannot
+   * surface as an unhandled rejection.
+   */
+  private async settle<T>(
+    object: string,
+    timeoutMs: number,
+    fallback: T,
+    factory: () => Promise<T>,
+  ): Promise<T> {
+    const read = factory().catch((err: unknown) => {
+      this.logger.warn(
+        `[READ_DEGRADED] object=${object} failed: ${(err as Error).message} — returning fallback`,
+      );
+      return fallback;
+    });
+    let timer: NodeJS.Timeout | undefined;
+    const deadline = new Promise<T>((resolve) => {
+      timer = setTimeout(() => {
+        this.logger.warn(
+          `[READ_DEGRADED] object=${object} exceeded ${timeoutMs}ms — returning fallback`,
+        );
+        resolve(fallback);
+      }, timeoutMs);
+    });
+    try {
+      return await Promise.race([read, deadline]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 }
