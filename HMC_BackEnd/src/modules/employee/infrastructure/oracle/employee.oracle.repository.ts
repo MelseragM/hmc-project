@@ -7,14 +7,27 @@ import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
 
-/** SUPERVISOR_PR input params (Sanaad spec — SUPERVISOR_PR body). */
+/**
+ * SUPERVISOR_PR input params. The confirmed signature is
+ * (p_user_name, p_new_supervisor, p_reason, p_file_nameN/p_attachmentN[BLOB],
+ * p_success_flag, p_error_msg, p_error_msg_ar) — there is NO p_language, and the
+ * attachments are BLOB. Sending p_language raised PLS-00306.
+ */
 const SUPERVISOR_PR_PARAMS = [
   'p_user_name',
   'p_new_supervisor',
   'p_reason',
-  'p_language',
   ...BaseOracleRepository.attachmentParams(),
 ] as const;
+
+/**
+ * GET_SUPERVISOR_VIEW input params (Sanaad spec — op 35: USER_NAME, LANGUAGE).
+ * Despite the mapping labelling XXHMC_SND_SUPERVISOR_VIEW an "Oracle View", it is
+ * a program unit that returns its rows through a REF CURSOR — selecting from it
+ * raised ORA-04044. The cursor OUT name is resolved from the data dictionary and
+ * only falls back to this documented name when the dictionary is unreadable.
+ */
+const SUPERVISOR_VIEW_PARAMS = ['user_name', 'language'] as const;
 import { EmploymentDetails, PerformanceRecord, SupervisorView } from '../../domain/entities/employment';
 import {
   EmploymentRepository,
@@ -65,12 +78,27 @@ export class SupervisorOracleRepository
     super(ora, schema);
   }
 
-  getSupervisorViews(employeeNumber: string, _lang: Lang): Promise<SupervisorView[]> {
-    return this.readByEmployee<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, employeeNumber);
+  getSupervisorViews(employeeNumber: string, lang: Lang): Promise<SupervisorView[]> {
+    // XXHMC_SND_SUPERVISOR_VIEW is a REF-CURSOR program unit, not a table:
+    // `SELECT * FROM` it raised ORA-04044. Call it like the other row-returning
+    // procedures so the real argument names and cursor OUT name come from the
+    // data dictionary (see BaseOracleRepository.callRowsProc).
+    return this.callRowsProc<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, SUPERVISOR_VIEW_PARAMS, {
+      user_name: employeeNumber,
+      language: toOracleLanguage(lang),
+    });
   }
 
   async updateSupervisor(cmd: SupervisorUpdateCommand): Promise<SubmitResult> {
-    const values = { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
-    return this.callSubmitProc(ORACLE_OBJECTS.SUPERVISOR_PR, SUPERVISOR_PR_PARAMS, values);
+    // SUPERVISOR_PR takes no p_language; its OUT contract is p_success_flag /
+    // p_error_msg / p_error_msg_ar (used for the fallback when the dictionary is
+    // unreadable — the dictionary path derives the OUT binds from the signature).
+    const values = { ...cmd.fields, p_user_name: cmd.username };
+    return this.callSubmitProc(
+      ORACLE_OBJECTS.SUPERVISOR_PR,
+      SUPERVISOR_PR_PARAMS,
+      values,
+      this.successFlagOutBinds(),
+    );
   }
 }

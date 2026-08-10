@@ -13,12 +13,15 @@ import {
 } from '../../domain/payslip.repository';
 
 /**
- * GET_PAYSLIP_PERIODS input params. The procedure is keyed by the caller's login
- * (`p_user_name`), not the person id — binding `person_id` left `p_user_name`
- * NULL and the call returned no periods. The cursor OUT parameter is
+ * GET_PAYSLIP_PERIODS confirmed signature:
+ *   (p_user_name IN, p_get_periods OUT sys_refcursor,
+ *    p_success_flag OUT, p_error_msg OUT)
+ * It is keyed by the caller's login (`p_user_name`), takes no language, and
+ * declares two scalar OUT params besides the cursor — omitting them raised
+ * PLS-00306 (see BaseOracleRepository.callRowsProc). The cursor OUT parameter is
  * `p_get_periods` (used only when the data dictionary is unreadable).
  */
-const PERIODS_PARAMS = ['user_name', 'language'] as const;
+const PERIODS_PARAMS = ['user_name'] as const;
 
 /** CHK_PAYROLL_CNT input params (Sanaad spec — CHECK_PAYSLIP_COUNT: PERSON_ID, LANGUAGE, PERIOD). */
 const COUNT_PARAMS = ['person_id', 'language', 'period'] as const;

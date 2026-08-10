@@ -216,19 +216,50 @@ export abstract class BaseOracleRepository {
     cursorParam = 'p_cursor',
   ): Promise<T[]> {
     const declared = await this.schema?.resolveParams(object, params);
-    const inParams = declared?.length
-      ? declared.filter((p) => !p.direction.includes('OUT')).map((p) => p.name)
-      : [...params];
-    const cursorName =
-      declared?.find((p) => p.direction.includes('OUT') && p.dataType.toUpperCase() === 'REF CURSOR')
-        ?.name ?? cursorParam;
 
+    if (declared?.length) {
+      const binds: oracledb.BindParameters = {};
+      const names: string[] = [];
+      let cursorName = cursorParam;
+      for (const param of declared) {
+        names.push(param.name);
+        const isCursor =
+          param.direction.includes('OUT') && param.dataType.toUpperCase() === 'REF CURSOR';
+        if (isCursor) {
+          // The row set. Bind it under its real formal name and tell callCursor
+          // which OUT bind to read.
+          cursorName = param.name;
+          (binds as Record<string, unknown>)[param.name] = {
+            dir: oracledb.BIND_OUT,
+            type: oracledb.CURSOR,
+          };
+          continue;
+        }
+        if (param.direction.includes('OUT')) {
+          // A scalar OUT the procedure also declares (e.g. GET_PAYSLIP_PERIODS'
+          // p_success_flag / p_error_msg). It must be bound or the call is short
+          // an argument — PLS-00306. Its value is unused here.
+          (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.outBind(
+            param,
+            BaseOracleRepository.pick(values, param.name),
+          );
+          continue;
+        }
+        (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.inBind(
+          param,
+          BaseOracleRepository.pick(values, param.name),
+        );
+      }
+      const namedArgs = names.map((n) => `${n} => :${n}`).join(',\n          ');
+      return this.callCursor<T>(`BEGIN ${object}(\n          ${namedArgs}); END;`, binds, cursorName);
+    }
+
+    const inParams = [...params];
     const binds: oracledb.BindParameters = { ...this.cursorOutBind() };
     for (const p of inParams) {
       (binds as Record<string, unknown>)[p] = BaseOracleRepository.pick(values, p);
     }
-
-    const namedArgs = [...inParams.map((p) => `${p} => :${p}`), `${cursorName} => :cursor`].join(
+    const namedArgs = [...inParams.map((p) => `${p} => :${p}`), `${cursorParam} => :cursor`].join(
       ',\n          ',
     );
     return this.callCursor<T>(`BEGIN ${object}(\n          ${namedArgs}); END;`, binds);
@@ -257,7 +288,20 @@ export abstract class BaseOracleRepository {
 
   private static inBind(param: ProcedureParam, value: unknown): unknown {
     const type = OracleSchemaService.outBindType(param);
+    // Attachments (p_attachmentN) are declared BLOB but arrive as base64 text;
+    // a VARCHAR bind to a BLOB formal is a type mismatch → PLS-00306. Convert to
+    // binary so node-oracledb binds an actual LOB.
+    if (type === oracledb.DB_TYPE_BLOB) {
+      return { type, val: BaseOracleRepository.toBlobBuffer(value) };
+    }
     return typeof type === 'string' ? { type, val: value } : value;
+  }
+
+  /** A BLOB IN value: base64 text → Buffer; null/undefined/empty stay NULL. */
+  private static toBlobBuffer(value: unknown): Buffer | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (Buffer.isBuffer(value)) return value;
+    return Buffer.from(String(value), 'base64');
   }
 
   private static outBind(param: ProcedureParam, value: unknown): oracledb.BindParameter {
