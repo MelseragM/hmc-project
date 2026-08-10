@@ -379,7 +379,12 @@ export abstract class BaseOracleRepository {
     );
     const message = (out.p_message ?? out.p_error_msg ?? out.msg ?? out.errormessage ?? '').toString();
     const messageAr = out.p_message_ar ?? out.p_error_msg_ar ?? out.errormessage_ar;
-    const isSuccess = flagRaw.toUpperCase() === 'S' || flagRaw === '0';
+    // Different procedures use different success conventions: 'S' (status),
+    // 'Y' (p_success_flag, e.g. REASSIGN_PR-style: p_success_flag/p_error_msg/
+    // p_error_msg_ar — { p_success_flag: "Y", p_error_msg: null, ... } is success),
+    // or '0'.
+    const flagUpper = flagRaw.toUpperCase();
+    const isSuccess = flagUpper === 'S' || flagUpper === 'Y' || flagRaw === '0';
     let errormessage = message || (isSuccess ? 'Success' : 'Operation failed');
     let safeMessageAr = messageAr ? safeDecodeUri(messageAr) : undefined;
 
