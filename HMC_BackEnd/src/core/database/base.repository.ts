@@ -266,6 +266,102 @@ export abstract class BaseOracleRepository {
   }
 
   /**
+   * Call a procedure that returns MULTIPLE REF CURSORs in a single round trip
+   * (e.g. PAYSLIP_PR: 7 separate cursors — earnings/deductions/totals/
+   * balances/informations/net payments/housing — plus scalar OUT params).
+   *
+   * `callRowsProc` only tracks the *last* REF CURSOR it sees (one row set per
+   * call); binding every cursor that way but reading only one back with
+   * `callCursor` leaves the others open and can surface as
+   * `NJS-107: invalid cursor` / `ORA-24338: statement handle not executed`.
+   * This reads every declared REF CURSOR OUT bind into its own array, keyed by
+   * its formal parameter name, plus every scalar OUT bind's raw value.
+   *
+   * Like `callRowsProc`/`callSubmitProc`, the argument list comes from the data
+   * dictionary when readable and falls back to the documented `params` /
+   * `cursorParams` / `scalarOutParams` otherwise.
+   */
+  protected async callMultiCursorProc(
+    object: string,
+    params: readonly string[],
+    values: Record<string, unknown>,
+    cursorParams: readonly string[],
+    scalarOutParams: readonly string[] = [],
+  ): Promise<{ cursors: Record<string, Record<string, any>[]>; scalars: Record<string, any> }> {
+    const declared = await this.schema?.resolveParams(object, [
+      ...params,
+      ...cursorParams,
+      ...scalarOutParams,
+    ]);
+    const binds: oracledb.BindParameters = {};
+    const names: string[] = [];
+    const cursorNames: string[] = [];
+    const scalarNames: string[] = [];
+
+    if (declared?.length) {
+      for (const param of declared) {
+        names.push(param.name);
+        const isCursor =
+          param.direction.includes('OUT') && param.dataType.toUpperCase() === 'REF CURSOR';
+        if (isCursor) {
+          cursorNames.push(param.name);
+          (binds as Record<string, unknown>)[param.name] = { dir: oracledb.BIND_OUT, type: oracledb.CURSOR };
+          continue;
+        }
+        if (param.direction.includes('OUT')) {
+          scalarNames.push(param.name);
+          (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.outBind(
+            param,
+            BaseOracleRepository.pick(values, param.name),
+          );
+          continue;
+        }
+        (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.inBind(
+          param,
+          BaseOracleRepository.pick(values, param.name),
+        );
+      }
+    } else {
+      for (const p of params) {
+        (binds as Record<string, unknown>)[p] = BaseOracleRepository.pick(values, p);
+        names.push(p);
+      }
+      for (const c of cursorParams) {
+        (binds as Record<string, unknown>)[c] = { dir: oracledb.BIND_OUT, type: oracledb.CURSOR };
+        names.push(c);
+        cursorNames.push(c);
+      }
+      for (const s of scalarOutParams) {
+        (binds as Record<string, unknown>)[s] = {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.STRING,
+          maxSize: 4000,
+        };
+        names.push(s);
+        scalarNames.push(s);
+      }
+    }
+
+    const namedArgs = names.map((n) => `${n} => :${n}`).join(',\n          ');
+    const out = await this.call<Record<string, any>>(
+      `BEGIN ${object}(\n          ${namedArgs}); END;`,
+      binds,
+    );
+
+    const cursors: Record<string, Record<string, any>[]> = {};
+    for (const name of cursorNames) {
+      const cursor = out[name] as oracledb.ResultSet<Record<string, any>> | undefined;
+      cursors[name] = cursor ? ((await cursor.getRows(0)) ?? []) : [];
+      if (cursor) await cursor.close();
+    }
+    const scalars: Record<string, any> = {};
+    for (const name of scalarNames) {
+      scalars[name] = out[name];
+    }
+    return { cursors, scalars };
+  }
+
+  /**
    * Value for a formal parameter, tolerating the `p_` prefix being present on one
    * side only: the Sanaad mapping documents some inputs bare (`PERSON_ID`,
    * `PERIOD`) and others prefixed (`P_USER_NAME`), while the declared parameter

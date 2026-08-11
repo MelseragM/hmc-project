@@ -26,8 +26,37 @@ const PERIODS_PARAMS = ['user_name'] as const;
 /** CHK_PAYROLL_CNT input params (Sanaad spec — CHECK_PAYSLIP_COUNT: PERSON_ID, LANGUAGE, PERIOD). */
 const COUNT_PARAMS = ['person_id', 'language', 'period'] as const;
 
-/** PAYSLIP_PR input params (Sanaad spec — generatepayslip request template). */
-const GENERATE_PARAMS = ['person_id', 'language', 'period', 'assignment_id'] as const;
+/**
+ * PAYSLIP_PR confirmed signature (there is NO p_language):
+ *   xxhmc_snd_payslip_pr(p_person_id IN NUMBER, p_period IN VARCHAR2,
+ *     p_assignment_id IN NUMBER, p_get_earnings OUT SYS_REFCURSOR,
+ *     p_get_deductions OUT SYS_REFCURSOR, p_get_totals OUT SYS_REFCURSOR,
+ *     p_get_balances OUT SYS_REFCURSOR, p_get_informations OUT SYS_REFCURSOR,
+ *     p_get_net_payments OUT SYS_REFCURSOR, p_get_housing OUT SYS_REFCURSOR,
+ *     p_success_flag OUT VARCHAR2, p_error_msg OUT VARCHAR2,
+ *     p_profile OUT VARCHAR2, p_total_earnings OUT VARCHAR2,
+ *     p_total_deductions OUT VARCHAR2)
+ * It returns the payslip as 7 separate REF CURSORs, not one row set — binding
+ * all of them but reading only one back (the old `callRowsProc` shape) raised
+ * `NJS-107: invalid cursor` / `ORA-24338`. See BaseOracleRepository.callMultiCursorProc.
+ */
+const GENERATE_PARAMS = ['person_id', 'period', 'assignment_id'] as const;
+const GENERATE_CURSOR_PARAMS = [
+  'p_get_earnings',
+  'p_get_deductions',
+  'p_get_totals',
+  'p_get_balances',
+  'p_get_informations',
+  'p_get_net_payments',
+  'p_get_housing',
+] as const;
+const GENERATE_SCALAR_OUT_PARAMS = [
+  'p_success_flag',
+  'p_error_msg',
+  'p_profile',
+  'p_total_earnings',
+  'p_total_deductions',
+] as const;
 
 /**
  * Payroll is served by Oracle program units (GET_PAYSLIP_PERIODS,
@@ -74,18 +103,30 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
   }
 
   async generate(query: GeneratePayslipQuery): Promise<PayslipDocument> {
-    const rows = await this.callRowsProc<Record<string, unknown>>(
+    const { cursors, scalars } = await this.callMultiCursorProc(
       ORACLE_OBJECTS.PAYSLIP_PR,
       GENERATE_PARAMS,
       {
         person_id: query.employeeNumber,
-        language: toOracleLanguage(query.lang),
         period: query.payPeriod,
         assignment_id: query.assignmentId,
       },
+      GENERATE_CURSOR_PARAMS,
+      GENERATE_SCALAR_OUT_PARAMS,
     );
-    // The procedure returns the payslip as rows (earnings, deductions, totals),
-    // not as a file; the service layer shapes them for the client.
-    return { rows };
+    return {
+      earnings: cursors.p_get_earnings ?? [],
+      deductions: cursors.p_get_deductions ?? [],
+      totals: cursors.p_get_totals ?? [],
+      balances: cursors.p_get_balances ?? [],
+      informations: cursors.p_get_informations ?? [],
+      netPayments: cursors.p_get_net_payments ?? [],
+      housing: cursors.p_get_housing ?? [],
+      profile: scalars.p_profile,
+      totalEarnings: scalars.p_total_earnings,
+      totalDeductions: scalars.p_total_deductions,
+      successFlag: scalars.p_success_flag,
+      errorMessage: scalars.p_error_msg,
+    };
   }
 }
