@@ -9,6 +9,7 @@ import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-column
 import { CATEGORY_MESSAGE, ErrorCategory, looksSensitive } from '../http/error-category';
 import { SchemaColumnNotFoundException } from './schema-column-not-found.error';
 import { RequestContext } from '../http/request-context';
+import { parseDateToken, parseDisplayDate } from '@shared/utils/date.util';
 
 /**
  * Base class for Oracle adapters. Centralizes the OUT-bind conventions
@@ -303,7 +304,22 @@ export abstract class BaseOracleRepository {
     if (type === oracledb.DB_TYPE_BLOB) {
       return { type, val: BaseOracleRepository.toBlobBuffer(value) };
     }
+    // DATE/TIMESTAMP formals (e.g. CREATE_ADDRESS_PR's p_effective_date) need a
+    // JS Date bind. Passing the request's `yyyymmdd` string through as-is binds
+    // it as VARCHAR2 and Oracle implicitly converts it with the session's
+    // default date format, which rejects `yyyymmdd` — ORA-01861.
+    if (type === oracledb.DB_TYPE_DATE || type === oracledb.DB_TYPE_TIMESTAMP) {
+      return { type, val: BaseOracleRepository.toOracleDate(value) };
+    }
     return typeof type === 'string' ? { type, val: value } : value;
+  }
+
+  /** Coerce a request date value (`yyyymmdd` token, `dd-Mon-yyyy`, or Date) to a JS Date for a DATE/TIMESTAMP bind. */
+  private static toOracleDate(value: unknown): Date | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (value instanceof Date) return value;
+    const str = String(value);
+    return parseDateToken(str) ?? parseDisplayDate(str) ?? null;
   }
 
   /** A BLOB IN value: base64 text → Buffer; null/undefined/empty stay NULL. */
