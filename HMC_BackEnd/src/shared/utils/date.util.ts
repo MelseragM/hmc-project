@@ -38,18 +38,3 @@ export function parseDisplayDate(value: string | undefined): Date | undefined {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
-
-/**
- * Parse a `yyyymmdd` token (e.g. `20240911`) to a local midnight `Date`, or
- * undefined. Binding it as a raw string to a DATE-typed procedure argument
- * lets node-oracledb fall back to an implicit, NLS-dependent conversion that
- * rejects `yyyymmdd` (`ORA-01861: literal does not match format string`).
- */
-export function parseDateToken(value: string): Date | undefined {
-  if (!isDateToken(value)) return undefined;
-  const year = Number(value.slice(0, 4));
-  const month = Number(value.slice(4, 6));
-  const day = Number(value.slice(6, 8));
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
