@@ -22,7 +22,10 @@ import {
   LEAVE_AMEND_BODY,
   LEAVE_CANCEL_BODY,
   LEAVE_CLASSES_LOV_EXAMPLE,
+  LEAVE_DEFAULTS_EXAMPLE,
+  LEAVE_EMPTY_ITEMS_EXAMPLE,
   LEAVE_REASONS_LOV_EXAMPLE,
+  LEAVE_REQUEST_LOV_EXAMPLE,
   LEAVE_RETURN_BODY,
   LEAVE_TYPES_LOV_EXAMPLE,
 } from './leave.examples';
@@ -131,12 +134,14 @@ export class LeaveController {
 
   @Get('lov/defaults')
   @ApiOperation({ summary: 'op 45 — Leave defaults', operationId: 'leave_defaults' })
+  @ApiReadOkResponse({ example: LEAVE_DEFAULTS_EXAMPLE })
   defaults(@Query() q: ProfileQueryDto) {
     return this.service.defaults(q.enum, q.lang);
   }
 
   @Get('lov/request-lov')
   @ApiOperation({ summary: 'op 46 — Leave request LOVs', operationId: 'leave_requestLov' })
+  @ApiReadOkResponse({ example: LEAVE_REQUEST_LOV_EXAMPLE })
   requestLov(@Query() q: ProfileQueryDto) {
     return this.service.requestLov(q.lang);
   }
@@ -144,6 +149,7 @@ export class LeaveController {
   @Get('lov/return')
   @ApiOperation({ summary: 'op 55 — Return-from-leave LOV', operationId: 'leave_returnLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
   async returnLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.returnLov(q.username, q.lang) };
   }
@@ -151,6 +157,7 @@ export class LeaveController {
   @Get('lov/cancel')
   @ApiOperation({ summary: 'op 61 — Leave cancel LOV', operationId: 'leave_cancelLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
   async cancelLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.cancelLov(q.username, q.lang) };
   }
@@ -158,6 +165,7 @@ export class LeaveController {
   @Get('lov/amend')
   @ApiOperation({ summary: 'op 62 — Leave amend LOV', operationId: 'leave_amendLov' })
   @ApiOkResponse({ type: LovResponseDto })
+  @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
   async amendLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.amendLov(q.username, q.lang) };
   }

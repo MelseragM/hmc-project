@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OracleService } from '@core/database/oracle.service';
 import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
-import { Lang, toOracleLanguage } from '@shared/domain/lang';
+import { Lang } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
@@ -20,14 +20,6 @@ const SUPERVISOR_PR_PARAMS = [
   ...BaseOracleRepository.attachmentParams(),
 ] as const;
 
-/**
- * GET_SUPERVISOR_VIEW input params (Sanaad spec — op 35: USER_NAME, LANGUAGE).
- * Despite the mapping labelling XXHMC_SND_SUPERVISOR_VIEW an "Oracle View", it is
- * a program unit that returns its rows through a REF CURSOR — selecting from it
- * raised ORA-04044. The cursor OUT name is resolved from the data dictionary and
- * only falls back to this documented name when the dictionary is unreadable.
- */
-const SUPERVISOR_VIEW_PARAMS = ['user_name', 'language'] as const;
 import { EmploymentDetails, PerformanceRecord, SupervisorView } from '../../domain/entities/employment';
 import {
   EmploymentRepository,
@@ -78,15 +70,17 @@ export class SupervisorOracleRepository
     super(ora, schema);
   }
 
-  getSupervisorViews(employeeNumber: string, lang: Lang): Promise<SupervisorView[]> {
-    // XXHMC_SND_SUPERVISOR_VIEW is a REF-CURSOR program unit, not a table:
-    // `SELECT * FROM` it raised ORA-04044. Call it like the other row-returning
-    // procedures so the real argument names and cursor OUT name come from the
-    // data dictionary (see BaseOracleRepository.callRowsProc).
-    return this.callRowsProc<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, SUPERVISOR_VIEW_PARAMS, {
-      user_name: employeeNumber,
-      language: toOracleLanguage(lang),
-    });
+  getSupervisorViews(employeeNumber: string, _lang: Lang): Promise<SupervisorView[]> {
+    // XXHMC_SND_SUPERVISOR_VIEW IS a queryable view — confirmed by
+    // `PLS-00221: 'XXHMC_SND_SUPERVISOR_VIEW' is not a procedure or is undefined`
+    // when it was called as one (BEGIN ... END;). Read it with SELECT, resolving
+    // the real key column from the data dictionary (same pattern already used
+    // for PERFORMANCE_V / QID_DET_V).
+    return this.readByResolvedKey<SupervisorView>(
+      ORACLE_OBJECTS.SUPERVISOR_VIEW,
+      employeeNumber,
+      USERNAME_KEY_CANDIDATES,
+    );
   }
 
   async updateSupervisor(cmd: SupervisorUpdateCommand): Promise<SubmitResult> {

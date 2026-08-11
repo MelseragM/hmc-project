@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -7,14 +7,15 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
-import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
+import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { ProfileService } from '../application/profile.service';
 import { UpdatePersonalRequestDto } from './dto/update-personal.request.dto';
 import {
   PROFILE_GET_EXAMPLE,
   PROFILE_MARITAL_LOV_EXAMPLE,
   PROFILE_UPDATE_PERSONAL_BODY,
+  PROFILE_UPDATE_PERSONAL_EXAMPLE,
 } from './profile.examples';
 
 /** Profile endpoints (ops 2, 48, 63). See Docs_Ai/API/README.md. */
@@ -26,6 +27,7 @@ export class ProfileController {
 
   @Get()
   @ApiOperation({ summary: 'op 2 — Personal detail', operationId: 'profile_get' })
+  @ApiQuery({ name: 'enum', description: 'Username (Oracle login, e.g. V-xxx).', example: 'AIBRAHIM39' })
   @ApiReadOkResponse({ example: PROFILE_GET_EXAMPLE })
   get(@Query() q: ProfileQueryDto) {
     return this.service.getProfile(q.enum, q.lang);
@@ -35,7 +37,7 @@ export class ProfileController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 48 — Update personal details', operationId: 'profile_updatePersonal' })
   @ApiBody(PROFILE_UPDATE_PERSONAL_BODY)
-  @ApiOkResponse({ type: SubmitResultDto })
+  @ApiActionOkResponse({ example: PROFILE_UPDATE_PERSONAL_EXAMPLE })
   updatePersonal(
     @Body() body: UpdatePersonalRequestDto,
     @CurrentUser() user: AuthenticatedUser,

@@ -6,8 +6,10 @@ import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { LettersService } from '../application/letters.service';
 import { LetterApplyRequestDto } from './dto/letters.dto';
+import { LETTERS_LOV_EXAMPLE } from './letters.examples';
 
 /** Letters endpoints (ops 16, 17). See Docs_Ai/API/README.md. */
 @ApiTags('letters')
@@ -18,6 +20,7 @@ export class LettersController {
 
   @Get('lov')
   @ApiOperation({ summary: 'op 16 — Letter request LOVs', operationId: 'letters_lov' })
+  @ApiReadOkResponse({ example: LETTERS_LOV_EXAMPLE })
   lov(@Query() q: ProfileQueryDto) {
     return this.service.getLetterLovs(q.lang, q.enum);
   }

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -42,6 +42,7 @@ export class EmployeeController {
 
   @Get('performance')
   @ApiOperation({ summary: 'op 7 — Performance records', operationId: 'employee_performance' })
+  @ApiQuery({ name: 'enum', description: 'Username (Oracle login, e.g. V-xxx).', example: 'V-ISIDDIQUI' })
   @ApiReadOkResponse({ example: EMPLOYEE_PERFORMANCE_EXAMPLE })
   performance(@Query() q: ProfileQueryDto) {
     return this.employee.performance(q.enum, q.lang);

@@ -100,10 +100,13 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
   }
 
   async calculate(cmd: LeaveCalcCommand): Promise<LeaveDuration> {
+    // p_success_flag was added to CALC_LEAV_DUR_PR's OUT contract alongside
+    // p_status/p_message; omitting it raised PLS-00306 (wrong number of args).
     const namedArgs = [
       ...LEAVE_CALC_PARAMS.map((p) => `${p} => :${p}`),
       'p_status => :p_status',
       'p_message => :p_message',
+      'p_success_flag => :p_success_flag',
     ].join(',\n          ');
     const out = await this.call<Record<string, any>>(
       `BEGIN ${ORACLE_OBJECTS.CALC_LEAV_DUR_PR}(\n          ${namedArgs}); END;`,
@@ -115,12 +118,13 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
         p_language: toOracleLanguage(cmd.lang),
         p_status: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
         p_message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+        p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
       },
     );
     const days = Number(out.p_message);
     return {
       days: Number.isFinite(days) ? days : undefined,
-      successflag: out.p_status,
+      successflag: out.p_success_flag ?? out.p_status,
       message: out.p_message,
     };
   }

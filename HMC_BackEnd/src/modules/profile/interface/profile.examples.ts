@@ -80,3 +80,11 @@ export const PROFILE_UPDATE_PERSONAL_BODY = {
     },
   },
 };
+
+/** op 48 — POST /profile/personal response (action envelope). */
+export const PROFILE_UPDATE_PERSONAL_EXAMPLE = {
+  status: 'success',
+  successflag: 'S',
+  errormessage: 'Success',
+  httpStatusCode: 200,
+};

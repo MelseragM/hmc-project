@@ -46,6 +46,75 @@ export const LEAVE_CLASSES_LOV_EXAMPLE = {
   ],
 };
 
+/** op 45 — GET /leave/lov/defaults?enum=&lang= */
+export const LEAVE_DEFAULTS_EXAMPLE = {
+  employment: {
+    PERSON_ID: 852709,
+    USER_NAME: 'V-NFERNANDO',
+    EMPLOYEE_NUMBER: '053613',
+    JOINING_DATE: '28-10-2018',
+    EMAIL_ADDRESS: 'username@null.qa',
+    DEPARTMENT:
+      'Admin.Information Communication and Technology.Health Information and Communication Technology',
+    JOB: '112216.HICT Analyst.HMC.',
+    SUPERVISOR_NUMBER: '037915',
+    SUPERVISOR_NAME: 'Mr. Usama Mahmoud Mohamed Maabed Abdelsamad',
+    SUPERVISOR_NAME_AR: 'اسامه محمود محمد معبد عبدالصمد',
+    DEPARTMENT_AR:
+      'إدارة تقنية المعلومات والاتصالات.قسم تقنية المعلومات والاتصالات.الإدارة',
+    JOB_AR: '112216.محلل نظم المعلومات الصحية وتكنولوجيا الإتصالات .HMC.',
+  },
+  lovs: {
+    annualTicket: [],
+    library: [{ code: 'No', meaning: 'No', meaningAr: 'لا' }],
+    alsr: [{ code: 'No', meaning: 'No', meaningAr: 'لا' }],
+    contractYear: [],
+  },
+};
+
+/** op 46 — GET /leave/lov/request-lov?enum=&lang= */
+export const LEAVE_REQUEST_LOV_EXAMPLE = {
+  numOfChild: [
+    { code: 'Single', meaning: 'Single' },
+    { code: 'Special Child', meaning: 'Special Child' },
+    { code: 'Twins or more', meaning: 'Twins or more' },
+  ],
+  leaveClass: [
+    { code: 'Inside Qatar', meaning: 'Inside Qatar' },
+    { code: 'Outside Qatar', meaning: 'Outside Qatar' },
+  ],
+  examCentre: [
+    { code: 'Inside Qatar', meaning: 'Inside Qatar' },
+    { code: 'Outside Qatar', meaning: 'Outside Qatar' },
+  ],
+  bereavement: [
+    { code: 'Aunt', meaning: 'Aunt' },
+    { code: 'Sibling', meaning: 'Sibling' },
+    { code: 'Parents', meaning: 'Parents' },
+    { code: 'Spouse', meaning: 'Spouse' },
+  ],
+  contractYear: [],
+  types: [
+    { code: 'Annual Leave', meaning: 'Annual Leave', meaningAr: 'أجازة سنوية' },
+    { code: 'Casual Leave', meaning: 'Casual Leave', meaningAr: 'إجازة عارضة' },
+    { code: 'Sick Leave', meaning: 'Sick Leave', meaningAr: 'إجازة مرضية' },
+  ],
+  reasons: [
+    { code: 'Annual Leave', meaning: 'Annual Leave' },
+    { code: 'Sick Leave', meaning: 'Sick Leave' },
+    { code: 'Casual Leave', meaning: 'Casual Leave' },
+  ],
+  leaveType: [
+    { code: 'Annual Leave', meaning: 'Annual Leave', meaningAr: 'أجازة سنوية' },
+    { code: 'Casual Leave', meaning: 'Casual Leave', meaningAr: 'إجازة عارضة' },
+    { code: 'Leave without Pay', meaning: 'Leave without Pay', meaningAr: 'Leave without Pay' },
+    { code: 'Sick Leave', meaning: 'Sick Leave', meaningAr: 'إجازة مرضية' },
+  ],
+};
+
+/** ops 55/61/62 — GET /leave/lov/{return,cancel,amend}?username=&lang= (empty when there's nothing eligible). */
+export const LEAVE_EMPTY_ITEMS_EXAMPLE = { items: [] };
+
 /*
  * Request bodies for the leave submit procedures. `p_user_name` and
  * `p_language` are injected server-side and must NOT be sent. Field names are the

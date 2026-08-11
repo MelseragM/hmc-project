@@ -9,8 +9,10 @@ import { LeaveApplyCommand } from '../../domain/leave.repository';
  *
  * Core fields come from the typed command; the remaining documented params
  * (medical/bereavement/exam details + attachment slots) are passed through
- * `cmd.extra` by their documented `p_*` key. The p_status/p_message OUT binds
- * follow the repo's SubmitResult convention (see BaseOracleRepository).
+ * `cmd.extra` by their documented `p_*` key. The p_status/p_message/
+ * p_success_flag OUT binds follow the repo's SubmitResult convention (see
+ * BaseOracleRepository) — `p_success_flag` was added after the procedure's OUT
+ * contract grew a third param and omitting it raised `PLS-00306`.
  * See Docs_Ai/Repository Pattern/README.md Pattern C.
  */
 export class LeaveApplyBinds {
@@ -60,6 +62,7 @@ export class LeaveApplyBinds {
     ...LeaveApplyBinds.params.map((p) => `${p} => :${p}`),
     'p_status => :p_status',
     'p_message => :p_message',
+    'p_success_flag => :p_success_flag',
   ].join(',\n          ');
 
   static from(cmd: LeaveApplyCommand): oracledb.BindParameters {
@@ -74,6 +77,7 @@ export class LeaveApplyBinds {
     const binds: oracledb.BindParameters = {
       p_status: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
       p_message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+      p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
     };
     for (const name of LeaveApplyBinds.params) {
       const value = name in core ? core[name] : extra[name];
