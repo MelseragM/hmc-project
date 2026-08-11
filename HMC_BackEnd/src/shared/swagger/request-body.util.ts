@@ -29,3 +29,13 @@ export const ATTACHMENT_EXAMPLE = {
   p_file_name1: 'passport.pdf',
   p_attachment1: 'JVBERi0xLjQKJ...==',
 };
+
+/** All ten attachment slots as `null` — for request bodies whose Swagger example should show every slot explicitly unset. */
+export function nullAttachmentExample(slots = 10): Record<string, null> {
+  const example: Record<string, null> = {};
+  for (let i = 1; i <= slots; i++) {
+    example[`p_file_name${i}`] = null;
+    example[`p_attachment${i}`] = null;
+  }
+  return example;
+}
