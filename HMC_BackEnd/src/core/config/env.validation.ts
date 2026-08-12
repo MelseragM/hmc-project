@@ -66,12 +66,17 @@ export const envValidationSchema = Joi.object({
   LDAP_PORT: Joi.number().default(636),
   LDAP_USE_SSL: Joi.boolean().default(true),
   LDAP_URL: Joi.string().allow('').default(''),
+  LDAP_UPN_DOMAIN: Joi.string().allow('').default(''),
   LDAP_BASE_DN: Joi.string().allow('').default('DC=hmc,DC=org,DC=qa'),
   LDAP_SEARCH_FILTER: Joi.string().allow('').default('(sAMAccountName={username})'),
   LDAP_USERNAME_ATTRIBUTE: Joi.string().allow('').default('sAMAccountName'),
   LDAP_BIND_DN: Joi.string().allow('').default(''),
   LDAP_BIND_PASSWORD: Joi.string().allow('').default(''),
   LDAP_TLS_REJECT_UNAUTHORIZED: Joi.boolean().default(false),
+  // CA cert to trust for LDAPS: inline PEM (LDAP_CA_CERT) or a file path
+  // (LDAP_CA_CERT_PATH) — inline wins if both are set.
+  LDAP_CA_CERT: Joi.string().allow('').default(''),
+  LDAP_CA_CERT_PATH: Joi.string().allow('').default(''),
   LDAP_TIMEOUT_MS: Joi.number().default(10000),
 
   // Misc

@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 /**
  * Typed configuration factory consumed via `ConfigService`.
  * Grouped into namespaces (app, oracle, auth, cerner).
@@ -81,18 +83,32 @@ export interface LdapConfig {
   useSsl: boolean;
   /** Connection URL; derived from host/port/useSsl when LDAP_URL is unset. */
   url: string;
-  /** Search base, e.g. DC=hmc,DC=org,DC=qa. */
+  /**
+   * UPN domain suffix for direct binds (`username@upnDomain`), e.g. HMC.ORG.QA.
+   * Defaults to `host`. Used by `authenticate()`, which binds directly as the
+   * user — no service-account search needed.
+   */
+  upnDomain: string;
+  /** Search base, e.g. DC=hmc,DC=org,DC=qa. Used by `validate()` only. */
   baseDn: string;
-  /** User search filter; `{username}` is substituted at runtime. */
+  /** User search filter; `{username}` is substituted at runtime. Used by `validate()` only. */
   searchFilter: string;
-  /** Attribute holding the login name (e.g. sAMAccountName). */
+  /** Attribute holding the login name (e.g. sAMAccountName). Used by `validate()` only. */
   usernameAttribute: string;
-  /** Service account DN used to bind before searching. */
+  /** Service account DN used to bind before searching. Used by `validate()` only. */
   bindDn: string;
-  /** Service account password. */
+  /** Service account password. Used by `validate()` only. */
   bindPassword: string;
   /** Reject invalid/self-signed TLS certs (set true in production). */
   tlsRejectUnauthorized: boolean;
+  /**
+   * CA certificate(s) (PEM) to trust for LDAPS, read once at boot from
+   * LDAP_CA_CERT (inline PEM) or LDAP_CA_CERT_PATH (file path) — inline wins
+   * if both are set. Required to set `tlsRejectUnauthorized: true` against an
+   * internal/self-signed AD CA; leave unset only for a quick connectivity
+   * test (with tlsRejectUnauthorized=false).
+   */
+  caCert?: Buffer;
   /** Bind/search timeout in milliseconds. */
   timeoutMs: number;
 }
@@ -109,6 +125,28 @@ export interface RootConfig {
 }
 
 const toBool = (v: unknown): boolean => v === true || v === 'true';
+
+/**
+ * Resolve the LDAPS CA certificate: an inline PEM (LDAP_CA_CERT, `\n`
+ * unescaped so it can be set as a single-line env var) wins over a file path
+ * (LDAP_CA_CERT_PATH). Runs once at config-load time (before the Nest Logger
+ * exists), so a missing/unreadable file is only ever `console.warn`'d —
+ * never throws, since LDAP may be disabled or mid-provisioning.
+ */
+function loadLdapCaCert(): Buffer | undefined {
+  const inline = process.env.LDAP_CA_CERT;
+  if (inline) return Buffer.from(inline.replace(/\\n/g, '\n'), 'utf8');
+  const path = process.env.LDAP_CA_CERT_PATH;
+  if (!path) return undefined;
+  try {
+    return fs.readFileSync(path);
+  } catch (err) {
+    console.warn(
+      `[configuration] Could not read LDAP_CA_CERT_PATH="${path}": ${(err as Error).message}`,
+    );
+    return undefined;
+  }
+}
 
 export default (): RootConfig => ({
   app: {
@@ -179,12 +217,16 @@ export default (): RootConfig => ({
       `${toBool(process.env.LDAP_USE_SSL ?? 'true') ? 'ldaps' : 'ldap'}://${
         process.env.LDAP_HOST ?? 'HMC.ORG.QA'
       }:${Number(process.env.LDAP_PORT ?? 636)}`,
+    // Defaults to LDAP_HOST — override only if the UPN suffix differs from
+    // the directory host (uncommon).
+    upnDomain: process.env.LDAP_UPN_DOMAIN || process.env.LDAP_HOST || 'HMC.ORG.QA',
     baseDn: process.env.LDAP_BASE_DN ?? 'DC=hmc,DC=org,DC=qa',
     searchFilter: process.env.LDAP_SEARCH_FILTER ?? '(sAMAccountName={username})',
     usernameAttribute: process.env.LDAP_USERNAME_ATTRIBUTE ?? 'sAMAccountName',
     bindDn: process.env.LDAP_BIND_DN ?? '',
     bindPassword: process.env.LDAP_BIND_PASSWORD ?? '',
     tlsRejectUnauthorized: toBool(process.env.LDAP_TLS_REJECT_UNAUTHORIZED ?? 'false'),
+    caCert: loadLdapCaCert(),
     timeoutMs: Number(process.env.LDAP_TIMEOUT_MS ?? 10000),
   },
 });
