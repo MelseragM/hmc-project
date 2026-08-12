@@ -115,6 +115,13 @@ export const LEAVE_REQUEST_LOV_EXAMPLE = {
 /** ops 55/61/62 — GET /leave/lov/{return,cancel,amend}?username=&lang= (empty when there's nothing eligible). */
 export const LEAVE_EMPTY_ITEMS_EXAMPLE = { items: [] };
 
+/** op 47 — POST /leave/calculate (CALC_LEAV_DUR_PR: read result, not a submit envelope). */
+export const LEAVE_CALCULATE_EXAMPLE = {
+  days: 3,
+  successFlag: 'Y',
+  errorMessage: ' ',
+};
+
 /*
  * Request bodies for the leave submit procedures. `p_user_name` and
  * `p_language` are injected server-side and must NOT be sent. Field names are the

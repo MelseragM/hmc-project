@@ -1,5 +1,6 @@
 import * as oracledb from 'oracledb';
 import { parseOracleDate } from '@shared/utils/date.util';
+import { toBlobBuffer } from '@shared/utils/blob.util';
 import { LeaveApplyCommand } from '../../domain/leave.repository';
 
 /**
@@ -45,6 +46,11 @@ export class LeaveApplyBinds {
     'p_marriage_date',
     'p_delivery_date',
   ]);
+
+  /** BLOB formals (`p_attachment1..10`) — bound as `Buffer`, never base64 text. */
+  private static readonly BLOB_PARAMS: ReadonlySet<string> = new Set(
+    Array.from({ length: 10 }, (_, i) => `p_attachment${i + 1}`),
+  );
 
   /** Ordered IN parameter names exactly as confirmed by the Oracle team. */
   static readonly params: readonly string[] = [
@@ -120,6 +126,13 @@ export class LeaveApplyBinds {
         (binds as Record<string, unknown>)[name] = {
           type: oracledb.DB_TYPE_DATE,
           val: parseOracleDate(value ?? null),
+        };
+        continue;
+      }
+      if (LeaveApplyBinds.BLOB_PARAMS.has(name)) {
+        (binds as Record<string, unknown>)[name] = {
+          type: oracledb.DB_TYPE_BLOB,
+          val: toBlobBuffer(value ?? null),
         };
         continue;
       }

@@ -20,6 +20,7 @@ import {
 } from './dto/leave.dto';
 import {
   LEAVE_AMEND_BODY,
+  LEAVE_CALCULATE_EXAMPLE,
   LEAVE_CANCEL_BODY,
   LEAVE_CLASSES_LOV_EXAMPLE,
   LEAVE_DEFAULTS_EXAMPLE,
@@ -58,6 +59,7 @@ export class LeaveController {
   @Post('calculate')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 47 — Leave duration calculation', operationId: 'leave_calculate' })
+  @ApiReadOkResponse({ example: LEAVE_CALCULATE_EXAMPLE })
   calculate(
     @Body() dto: LeaveCalcRequestDto,
     @CurrentUser() user: AuthenticatedUser,

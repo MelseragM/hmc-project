@@ -131,8 +131,8 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
     const days = Number(out.p_duration);
     return {
       days: Number.isFinite(days) ? days : undefined,
-      successflag: out.p_success_flag,
-      message: out.p_error_msg,
+      successFlag: out.p_success_flag,
+      errorMessage: out.p_error_msg,
     };
   }
 

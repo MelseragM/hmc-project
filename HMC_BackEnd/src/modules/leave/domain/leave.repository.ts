@@ -9,9 +9,17 @@ export interface LeaveBalance {
   [extra: string]: unknown;
 }
 
+/**
+ * A field literally named `successflag` here would make
+ * `ResponseInterceptor.isSubmitResult()` misidentify this read result as a
+ * `_PR` action envelope, discarding `days` (only `status`/`successflag`/
+ * `errormessage`/`result` are forwarded for that shape) — hence
+ * `successFlag`/`errorMessage` (camelCase) rather than the Oracle bind names.
+ */
 export interface LeaveDuration {
   days?: number;
-  [extra: string]: unknown;
+  successFlag?: string;
+  errorMessage?: string;
 }
 
 export interface LeaveBalanceQuery {

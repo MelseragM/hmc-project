@@ -50,8 +50,8 @@ export class EmployeeController {
   @Get('supervisor/views')
   @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 35 — Supervisor view', operationId: 'employee_supervisorViews' })
-  supervisorViews(@Query() q: ProfileQueryDto) {
-    return this.supervisor.views(q.enum, q.lang);
+  supervisorViews(@Query() q: LovUserQueryDto) {
+    return this.supervisor.views(q.username, q.lang);
   }
 
   @Post('supervisor')

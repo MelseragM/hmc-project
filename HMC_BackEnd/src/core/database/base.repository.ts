@@ -5,6 +5,7 @@ import { OracleSchemaService, ProcedureParam } from './oracle-schema.service';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
 import { parseOracleDate } from '@shared/utils/date.util';
+import { toBlobBuffer } from '@shared/utils/blob.util';
 import { ERROR_MESSAGES, extractOraCode } from '@shared/constants/error-codes';
 import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-columns';
 import { CATEGORY_MESSAGE, ErrorCategory, looksSensitive } from '../http/error-category';
@@ -68,18 +69,28 @@ export abstract class BaseOracleRepository {
    * table functions are queried via `SELECT * FROM TABLE(fn(...))`, and the
    * `TABLE(...)` call syntax is positional only (no `=>` named-argument
    * notation), so `args` must be supplied in the function's declared order.
+   *
+   * `maxRows` caps the result with `ROWNUM` at the database (rather than
+   * fetching everything and truncating client-side): one call unexpectedly
+   * returned 31,000+ rows — not something any client should ever receive in
+   * one response, and large enough that some downstream JSON serialization
+   * step could exhaust the call stack. Default is generous but bounded.
    */
   protected queryTableFunction<T = Record<string, any>>(
     object: string,
     args: readonly unknown[],
+    maxRows = 2000,
   ): Promise<T[]> {
-    const binds: oracledb.BindParameters = {};
+    const binds: oracledb.BindParameters = { maxRows };
     const placeholders = args.map((value, i) => {
       const name = `arg${i}`;
       (binds as Record<string, unknown>)[name] = value;
       return `:${name}`;
     });
-    return this.query<T>(`SELECT * FROM TABLE(${object}(${placeholders.join(', ')}))`, binds);
+    return this.query<T>(
+      `SELECT * FROM TABLE(${object}(${placeholders.join(', ')})) WHERE ROWNUM <= :maxRows`,
+      binds,
+    );
   }
 
   /** SELECT all rows from an employee-scoped view (Pattern A). */
@@ -421,7 +432,7 @@ export abstract class BaseOracleRepository {
     // a VARCHAR bind to a BLOB formal is a type mismatch → PLS-00306. Convert to
     // binary so node-oracledb binds an actual LOB.
     if (type === oracledb.DB_TYPE_BLOB) {
-      return { type, val: BaseOracleRepository.toBlobBuffer(value) };
+      return { type, val: toBlobBuffer(value) };
     }
     // DATE/TIMESTAMP formals arrive as request strings in whatever format the
     // caller used (`YYYYMMDD`, `YYYY-MM-DD`, `DD-MON-YYYY`, ...). Binding the
@@ -434,13 +445,6 @@ export abstract class BaseOracleRepository {
       return { type, val: parseOracleDate(value) };
     }
     return typeof type === 'string' ? { type, val: value } : value;
-  }
-
-  /** A BLOB IN value: base64 text → Buffer; null/undefined/empty stay NULL. */
-  private static toBlobBuffer(value: unknown): Buffer | null {
-    if (value === null || value === undefined || value === '') return null;
-    if (Buffer.isBuffer(value)) return value;
-    return Buffer.from(String(value), 'base64');
   }
 
   private static outBind(param: ProcedureParam, value: unknown): oracledb.BindParameter {

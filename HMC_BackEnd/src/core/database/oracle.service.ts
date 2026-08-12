@@ -56,6 +56,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   /** Response preview caps so the diagnostics log never balloons in size. */
   private static readonly MAX_RESPONSE_ROWS = 5;
   private static readonly MAX_RESPONSE_STRING = 300;
+  private static readonly MAX_RESPONSE_DEPTH = 6;
 
   constructor(
     config: ConfigService,
@@ -357,23 +358,44 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
    * sensitive columns redacted, strings truncated, and — for arrays — capped to
    * a handful of rows with a note of how many were omitted. Keeps the log
    * bounded regardless of how much data a call actually returned.
+   *
+   * A REF CURSOR OUT bind is a live `node-oracledb` `ResultSet`, not plain
+   * data — its `_connection`/`_pool` internals hold circular references
+   * (cursor → connection → pool → ...). Walking those with
+   * `Object.entries`/recursion previously ran away into
+   * `RangeError: Maximum call stack size exceeded`, which — thrown from
+   * *inside* the same try block as the successful `conn.execute()` — masked
+   * an otherwise-successful Oracle call as a generic 500. Only plain object
+   * literals and arrays are walked; anything else (ResultSet, LOB, Connection,
+   * Pool, ...) is described by its constructor name instead. A depth cap is
+   * kept too, as a second line of defense against any other deep/self-
+   * referential structure.
    */
-  private sanitizeResponseValue(value: unknown): unknown {
+  private sanitizeResponseValue(value: unknown, depth = 0): unknown {
     if (value === null || value === undefined) return value;
     if (typeof value === 'string') {
       return value.length > OracleService.MAX_RESPONSE_STRING
         ? `${value.slice(0, OracleService.MAX_RESPONSE_STRING)}…`
         : value;
     }
+    if (depth >= OracleService.MAX_RESPONSE_DEPTH) {
+      return Array.isArray(value) || (typeof value === 'object' && value !== null) ? '[truncated]' : value;
+    }
     if (Array.isArray(value)) {
-      const shown = value.slice(0, OracleService.MAX_RESPONSE_ROWS).map((v) => this.sanitizeResponseValue(v));
+      const shown = value
+        .slice(0, OracleService.MAX_RESPONSE_ROWS)
+        .map((v) => this.sanitizeResponseValue(v, depth + 1));
       const omitted = value.length - shown.length;
       return omitted > 0 ? [...shown, `…(${omitted} more row(s) not shown)`] : shown;
     }
+    if (Buffer.isBuffer(value)) return `[Buffer ${value.length} byte(s)]`;
+    if (value instanceof Date) return value.toISOString();
     if (typeof value === 'object') {
+      const ctor = (value as { constructor?: { name?: string } }).constructor;
+      if (ctor && ctor !== Object) return `[${ctor.name}]`;
       const out: Record<string, unknown> = {};
       for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
-        out[key] = OracleService.SENSITIVE_BIND.test(key) ? '***' : this.sanitizeResponseValue(v);
+        out[key] = OracleService.SENSITIVE_BIND.test(key) ? '***' : this.sanitizeResponseValue(v, depth + 1);
       }
       return out;
     }
@@ -413,19 +435,30 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
 
   private formatBindValue(key: string, value: unknown): string {
     if (OracleService.SENSITIVE_BIND.test(key)) return '***';
-    if (value !== null && typeof value === 'object') {
+    if (value !== null && typeof value === 'object' && !(value instanceof Date) && !Buffer.isBuffer(value)) {
       const v = value as Record<string, unknown>;
       if ('dir' in v) {
         if (v.dir === oracledb.BIND_OUT) return '<OUT>';
         if (v.dir === oracledb.BIND_INOUT) return `<INOUT ${this.formatScalar(v.val)}>`;
         return this.formatScalar(v.val);
       }
+      // A typed IN bind (`{ type, val }`, no `dir`) — e.g. the DATE/BLOB/NUMBER
+      // conversions done by BaseOracleRepository.inBind / LeaveApplyBinds.
+      // Render the actual value, not the descriptor: dumping the raw
+      // `{ type: { num, name, ... }, val }` object as JSON previously produced
+      // unreadable noise (and looked like a malformed literal) in the SQL log.
+      if ('val' in v) return this.formatScalar(v.val);
     }
     return this.formatScalar(value);
   }
 
   private formatScalar(value: unknown): string {
     if (value === null || value === undefined) return String(value);
+    // Dates only ever appear here via our own DATE/TIMESTAMP bind conversion
+    // (see parseOracleDate) — render as an explicit TO_DATE(...) literal so
+    // the logged SQL is actually valid/readable, not `{"type":{...},...}`.
+    if (value instanceof Date) return `TO_DATE('${value.toISOString().slice(0, 10)}', 'YYYY-MM-DD')`;
+    if (Buffer.isBuffer(value)) return `<BLOB ${value.length} byte(s)>`;
     const s = typeof value === 'string' ? value : JSON.stringify(value);
     return s.length > 120 ? `${s.slice(0, 117)}...` : s;
   }
