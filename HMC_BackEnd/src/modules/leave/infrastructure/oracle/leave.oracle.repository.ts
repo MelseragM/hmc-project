@@ -5,6 +5,7 @@ import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { toOracleLanguage } from '@shared/domain/lang';
+import { parseOracleDate } from '@shared/utils/date.util';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import {
   LeaveApplyCommand,
@@ -54,14 +55,16 @@ const LEAVE_RETURN_PARAMS = [
 /** LEAVE_BALANCE_PR input params (Sanaad spec — LeaveBalance input). */
 const LEAVE_BALANCE_PARAMS = ['p_user_name', 'p_effective_date', 'p_language'] as const;
 
-/** CALC_LEAV_DUR_PR input params (Sanaad spec — LEAVE_CALCULATION body). */
-const LEAVE_CALC_PARAMS = [
-  'p_user_name',
-  'p_absence_type',
-  'p_start_date',
-  'p_end_date',
-  'p_language',
-] as const;
+/**
+ * CALC_LEAV_DUR_PR confirmed signature (there is NO p_language, and the OUT
+ * contract is p_duration/p_success_flag/p_error_msg/p_error_msg_ar, not
+ * p_status/p_message):
+ *   XXHMC_SND_CALC_LEAV_DUR_PR(p_user_name, p_absence_type,
+ *     p_start_date DATE, p_end_date DATE, p_duration OUT NUMBER,
+ *     p_success_flag OUT VARCHAR2, p_error_msg OUT VARCHAR2,
+ *     p_error_msg_ar OUT VARCHAR2)
+ */
+const LEAVE_CALC_PARAMS = ['p_user_name', 'p_absence_type', 'p_start_date', 'p_end_date'] as const;
 
 /**
  * Leave procedures. `apply` (op 10) is implemented via the LeaveApplyBinds
@@ -99,36 +102,37 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
       `BEGIN ${ORACLE_OBJECTS.LEAV_OF_ABSEN_NEW_PR}(\n          ${LeaveApplyBinds.signature}); END;`,
       binds,
     );
-    return this.toSubmitResult(out);
+    const result = this.toSubmitResult(out);
+    const leaveDays = Number(out.p_leave_days);
+    return Number.isFinite(leaveDays) ? { ...result, result: { leaveDays } } : result;
   }
 
   async calculate(cmd: LeaveCalcCommand): Promise<LeaveDuration> {
-    // p_success_flag was added to CALC_LEAV_DUR_PR's OUT contract alongside
-    // p_status/p_message; omitting it raised PLS-00306 (wrong number of args).
     const namedArgs = [
       ...LEAVE_CALC_PARAMS.map((p) => `${p} => :${p}`),
-      'p_status => :p_status',
-      'p_message => :p_message',
+      'p_duration => :p_duration',
       'p_success_flag => :p_success_flag',
+      'p_error_msg => :p_error_msg',
+      'p_error_msg_ar => :p_error_msg_ar',
     ].join(',\n          ');
     const out = await this.call<Record<string, any>>(
       `BEGIN ${ORACLE_OBJECTS.CALC_LEAV_DUR_PR}(\n          ${namedArgs}); END;`,
       {
         p_user_name: cmd.username,
         p_absence_type: cmd.absenceType,
-        p_start_date: cmd.startDate,
-        p_end_date: cmd.endDate,
-        p_language: toOracleLanguage(cmd.lang),
-        p_status: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
-        p_message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+        p_start_date: { type: oracledb.DB_TYPE_DATE, val: parseOracleDate(cmd.startDate) },
+        p_end_date: { type: oracledb.DB_TYPE_DATE, val: parseOracleDate(cmd.endDate) },
+        p_duration: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         p_success_flag: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 10 },
+        p_error_msg: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+        p_error_msg_ar: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
       },
     );
-    const days = Number(out.p_message);
+    const days = Number(out.p_duration);
     return {
       days: Number.isFinite(days) ? days : undefined,
-      successflag: out.p_success_flag ?? out.p_status,
-      message: out.p_message,
+      successflag: out.p_success_flag,
+      message: out.p_error_msg,
     };
   }
 

@@ -71,16 +71,15 @@ export class SupervisorOracleRepository
   }
 
   getSupervisorViews(employeeNumber: string, _lang: Lang): Promise<SupervisorView[]> {
-    // XXHMC_SND_SUPERVISOR_VIEW IS a queryable view — confirmed by
-    // `PLS-00221: 'XXHMC_SND_SUPERVISOR_VIEW' is not a procedure or is undefined`
-    // when it was called as one (BEGIN ... END;). Read it with SELECT, resolving
-    // the real key column from the data dictionary (same pattern already used
-    // for PERFORMANCE_V / QID_DET_V).
-    return this.readByResolvedKey<SupervisorView>(
-      ORACLE_OBJECTS.SUPERVISOR_VIEW,
+    // Confirmed by Oracle: XXHMC_SND_SUPERVISOR_VIEW is a FUNCTION —
+    // `FUNCTION(p_user_name IN VARCHAR2, p_limit_txt VARCHAR2) RETURN
+    // xxhmc_snd_emp_dets_nt` (a collection type) — not a table (`SELECT ...
+    // WHERE` raised ORA-04044) and not a procedure (`BEGIN ... END;` raised
+    // PLS-00221). Table functions are queried via SELECT * FROM TABLE(fn(...)).
+    return this.queryTableFunction<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, [
       employeeNumber,
-      USERNAME_KEY_CANDIDATES,
-    );
+      null,
+    ]);
   }
 
   async updateSupervisor(cmd: SupervisorUpdateCommand): Promise<SubmitResult> {

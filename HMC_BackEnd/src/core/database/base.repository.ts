@@ -4,6 +4,7 @@ import { OracleService } from './oracle.service';
 import { OracleSchemaService, ProcedureParam } from './oracle-schema.service';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { safeDecodeUri } from '@shared/utils/url-decode.util';
+import { parseOracleDate } from '@shared/utils/date.util';
 import { ERROR_MESSAGES, extractOraCode } from '@shared/constants/error-codes';
 import { EMP_KEY_COLUMN, USERNAME_COLUMN } from '@shared/constants/oracle-columns';
 import { CATEGORY_MESSAGE, ErrorCategory, looksSensitive } from '../http/error-category';
@@ -56,6 +57,29 @@ export abstract class BaseOracleRepository {
     cursorBindName = 'cursor',
   ): Promise<T[]> {
     return this.ora.callCursor<T>(plsql, binds, cursorBindName);
+  }
+
+  /**
+   * SELECT from a table function — a `FUNCTION ... RETURN <collection type>`
+   * (e.g. `XXHMC_SND_SUPERVISOR_VIEW`, confirmed by Oracle as
+   * `FUNCTION(p_user_name, p_limit_txt) RETURN xxhmc_snd_emp_dets_nt`).
+   * Neither `SELECT * FROM object WHERE ...` (`ORA-04044`: it's not a table)
+   * nor `BEGIN object(...); END;` (`PLS-00221`: it's not a procedure) work —
+   * table functions are queried via `SELECT * FROM TABLE(fn(...))`, and the
+   * `TABLE(...)` call syntax is positional only (no `=>` named-argument
+   * notation), so `args` must be supplied in the function's declared order.
+   */
+  protected queryTableFunction<T = Record<string, any>>(
+    object: string,
+    args: readonly unknown[],
+  ): Promise<T[]> {
+    const binds: oracledb.BindParameters = {};
+    const placeholders = args.map((value, i) => {
+      const name = `arg${i}`;
+      (binds as Record<string, unknown>)[name] = value;
+      return `:${name}`;
+    });
+    return this.query<T>(`SELECT * FROM TABLE(${object}(${placeholders.join(', ')}))`, binds);
   }
 
   /** SELECT all rows from an employee-scoped view (Pattern A). */
@@ -407,7 +431,7 @@ export abstract class BaseOracleRepository {
     // unparseable input, ORA-01858. Parsing to a real JS `Date` here makes
     // node-oracledb bind it natively, bypassing NLS parsing entirely.
     if (type === oracledb.DB_TYPE_DATE || type === oracledb.DB_TYPE_TIMESTAMP) {
-      return { type, val: BaseOracleRepository.toOracleDate(value) };
+      return { type, val: parseOracleDate(value) };
     }
     return typeof type === 'string' ? { type, val: value } : value;
   }
@@ -417,58 +441,6 @@ export abstract class BaseOracleRepository {
     if (value === null || value === undefined || value === '') return null;
     if (Buffer.isBuffer(value)) return value;
     return Buffer.from(String(value), 'base64');
-  }
-
-  private static readonly MONTH_ABBR: Record<string, number> = {
-    JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
-    JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12,
-  };
-
-  /**
-   * A DATE/TIMESTAMP IN value: request string → JS `Date`; null/undefined/
-   * empty/unparseable stay `null` (never bind a placeholder like the literal
-   * `"string"` a Swagger default can leave behind — that produced
-   * ORA-01858, not a usable date).
-   */
-  private static toOracleDate(value: unknown): Date | null {
-    if (value === null || value === undefined || value === '') return null;
-    if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
-    const s = String(value).trim();
-    if (!s) return null;
-
-    // YYYYMMDD
-    let m = /^(\d{4})(\d{2})(\d{2})$/.exec(s);
-    if (m) return BaseOracleRepository.toUtcDate(+m[1], +m[2], +m[3]);
-
-    // YYYY-MM-DD
-    m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
-    if (m) return BaseOracleRepository.toUtcDate(+m[1], +m[2], +m[3]);
-
-    // DD-MON-YYYY / DD-MON-YY / DD-Mon-YYYY (month as a 3-letter name)
-    m = /^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/.exec(s);
-    if (m) {
-      const month = BaseOracleRepository.MONTH_ABBR[m[2].toUpperCase()];
-      if (month) {
-        const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
-        return BaseOracleRepository.toUtcDate(year, month, Number(m[1]));
-      }
-    }
-
-    // YYYY-MON-DD (e.g. '2025-OCT-17', seen in the identity module DTOs)
-    m = /^(\d{4})-([A-Za-z]{3})-(\d{1,2})$/.exec(s);
-    if (m) {
-      const month = BaseOracleRepository.MONTH_ABBR[m[2].toUpperCase()];
-      if (month) return BaseOracleRepository.toUtcDate(Number(m[1]), month, Number(m[3]));
-    }
-
-    const parsed = new Date(s);
-    return isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  private static toUtcDate(year: number, month: number, day: number): Date | null {
-    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return isNaN(date.getTime()) ? null : date;
   }
 
   private static outBind(param: ProcedureParam, value: unknown): oracledb.BindParameter {
