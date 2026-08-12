@@ -83,7 +83,10 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
       ORACLE_OBJECTS.LEAVE_BALANCE_PR,
       LEAVE_BALANCE_PARAMS,
       {
-        p_user_name: query.username,
+        // LEAVE_BALANCE_PR's formal parameter is still named p_user_name, but
+        // the value it actually expects (confirmed working) is the numeric
+        // Oracle PERSON_ID, not a username/employee-number string.
+        p_user_name: query.personId,
         p_effective_date: query.effectiveDate,
         p_language: toOracleLanguage(query.lang),
       },

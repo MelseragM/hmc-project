@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches } from 'class-validator';
-import { ProfileQueryDto } from '@shared/dto/common-query.dto';
+import { PersonIdQueryDto } from '@shared/dto/common-query.dto';
 import { EFFECTIVE_DATE_ALL } from '@shared/utils/date.util';
 import {
   ATTACHMENT_FIELDS,
@@ -11,8 +11,8 @@ import {
 /** `dd-Mon-yyyy` display dates as used in the mapping (e.g. 12-Jun-2025). */
 const DISPLAY_DATE = /^\d{2}-[A-Za-z]{3}-\d{4}$/;
 
-/** op 9 — `?enum&lang&accurlpln&effectivedate`. `enum` carries the username form. */
-export class LeaveBalanceQueryDto extends ProfileQueryDto {
+/** op 9 — `?person_id&lang&accurlpln&effectivedate`. */
+export class LeaveBalanceQueryDto extends PersonIdQueryDto {
   @ApiPropertyOptional({ description: 'Accrual plan id.' })
   @IsOptional()
   @IsString()

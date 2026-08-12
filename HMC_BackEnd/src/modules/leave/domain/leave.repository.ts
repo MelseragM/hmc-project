@@ -15,7 +15,7 @@ export interface LeaveDuration {
 }
 
 export interface LeaveBalanceQuery {
-  username: string;
+  personId: string;
   lang: Lang;
   accrualPlan?: string;
   effectiveDate: string;

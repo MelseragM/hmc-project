@@ -25,8 +25,8 @@ export class EmployeeService {
     return this.repo.getBasic(employeeNumber, lang);
   }
 
-  performance(employeeNumber: string, lang: Lang): Promise<PerformanceRecord[]> {
-    return this.repo.getPerformance(employeeNumber, lang);
+  performance(username: string, lang: Lang): Promise<PerformanceRecord[]> {
+    return this.repo.getPerformance(username, lang);
   }
 }
 

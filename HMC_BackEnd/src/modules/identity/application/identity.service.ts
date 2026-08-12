@@ -18,8 +18,8 @@ import {
 export class QidService {
   constructor(@Inject(QID_REPOSITORY) private readonly repo: QidRepository) {}
 
-  getQid(employeeNumber: string, lang: Lang): Promise<QidDetail | undefined> {
-    return this.repo.getQid(employeeNumber, lang);
+  getQid(username: string, lang: Lang): Promise<QidDetail | undefined> {
+    return this.repo.getQid(username, lang);
   }
 
   updateQid(fields: Record<string, unknown>, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {

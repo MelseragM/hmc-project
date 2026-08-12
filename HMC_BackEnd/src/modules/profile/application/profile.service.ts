@@ -16,8 +16,8 @@ export class ProfileService {
     private readonly lookups: LookupsService,
   ) {}
 
-  getProfile(employeeNumber: string, lang: Lang): Promise<EmployeeProfile> {
-    return this.repo.getProfile(employeeNumber, lang);
+  getProfile(username: string, lang: Lang): Promise<EmployeeProfile> {
+    return this.repo.getProfile(username, lang);
   }
 
   updatePersonal(

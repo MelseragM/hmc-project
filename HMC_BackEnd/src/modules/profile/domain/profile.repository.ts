@@ -11,7 +11,7 @@ export interface UpdatePersonalCommand {
 
 /** Port: profile reads (op 2) + personal update (op 48). Marital LOV (63) via Lookups. */
 export interface ProfileRepository {
-  getProfile(employeeNumber: string, lang: Lang): Promise<EmployeeProfile>;
+  getProfile(username: string, lang: Lang): Promise<EmployeeProfile>;
   updatePersonal(cmd: UpdatePersonalCommand): Promise<SubmitResult>;
 }
 

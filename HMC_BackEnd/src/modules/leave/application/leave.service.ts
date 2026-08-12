@@ -31,12 +31,12 @@ export class LeaveService {
 
   // ── Procedures ────────────────────────────────────────────
   getBalance(
-    username: string,
+    personId: string,
     lang: Lang,
     effectiveDate: string,
     accrualPlan?: string,
   ): Promise<LeaveBalance[]> {
-    return this.repo.getBalance({ username, lang, accrualPlan, effectiveDate });
+    return this.repo.getBalance({ personId, lang, accrualPlan, effectiveDate });
   }
 
   apply(cmd: Omit<LeaveApplyCommand, 'username' | 'lang'>, user: AuthenticatedUser, lang: Lang) {

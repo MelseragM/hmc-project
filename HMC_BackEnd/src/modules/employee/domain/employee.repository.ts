@@ -6,7 +6,7 @@ import { EmploymentDetails, PerformanceRecord, SupervisorView } from './entities
 export interface EmploymentRepository {
   getEmployment(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined>;
   getBasic(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined>;
-  getPerformance(employeeNumber: string, lang: Lang): Promise<PerformanceRecord[]>;
+  getPerformance(username: string, lang: Lang): Promise<PerformanceRecord[]>;
 }
 export const EMPLOYMENT_REPOSITORY = Symbol('EMPLOYMENT_REPOSITORY');
 

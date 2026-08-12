@@ -13,12 +13,12 @@ import {
 export class PayslipService {
   constructor(@Inject(PAYSLIP_REPOSITORY) private readonly repo: PayslipRepository) {}
 
-  getPeriods(employeeNumber: string, lang: Lang): Promise<PayslipPeriod[]> {
-    return this.repo.getPeriods(employeeNumber, lang);
+  getPeriods(username: string, lang: Lang): Promise<PayslipPeriod[]> {
+    return this.repo.getPeriods(username, lang);
   }
 
-  checkCount(employeeNumber: string, lang: Lang, payslipPeriod: string): Promise<PayslipCount> {
-    return this.repo.checkCount(employeeNumber, lang, payslipPeriod);
+  checkCount(personId: string, lang: Lang, payslipPeriod: string): Promise<PayslipCount> {
+    return this.repo.checkCount(personId, lang, payslipPeriod);
   }
 
   generate(

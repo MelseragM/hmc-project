@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
-import { ProfileQueryDto } from '@shared/dto/common-query.dto';
+import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
@@ -32,10 +32,9 @@ export class IdentityController {
 
   @Get('qid')
   @ApiOperation({ summary: 'op 18 — QID details', operationId: 'identity_qid' })
-  @ApiQuery({ name: 'enum', description: 'Username (Oracle login, e.g. V-xxx).', example: 'AIBRAHIM39' })
   @ApiReadOkResponse({ example: IDENTITY_QID_EXAMPLE })
-  getQid(@Query() q: ProfileQueryDto) {
-    return this.qid.getQid(q.enum, q.lang);
+  getQid(@Query() q: LovUserQueryDto) {
+    return this.qid.getQid(q.username, q.lang);
   }
 
   @Post('qid/update')

@@ -48,12 +48,12 @@ export class EmploymentOracleRepository
     return EmployeeMapper.toEmployment(rows[0]);
   }
 
-  async getPerformance(employeeNumber: string, _lang: Lang): Promise<PerformanceRecord[]> {
+  async getPerformance(username: string, _lang: Lang): Promise<PerformanceRecord[]> {
     // PERFORMANCE_V is keyed by the caller's login; resolve the real column name
     // from the data dictionary (hard-coded `username` raised ORA-00904).
     const rows = await this.readByResolvedKey(
       ORACLE_OBJECTS.PERFORMANCE_V,
-      employeeNumber,
+      username,
       USERNAME_KEY_CANDIDATES,
     );
     return rows.map((r) => EmployeeMapper.toPerformance(r));

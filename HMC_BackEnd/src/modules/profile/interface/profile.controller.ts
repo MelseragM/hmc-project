@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
-import { ProfileQueryDto } from '@shared/dto/common-query.dto';
+import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
@@ -27,10 +27,9 @@ export class ProfileController {
 
   @Get()
   @ApiOperation({ summary: 'op 2 — Personal detail', operationId: 'profile_get' })
-  @ApiQuery({ name: 'enum', description: 'Username (Oracle login, e.g. V-xxx).', example: 'AIBRAHIM39' })
   @ApiReadOkResponse({ example: PROFILE_GET_EXAMPLE })
-  get(@Query() q: ProfileQueryDto) {
-    return this.service.getProfile(q.enum, q.lang);
+  get(@Query() q: LovUserQueryDto) {
+    return this.service.getProfile(q.username, q.lang);
   }
 
   @Post('personal')

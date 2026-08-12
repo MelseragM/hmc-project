@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
-import { ProfileQueryDto } from '@shared/dto/common-query.dto';
+import { PersonIdQueryDto, ProfileQueryDto } from '@shared/dto/common-query.dto';
 
 const PAY_PERIOD_REGEX =
   /^(January|February|March|April|May|June|July|August|September|October|November|December)\s\d{4}$/;
 
-/** op 6 — `?enum&lang&payslipperiod=August 2024` */
-export class PayslipCountQueryDto extends ProfileQueryDto {
+/** op 6 — `?person_id&lang&payslipperiod=August 2024` */
+export class PayslipCountQueryDto extends PersonIdQueryDto {
   @ApiProperty({ example: 'August 2024' })
   @IsString()
   @Matches(PAY_PERIOD_REGEX, { message: 'payslipperiod must be "Month YYYY".' })

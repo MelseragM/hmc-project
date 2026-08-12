@@ -17,7 +17,7 @@ export interface CompanyIdCommand {
 
 /** Port: QID details (18) + update (19). */
 export interface QidRepository {
-  getQid(employeeNumber: string, lang: Lang): Promise<QidDetail | undefined>;
+  getQid(username: string, lang: Lang): Promise<QidDetail | undefined>;
   updateQid(cmd: QidUpdateCommand): Promise<SubmitResult>;
 }
 export const QID_REPOSITORY = Symbol('QID_REPOSITORY');

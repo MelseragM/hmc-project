@@ -20,3 +20,15 @@ export class LovUserQueryDto extends LangQueryDto {
   @IsNotEmpty()
   username!: string;
 }
+
+/**
+ * `?person_id=<personId>&lang=` — used where the caller identifies the
+ * employee by Oracle's numeric PERSON_ID rather than username/employee number
+ * (see api_test_work.json "use": "person_id").
+ */
+export class PersonIdQueryDto extends LangQueryDto {
+  @ApiProperty({ example: '852709', description: 'Oracle PERSON_ID (numeric).' })
+  @IsString()
+  @IsNotEmpty()
+  person_id!: string;
+}

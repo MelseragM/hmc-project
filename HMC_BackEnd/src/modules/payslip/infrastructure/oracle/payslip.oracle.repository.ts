@@ -86,7 +86,7 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
   }
 
   async checkCount(
-    employeeNumber: string,
+    personId: string,
     lang: Lang,
     payslipPeriod: string,
   ): Promise<PayslipCount> {
@@ -94,7 +94,7 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       ORACLE_OBJECTS.CHK_PAYROLL_CNT,
       COUNT_PARAMS,
       {
-        person_id: employeeNumber,
+        person_id: personId,
         language: toOracleLanguage(lang),
         period: payslipPeriod,
       },

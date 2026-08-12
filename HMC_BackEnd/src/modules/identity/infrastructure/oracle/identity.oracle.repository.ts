@@ -42,12 +42,12 @@ export class QidOracleRepository extends BaseOracleRepository implements QidRepo
     super(ora, schema);
   }
 
-  async getQid(employeeNumber: string, _lang: Lang): Promise<QidDetail | undefined> {
+  async getQid(username: string, _lang: Lang): Promise<QidDetail | undefined> {
     // QID_DET_V is keyed by the caller's login; resolve the real column name from
     // the data dictionary (hard-coded `username` raised ORA-00904).
     const rows = await this.readByResolvedKey(
       ORACLE_OBJECTS.QID_DET_V,
-      employeeNumber,
+      username,
       USERNAME_KEY_CANDIDATES,
     );
     return rows[0];

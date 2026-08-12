@@ -43,8 +43,8 @@ export interface GeneratePayslipQuery {
 
 /** Port: payslip periods (5), count (6), generate (11). All Oracle procs/functions. */
 export interface PayslipRepository {
-  getPeriods(employeeNumber: string, lang: Lang): Promise<PayslipPeriod[]>;
-  checkCount(employeeNumber: string, lang: Lang, payslipPeriod: string): Promise<PayslipCount>;
+  getPeriods(username: string, lang: Lang): Promise<PayslipPeriod[]>;
+  checkCount(personId: string, lang: Lang, payslipPeriod: string): Promise<PayslipCount>;
   generate(query: GeneratePayslipQuery): Promise<PayslipDocument>;
 }
 
