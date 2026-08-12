@@ -7,7 +7,6 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
-import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { IdCardService, QidService } from '../application/identity.service';
@@ -16,6 +15,7 @@ import {
   IDENTITY_DELIVERY_LOCATION_LOV_EXAMPLE,
   IDENTITY_IDCARD_APPLY_EXAMPLE,
   IDENTITY_QID_EXAMPLE,
+  IDENTITY_QID_UPDATE_EXAMPLE,
   IDENTITY_REASON_LOV_EXAMPLE,
   IDENTITY_WORK_LOCATION_LOV_EXAMPLE,
 } from './identity.examples';
@@ -40,7 +40,7 @@ export class IdentityController {
   @Post('qid/update')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 19 — QID update', operationId: 'identity_qidUpdate' })
-  @ApiOkResponse({ type: SubmitResultDto })
+  @ApiActionOkResponse({ example: IDENTITY_QID_UPDATE_EXAMPLE })
   updateQid(
     @Body() body: QidUpdateRequestDto,
     @CurrentUser() user: AuthenticatedUser,

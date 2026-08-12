@@ -95,3 +95,33 @@ export const EMPLOYEE_SUPERVISOR_UPDATE_BODY = {
     },
   },
 };
+
+/** op 36 — POST /employee/supervisor response (action envelope). */
+export const EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE = {
+  status: 'success',
+  successflag: 'S',
+  errormessage: 'Success',
+  httpStatusCode: 200,
+};
+
+/** op 35 — GET /employee/supervisor/views?username=&lang= */
+export const EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE = [
+  {
+    FULL_NAME: '000001 - Dr. Hajar Ahmed Hajar',
+    FULL_NAME_AR: '000001 - حجر احمد حجر ال بوطامى البنعلى',
+    EMPLOYEE_NUMBER: '000001',
+    PERSON_ID: 112,
+  },
+  {
+    FULL_NAME: '000004 - Dr. Abdulla Al Baker',
+    FULL_NAME_AR: '000004 - عبد الله عبد الرحمن محمد الباكر',
+    EMPLOYEE_NUMBER: '000004',
+    PERSON_ID: 113,
+  },
+  {
+    FULL_NAME: '000014 - Mr. Omar Hassan Hashisho',
+    FULL_NAME_AR: '000014 - عمر حسن حامد حشيشو',
+    EMPLOYEE_NUMBER: '000014',
+    PERSON_ID: 116,
+  },
+];

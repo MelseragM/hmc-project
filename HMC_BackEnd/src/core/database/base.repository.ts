@@ -331,7 +331,6 @@ export abstract class BaseOracleRepository {
     const binds: oracledb.BindParameters = {};
     const names: string[] = [];
     const cursorNames: string[] = [];
-    const scalarNames: string[] = [];
 
     if (declared?.length) {
       for (const param of declared) {
@@ -344,7 +343,6 @@ export abstract class BaseOracleRepository {
           continue;
         }
         if (param.direction.includes('OUT')) {
-          scalarNames.push(param.name);
           (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.outBind(
             param,
             BaseOracleRepository.pick(values, param.name),
@@ -373,27 +371,20 @@ export abstract class BaseOracleRepository {
           maxSize: 4000,
         };
         names.push(s);
-        scalarNames.push(s);
       }
     }
 
     const namedArgs = names.map((n) => `${n} => :${n}`).join(',\n          ');
-    const out = await this.call<Record<string, any>>(
+    // Not this.call(): a REF CURSOR ResultSet is tied to its connection, and
+    // call() releases the connection before returning — fetching from any of
+    // these cursors afterward would throw NJS-018 (invalid ResultSet).
+    // callMultiCursor reads (and closes) every cursor itself, before its own
+    // connection-release.
+    return this.ora.callMultiCursor(
       `BEGIN ${object}(\n          ${namedArgs}); END;`,
       binds,
+      cursorNames,
     );
-
-    const cursors: Record<string, Record<string, any>[]> = {};
-    for (const name of cursorNames) {
-      const cursor = out[name] as oracledb.ResultSet<Record<string, any>> | undefined;
-      cursors[name] = cursor ? ((await cursor.getRows(0)) ?? []) : [];
-      if (cursor) await cursor.close();
-    }
-    const scalars: Record<string, any> = {};
-    for (const name of scalarNames) {
-      scalars[name] = out[name];
-    }
-    return { cursors, scalars };
   }
 
   /**

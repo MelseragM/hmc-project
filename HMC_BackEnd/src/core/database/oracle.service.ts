@@ -237,6 +237,60 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Execute a PL/SQL block returning MULTIPLE REF CURSORs (e.g. PAYSLIP_PR's 7
+   * cursors) plus optional scalar OUT binds, in one round trip.
+   *
+   * A REF CURSOR OUT bind is a `ResultSet` tied to the connection it was
+   * opened on. `call()` returns the raw OUT binds (including unread
+   * ResultSets) and releases the connection in its `finally` — fetching from
+   * one of those ResultSets afterward throws `NJS-018: invalid ResultSet`,
+   * because the connection is already back in the pool. Every cursor must be
+   * read (and closed) here, before this method's own `finally` releases the
+   * connection — the same reason `callCursor` above fetches before closing.
+   */
+  async callMultiCursor(
+    plsql: string,
+    binds: oracledb.BindParameters,
+    cursorBindNames: readonly string[],
+  ): Promise<{ cursors: Record<string, Record<string, any>[]>; scalars: Record<string, any> }> {
+    const call = this.logCallStart('call', plsql, binds);
+    const conn = await this.getPool().getConnection();
+    this.configureConnection(conn);
+    try {
+      const result = await conn.execute(plsql, binds, {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        autoCommit: true,
+      });
+      const outBinds = (result.outBinds ?? {}) as Record<string, unknown>;
+      const cursorSet = new Set(cursorBindNames);
+      const cursors: Record<string, Record<string, any>[]> = {};
+      const scalars: Record<string, any> = {};
+      for (const [key, value] of Object.entries(outBinds)) {
+        if (cursorSet.has(key)) {
+          const cursor = value as oracledb.ResultSet<Record<string, any>> | undefined;
+          cursors[key] = cursor ? ((await cursor.getRows(0)) ?? []) : [];
+          if (cursor) await cursor.close();
+        } else {
+          scalars[key] = value;
+        }
+      }
+      const rowCounts = Object.fromEntries(Object.entries(cursors).map(([k, v]) => [k, v.length]));
+      this.logCallSuccess(call, {
+        summary: `cursors={ ${Object.entries(rowCounts)
+          .map(([k, n]) => `${k}:${n}`)
+          .join(', ')} } scalars={ ${Object.keys(scalars).join(', ')} }`,
+        outKeys: Object.keys(outBinds),
+        response: this.sanitizeResponseValue({ ...rowCounts, ...scalars }),
+      });
+      return { cursors, scalars };
+    } catch (err) {
+      throw this.logCallError(call, err);
+    } finally {
+      await this.safeClose(conn);
+    }
+  }
+
   // ── Oracle call logging ─────────────────────────────────────
   // Every Oracle function call is logged (start + outcome) so failing/hanging
   // calls can be traced to the exact object and (sanitized) binds. Correlated

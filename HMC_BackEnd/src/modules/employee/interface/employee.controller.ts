@@ -1,19 +1,21 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { Roles } from '@core/auth/decorators/roles.decorator';
 import { AuthenticatedUser, Role } from '@core/auth/auth-user.interface';
 import { LovUserQueryDto, ProfileQueryDto } from '@shared/dto/common-query.dto';
-import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
+import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { EmployeeService, SupervisorService } from '../application/employee.service';
 import { SupervisorUpdateRequestDto } from './dto/supervisor-update.request.dto';
 import {
   EMPLOYEE_EMPLOYMENT_EXAMPLE,
   EMPLOYEE_PERFORMANCE_EXAMPLE,
   EMPLOYEE_SUPERVISOR_UPDATE_BODY,
+  EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE,
+  EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE,
 } from './employee.examples';
 
 /** Employee endpoints (ops 3, 7, 8, 35, 36). See Docs_Ai/API/README.md. */
@@ -50,6 +52,7 @@ export class EmployeeController {
   @Get('supervisor/views')
   @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 35 — Supervisor view', operationId: 'employee_supervisorViews' })
+  @ApiReadOkResponse({ example: EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE })
   supervisorViews(@Query() q: LovUserQueryDto) {
     return this.supervisor.views(q.username, q.lang);
   }
@@ -59,7 +62,7 @@ export class EmployeeController {
   @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 36 — Supervisor update', operationId: 'employee_supervisorUpdate' })
   @ApiBody(EMPLOYEE_SUPERVISOR_UPDATE_BODY)
-  @ApiOkResponse({ type: SubmitResultDto })
+  @ApiActionOkResponse({ example: EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE })
   supervisorUpdate(
     @Body() body: SupervisorUpdateRequestDto,
     @CurrentUser() user: AuthenticatedUser,

@@ -47,3 +47,11 @@ export const IDENTITY_IDCARD_APPLY_EXAMPLE = {
   errormessage: 'Success',
   httpStatusCode: 200,
 };
+
+/** op 19 — POST /identity/qid/update response (action envelope). */
+export const IDENTITY_QID_UPDATE_EXAMPLE = {
+  status: 'success',
+  successflag: 'S',
+  errormessage: 'Success',
+  httpStatusCode: 200,
+};
