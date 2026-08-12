@@ -542,7 +542,20 @@ export abstract class BaseOracleRepository {
     // or '0'.
     const flagUpper = flagRaw.toUpperCase();
     const isSuccess = flagUpper === 'S' || flagUpper === 'Y' || flagRaw === '0';
-    let errormessage = message || (isSuccess ? 'Success' : 'Operation failed');
+    // Some procedures (e.g. APPROVE_REJECT_PR) leave every OUT bind — flag AND
+    // message — unset when the row they were asked to act on doesn't exist or
+    // was already processed, instead of setting p_success_flag = 'N' with an
+    // explanation. That used to fall through to the generic "Operation failed"
+    // below, which reads as if the call itself broke rather than "there was
+    // nothing to do". Give that specific, ambiguous case its own message.
+    const noSignalAtAll = !flagRaw && !message;
+    let errormessage =
+      message ||
+      (isSuccess
+        ? 'Success'
+        : noSignalAtAll
+          ? 'No matching record was found for this request, or it has already been processed.'
+          : 'Operation failed');
     let safeMessageAr = messageAr ? safeDecodeUri(messageAr) : undefined;
 
     // This channel (op result, HTTP 200) bypasses the exception filter, so an
