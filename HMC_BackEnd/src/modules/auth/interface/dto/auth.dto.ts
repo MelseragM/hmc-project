@@ -40,6 +40,9 @@ export class LoginResponseDto {
   @ApiPropertyOptional({ example: '1h' })
   expiresIn?: string;
 
+  @ApiPropertyOptional({ example: 'username' })
+  employeeusername?: string;
+
   @ApiPropertyOptional({ example: '3242424' })
   employeenumber?: string;
 

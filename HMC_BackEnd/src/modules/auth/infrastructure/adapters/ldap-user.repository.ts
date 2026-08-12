@@ -35,11 +35,16 @@ const USER_ATTRIBUTES = [
  * Real Active Directory / LDAP adapter (ldapts, LDAPS on 636).
  *  - `validate`     → service-account bind, search `(sAMAccountName={username})`,
  *                     map attributes to EmployeeIdentity (no password).
- *  - `authenticate` → service search to find the user's DN, then bind AS that DN
- *                     with the supplied password to verify AD credentials (API-2
- *                     onboarding). Login (API-5) stays MPIN-based.
+ *  - `authenticate` → direct bind as `username@upnDomain` with the supplied
+ *                     password (no service-account search — a successful
+ *                     bind IS the credential check). AD accepts UPN-style
+ *                     logins without needing the user's DN. Returns a
+ *                     minimal identity (username only); employee attributes
+ *                     (department/employeeID/phone/displayName) are expected
+ *                     to come from Oracle for this path, not AD.
  *
- * Requires a service/bind account (LDAP_BIND_DN / LDAP_BIND_PASSWORD) to search.
+ * `validate` still requires a service/bind account (LDAP_BIND_DN /
+ * LDAP_BIND_PASSWORD); `authenticate` does not.
  */
 @Injectable()
 export class LdapUserRepository implements LdapUserPort {
@@ -64,37 +69,34 @@ export class LdapUserRepository implements LdapUserPort {
     }
   }
 
+  /**
+   * Direct UPN bind — no search, no service account. A successful bind IS
+   * the password check; any failure (wrong credentials, disabled account,
+   * etc.) is reported as invalid credentials rather than distinguishing the
+   * exact AD error.
+   */
   async authenticate(query: AuthenticateUserQuery): Promise<EmployeeIdentity> {
     this.ensureEnabled();
     if (!query.password) {
       throw new UnauthorizedException('Invalid username or password.');
     }
-    const serviceClient = this.createClient();
+    const client = this.createClient();
     try {
-      await this.bindService(serviceClient);
-      const entry = await this.searchUser(serviceClient, query.username);
-      if (!entry) {
-        throw new UnauthorizedException('Invalid username or password.');
-      }
-      await this.verifyPassword(entry.dn, query.password);
-      return this.toIdentity(query.username, entry);
+      await client.bind(`${query.username}@${this.cfg.upnDomain}`, query.password);
+      // A successful bind IS the identity/credential check — no search, no
+      // AD attributes read. Employee attributes (department/employeeID/
+      // phone/displayName) come from Oracle for this path.
+      return {
+        username: query.username,
+        isEmployee: true,
+        isNewUser: false,
+        roles: [Role.EMPLOYEE],
+      };
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err;
-      throw this.wrap(err);
-    } finally {
-      await this.safeUnbind(serviceClient);
-    }
-  }
-
-  /** Bind as the resolved user DN to verify the AD password, then unbind. */
-  private async verifyPassword(userDn: string, password: string): Promise<void> {
-    const userClient = this.createClient();
-    try {
-      await userClient.bind(userDn, password);
-    } catch {
       throw new UnauthorizedException('Invalid username or password.');
     } finally {
-      await this.safeUnbind(userClient);
+      await this.safeUnbind(client);
     }
   }
 
@@ -104,7 +106,13 @@ export class LdapUserRepository implements LdapUserPort {
       timeout: this.cfg.timeoutMs,
       connectTimeout: this.cfg.timeoutMs,
       tlsOptions: this.cfg.useSsl
-        ? { rejectUnauthorized: this.cfg.tlsRejectUnauthorized }
+        ? {
+            rejectUnauthorized: this.cfg.tlsRejectUnauthorized,
+            // Trust HMC's CA for LDAPS when configured (LDAP_CA_CERT /
+            // LDAP_CA_CERT_PATH); without it, tlsRejectUnauthorized must stay
+            // false or every bind fails with a self-signed-cert TLS error.
+            ...(this.cfg.caCert ? { ca: [this.cfg.caCert] } : {}),
+          }
         : undefined,
     });
   }

@@ -94,6 +94,7 @@ export class AuthService {
       token,
       tokenType: 'Bearer',
       expiresIn: this.expiresIn,
+      employeeusername: identity.username,
       employeenumber: identity.employeeNumber,
       employeename: identity.employeeName,
       employeenamear: identity.employeeNameAr,
