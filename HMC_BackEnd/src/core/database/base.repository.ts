@@ -301,6 +301,38 @@ export abstract class BaseOracleRepository {
   }
 
   /**
+   * Read a program unit that may be EITHER a `_PR`/`_PKG` procedure returning
+   * a REF CURSOR (Pattern C, handled by `callRowsProc`) OR a table function —
+   * a `FUNCTION ... RETURN <collection type>` such as
+   * `XXHMC_SND_CHILD_DETS_VIEW` (confirmed by Oracle as
+   * `FUNCTION(p_acad_yr_strt_dt, p_user_name) RETURN xxhmc_snd_child_detl_nt`).
+   * Calling a function with `BEGIN object(...); END;` raises
+   * `PLS-00221: is not a procedure or is undefined`; it must be queried with
+   * `SELECT * FROM TABLE(fn(...))` instead (see `queryTableFunction`), and
+   * that call syntax is positional only, so the resolved formal parameters —
+   * in their declared order — decide the argument order, not `params`.
+   *
+   * The data dictionary is consulted first so the two shapes are told apart
+   * automatically; when it can't be read, this falls back to the
+   * REF-CURSOR-procedure assumption via `callRowsProc`.
+   */
+  protected async callRowsOrTableFunction<T = Record<string, any>>(
+    object: string,
+    params: readonly string[],
+    values: Record<string, unknown>,
+    cursorParam = 'p_cursor',
+  ): Promise<T[]> {
+    const signature = this.schema ? await this.schema.resolveSignature(object, params) : undefined;
+    if (signature?.returnType) {
+      const args = signature.params.map((param) =>
+        BaseOracleRepository.pick(values, param.name),
+      );
+      return this.queryTableFunction<T>(object, args);
+    }
+    return this.callRowsProc<T>(object, params, values, cursorParam);
+  }
+
+  /**
    * Call a procedure that returns MULTIPLE REF CURSORs in a single round trip
    * (e.g. PAYSLIP_PR: 7 separate cursors — earnings/deductions/totals/
    * balances/informations/net payments/housing — plus scalar OUT params).

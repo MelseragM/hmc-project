@@ -115,4 +115,36 @@ describe('OracleSchemaService', () => {
     const { service } = make({ describeArguments } as Partial<jest.Mocked<OracleMetadataService>>);
     await expect(service.resolveParams('XXHMC_SND_CHILD_DETS_VIEW')).resolves.toBeNull();
   });
+
+  it('reports a returnType for a table function, distinguishing it from a procedure', async () => {
+    // FUNCTION XXHMC_SND_CHILD_DETS_VIEW(p_acad_yr_strt_dt, p_user_name)
+    //   RETURN xxhmc_snd_child_detl_nt — ALL_ARGUMENTS reports the RETURN
+    // clause as a row with position 0 and no argument_name.
+    const base = {
+      owner: 'APPS', ownerRank: 1, packageName: null,
+      objectName: 'XXHMC_SND_CHILD_DETS_VIEW', overload: null, subprogramId: 1,
+      defaulted: false,
+    };
+    const describeArguments = jest.fn().mockResolvedValue([
+      { ...base, name: null, position: 0, sequence: 0, dataLevel: 0, dataType: 'TABLE', typeOwner: 'APPS', typeName: 'XXHMC_SND_CHILD_DETL_NT', typeSubname: null, direction: null },
+      { ...base, name: 'P_ACAD_YR_STRT_DT', position: 1, sequence: 1, dataLevel: 0, dataType: 'VARCHAR2', typeOwner: null, typeName: null, typeSubname: null, direction: 'IN' },
+      { ...base, name: 'P_USER_NAME', position: 2, sequence: 2, dataLevel: 0, dataType: 'VARCHAR2', typeOwner: null, typeName: null, typeSubname: null, direction: 'IN' },
+    ]);
+    const { service } = make({ describeArguments } as Partial<jest.Mocked<OracleMetadataService>>);
+    const signature = await service.resolveSignature('XXHMC_SND_CHILD_DETS_VIEW', [
+      'p_acad_yr_strt_dt',
+      'p_user_name',
+    ]);
+    expect(signature?.params.map((p) => p.name)).toEqual(['p_acad_yr_strt_dt', 'p_user_name']);
+    expect(signature?.returnType).toBeDefined();
+    expect(OracleSchemaService.returnTypeName(signature?.returnType)).toBe(
+      'APPS.XXHMC_SND_CHILD_DETL_NT',
+    );
+  });
+
+  it('reports no returnType for an ordinary procedure', async () => {
+    const { service } = make();
+    const signature = await service.resolveSignature('XXHMC_SND_GET_PAYSLIP_PERIODS');
+    expect(signature?.returnType).toBeUndefined();
+  });
 });
