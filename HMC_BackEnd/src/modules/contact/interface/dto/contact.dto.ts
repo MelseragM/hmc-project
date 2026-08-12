@@ -60,6 +60,13 @@ export class DeletePhoneRequestDto {
   phoneNumber?: string;
 }
 
+/**
+ * op 29 — CREATE_ADDRESS_PR. Example values are pinned to a combination
+ * confirmed to work end-to-end against staging (see
+ * Real-Data-Needed.json/op 29) so anyone opening Swagger can hit "Try it
+ * out" and get a real success response without having to guess a country
+ * name or address type first.
+ */
 export class CreateAddressRequestDto {
   @RequiredString('20240911')
   p_effective_date!: string;
@@ -67,28 +74,32 @@ export class CreateAddressRequestDto {
   @RequiredString('Y')
   p_primary_flag!: string;
 
-  @RequiredString('QA')
+  @RequiredString('Qatar')
   p_country!: string;
 
   @RequiredString('Primary Local Address')
   p_address_type!: string;
 
-  @RequiredString('Building 1')
+  @RequiredString('Building 45')
   p_address_line1!: string;
 
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(CreateAddressRequestDto, [
-  'p_main_address',
-  'p_address_line2',
-  'p_address_line3',
-  'p_town_or_city',
-  'p_region1',
-  'p_region2',
-  'p_region3',
-  'p_po_box',
-]);
+defineOptionalStringFields(
+  CreateAddressRequestDto,
+  ['p_main_address', 'p_address_line2', 'p_address_line3', 'p_town_or_city', 'p_region1', 'p_region2', 'p_region3', 'p_po_box'],
+  {
+    p_main_address: 'Al Sadd Street',
+    p_address_line2: 'Street 12',
+    p_address_line3: 'Zone 60',
+    p_town_or_city: 'Doha',
+    p_region1: 'Al Rayyan',
+    p_region2: '',
+    p_region3: '',
+    p_po_box: '12345',
+  },
+);
 
 export class UpdateAddressRequestDto {
   @RequiredString('312605')

@@ -3,9 +3,13 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 type DtoClass = { prototype: object };
 
-export function defineOptionalStringFields(target: DtoClass, fields: readonly string[]): void {
+export function defineOptionalStringFields(
+  target: DtoClass,
+  fields: readonly string[],
+  examples: Readonly<Record<string, string>> = {},
+): void {
   for (const field of fields) {
-    ApiPropertyOptional({ type: String })(target.prototype, field);
+    ApiPropertyOptional({ type: String, example: examples[field] })(target.prototype, field);
     IsOptional()(target.prototype, field);
     IsString()(target.prototype, field);
   }
