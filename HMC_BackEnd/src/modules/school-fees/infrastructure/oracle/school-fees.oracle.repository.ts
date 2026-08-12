@@ -35,16 +35,28 @@ const SCHOOL_FEE_PARAMS = [
   'p_language',
 ] as const;
 
-/** CHILD_DETS_VIEW input params (Sanaad spec — GetSchoolChildListDetails). */
-const CHILD_DETS_PARAMS = ['user_name', 's_date', 'language'] as const;
+/**
+ * CHILD_DETS_VIEW input params. Named like a view but is actually a table
+ * function — `FUNCTION XXHMC_SND_CHILD_DETS_VIEW(p_acad_yr_strt_dt, p_user_name)
+ * RETURN xxhmc_snd_child_detl_nt` (confirmed by Oracle) — so it takes exactly
+ * these two, not the three-parameter `GetSchoolChildListDetails` request shape
+ * (`user_name`/`s_date`/`language`) the Sanaad mapping documents; there is no
+ * language parameter. Kept only as the `expectedParams` hint for
+ * `OracleSchemaService.resolveSignature`'s overload scoring — the actual call
+ * uses whatever the dictionary reports.
+ */
+const CHILD_DETS_PARAMS = ['p_acad_yr_strt_dt', 'p_user_name'] as const;
 
 /**
  * op 39 — SCHOOL_FEE_PR submit. op 52 — child details.
  *
  * `CHILD_DETS_VIEW` is named like a view but is a program unit: selecting from it
- * raised `ORA-04044: procedure, function, package, or type is not allowed here`.
- * It is therefore invoked as a program unit returning a REF CURSOR, and only if
- * the dictionary reports it as a table/view do we fall back to a SELECT.
+ * raised `ORA-04044: procedure, function, package, or type is not allowed here`,
+ * and calling it as a procedure (`BEGIN object(...); END;`) raised
+ * `PLS-00221: is not a procedure or is undefined` — it is a table FUNCTION, so
+ * `callRowsOrTableFunction` queries it via `SELECT * FROM TABLE(fn(...))`. If
+ * the dictionary instead reports it as a real table/view (no arguments), it
+ * falls back to a SELECT.
  */
 @Injectable()
 export class SchoolFeeOracleRepository extends BaseOracleRepository implements SchoolFeeRepository {
@@ -73,10 +85,9 @@ export class SchoolFeeOracleRepository extends BaseOracleRepository implements S
       );
     }
 
-    return this.callRowsProc<ChildDetail>(object, CHILD_DETS_PARAMS, {
-      user_name: query.employeeNumber,
-      s_date: query.academicYearStartDate,
-      language: toOracleLanguage(query.lang),
+    return this.callRowsOrTableFunction<ChildDetail>(object, CHILD_DETS_PARAMS, {
+      p_user_name: query.employeeNumber,
+      p_acad_yr_strt_dt: query.academicYearStartDate,
     });
   }
 }

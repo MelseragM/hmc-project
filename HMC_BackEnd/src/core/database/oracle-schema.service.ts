@@ -15,12 +15,22 @@ export interface ProcedureParam {
   typeSubname?: string;
 }
 
-interface ProcedureSignature {
+/** A function's `RETURN <type>` clause — absent for procedures. */
+export interface ReturnType {
+  dataType: string;
+  typeOwner?: string;
+  typeName?: string;
+  typeSubname?: string;
+}
+
+export interface ProcedureSignature {
   owner: string;
   ownerRank: number;
   overload: string | null;
   subprogramId: number;
   params: ProcedureParam[];
+  /** Set when the program unit is a FUNCTION rather than a PROCEDURE. */
+  returnType?: ReturnType;
 }
 
 /**
@@ -81,13 +91,30 @@ export class OracleSchemaService {
     object: string,
     expectedParams: readonly string[] = [],
   ): Promise<ProcedureParam[] | null | undefined> {
+    const signature = await this.resolveSignature(object, expectedParams);
+    return signature ? signature.params : (signature as null | undefined);
+  }
+
+  /**
+   * Full resolved signature (params + `returnType` when the object is a
+   * FUNCTION, e.g. a table function like `XXHMC_SND_CHILD_DETS_VIEW` — its
+   * `RETURN xxhmc_snd_child_detl_nt` means it must be queried with
+   * `SELECT * FROM TABLE(fn(...))`, not `BEGIN fn(...); END;`, which raises
+   * `PLS-00221: is not a procedure`). Null when the dictionary reports no
+   * arguments (a real table/view); undefined when the dictionary could not be
+   * read at all.
+   */
+  async resolveSignature(
+    object: string,
+    expectedParams: readonly string[] = [],
+  ): Promise<ProcedureSignature | null | undefined> {
     const key = object.toUpperCase();
     if (!this.paramCache.has(key)) {
       this.paramCache.set(key, await this.readSignatures(object));
     }
     const signatures = this.paramCache.get(key);
     if (signatures === null || signatures === undefined) return signatures;
-    return this.selectSignature(object, signatures, expectedParams).params;
+    return this.selectSignature(object, signatures, expectedParams);
   }
 
   /** Data types whose bind needs the declared user-defined type, not a scalar. */
@@ -103,7 +130,7 @@ export class OracleSchemaService {
   /** Maps an Oracle argument data type to the OUT bind type to use. */
   static outBindType(param: ProcedureParam): oracledb.DbType | string {
     if (OracleSchemaService.COMPOSITE_DATA_TYPES.has(param.dataType.toUpperCase())) {
-      const userType = OracleSchemaService.userTypeName(param);
+      const userType = OracleSchemaService.qualifiedTypeName(param);
       if (userType) return userType;
     }
 
@@ -137,29 +164,42 @@ export class OracleSchemaService {
     const target = member ?? pkg;
     try {
       const described = await this.metadata.describeArguments(object);
-      const args = described.filter(
-        (a) =>
-          a.objectName === target &&
-          a.name &&
-          a.position > 0 &&
-          a.dataLevel === 0,
-      );
-      if (!args.length) return null;
+      // Keep `data_level === 0` formals only (collection attributes are not
+      // procedure/function arguments), but — unlike before — don't drop the
+      // FUNCTION return row (`position === 0`, `name === null`): it's needed
+      // to tell a function apart from a procedure.
+      const relevant = described.filter((a) => a.objectName === target && a.dataLevel === 0);
+      if (!relevant.length) return null;
 
       const grouped = new Map<string, OracleArgumentInfo[]>();
-      for (const arg of args) {
+      for (const arg of relevant) {
         const key = `${arg.owner}|${arg.subprogramId}|${arg.overload ?? ''}`;
         const group = grouped.get(key) ?? [];
         group.push(arg);
         grouped.set(key, group);
       }
-      return [...grouped.values()].map((group) => ({
-        owner: group[0].owner,
-        ownerRank: group[0].ownerRank,
-        overload: group[0].overload,
-        subprogramId: group[0].subprogramId,
-        params: group.sort((a, b) => a.sequence - b.sequence).map((a) => this.toParam(a)),
-      }));
+      return [...grouped.values()].map((group) => {
+        const returnArg = group.find((a) => a.position === 0 && !a.name);
+        const params = group
+          .filter((a) => a.name && a.position > 0)
+          .sort((a, b) => a.sequence - b.sequence)
+          .map((a) => this.toParam(a));
+        return {
+          owner: group[0].owner,
+          ownerRank: group[0].ownerRank,
+          overload: group[0].overload,
+          subprogramId: group[0].subprogramId,
+          params,
+          returnType: returnArg
+            ? {
+                dataType: returnArg.dataType ?? 'UNDEFINED',
+                typeOwner: returnArg.typeOwner ?? undefined,
+                typeName: returnArg.typeName ?? undefined,
+                typeSubname: returnArg.typeSubname ?? undefined,
+              }
+            : undefined,
+        };
+      });
     } catch (err) {
       this.logger.warn(`Could not read the signature of ${object}: ${(err as Error).message}`);
       return undefined;
@@ -203,10 +243,18 @@ export class OracleSchemaService {
     };
   }
 
-  private static userTypeName(param: ProcedureParam): string | undefined {
+  private static qualifiedTypeName(param: ProcedureParam): string | undefined {
     if (!param.typeName) return undefined;
     const parts = [param.typeOwner, param.typeName, param.typeSubname].filter(Boolean);
     return parts.join('.');
+  }
+
+  /** Fully-qualified collection type name of a function's `RETURN` clause, if any. */
+  static returnTypeName(returnType: ReturnType | undefined): string | undefined {
+    if (!returnType?.typeName) return undefined;
+    return [returnType.typeOwner, returnType.typeName, returnType.typeSubname]
+      .filter(Boolean)
+      .join('.');
   }
 
   private async columnsOf(object: string): Promise<Set<string>> {
