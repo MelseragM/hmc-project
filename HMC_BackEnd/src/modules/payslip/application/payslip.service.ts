@@ -22,11 +22,11 @@ export class PayslipService {
   }
 
   generate(
-    employeeNumber: string,
+    personId: string,
     lang: Lang,
     payPeriod: string,
     assignmentId: string,
   ): Promise<PayslipDocument> {
-    return this.repo.generate({ employeeNumber, lang, payPeriod, assignmentId });
+    return this.repo.generate({ personId, lang, payPeriod, assignmentId });
   }
 }

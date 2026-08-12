@@ -107,7 +107,7 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       ORACLE_OBJECTS.PAYSLIP_PR,
       GENERATE_PARAMS,
       {
-        person_id: query.employeeNumber,
+        person_id: query.personId,
         period: query.payPeriod,
         assignment_id: query.assignmentId,
       },

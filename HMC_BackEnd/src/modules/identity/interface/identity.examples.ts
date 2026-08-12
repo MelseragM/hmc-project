@@ -45,7 +45,6 @@ export const IDENTITY_IDCARD_APPLY_EXAMPLE = {
   status: 'success',
   successflag: 'S',
   message: 'Success',
-  errormessage: 'Success',
   httpStatusCode: 200,
 };
 
@@ -54,6 +53,5 @@ export const IDENTITY_QID_UPDATE_EXAMPLE = {
   status: 'success',
   successflag: 'S',
   message: 'Success',
-  errormessage: 'Success',
   httpStatusCode: 200,
 };

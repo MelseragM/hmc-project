@@ -44,17 +44,16 @@ export class ResponseInterceptor implements NestInterceptor<unknown, SanaadEnvel
         const httpStatusCode = res?.statusCode ?? 200;
 
         if (isSubmitResult(data)) {
+          // `lang` (default `en`) picks a single `message` — the client never
+          // sees errormessage/errormessageAr, only the one that matches its
+          // request language; falls back to the English text if the Arabic
+          // one isn't set.
           const lang = toLang(req?.query?.lang);
-          // `message` picks the language-appropriate text so clients don't
-          // have to choose between errormessage/errormessageAr themselves;
-          // falls back to errormessage if the Arabic text isn't set.
           const message = lang === 'ar' ? (data.errormessageAr ?? data.errormessage) : data.errormessage;
           return {
             status: data.status,
             successflag: data.successflag,
             message,
-            errormessage: data.errormessage,
-            errormessageAr: data.errormessageAr,
             httpStatusCode,
             result: data.result,
           };

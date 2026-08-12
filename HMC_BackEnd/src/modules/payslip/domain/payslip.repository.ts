@@ -35,7 +35,7 @@ export interface PayslipDocument {
 }
 
 export interface GeneratePayslipQuery {
-  employeeNumber: string;
+  personId: string;
   lang: Lang;
   payPeriod: string;
   assignmentId: string;

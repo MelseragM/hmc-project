@@ -4,7 +4,11 @@ import { LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { PayslipService } from '../application/payslip.service';
 import { PayslipCountQueryDto, PayslipQueryDto } from './dto/payslip-query.dto';
-import { PAYSLIP_COUNT_EXAMPLE, PAYSLIP_PERIODS_EXAMPLE } from './payslip.examples';
+import {
+  PAYSLIP_COUNT_EXAMPLE,
+  PAYSLIP_GENERATE_EXAMPLE,
+  PAYSLIP_PERIODS_EXAMPLE,
+} from './payslip.examples';
 
 /** Payslip endpoints (ops 5, 6, 11). See Docs_Ai/API/README.md. */
 @ApiTags('payslip')
@@ -29,7 +33,8 @@ export class PayslipController {
 
   @Get()
   @ApiOperation({ summary: 'op 11 — Generate payslip', operationId: 'payslip_generate' })
+  @ApiReadOkResponse({ example: PAYSLIP_GENERATE_EXAMPLE })
   generate(@Query() q: PayslipQueryDto) {
-    return this.service.generate(q.enum, q.lang, q.payperiod, q.assignmentid);
+    return this.service.generate(q.person_id, q.lang, q.payperiod, q.assignmentid);
   }
 }

@@ -124,18 +124,30 @@ export const LEAVE_CALCULATE_EXAMPLE = {
 
 /**
  * op 10 — POST /leave/apply response (action envelope) — a real business-rule
- * rejection from LEAV_OF_ABSEN_NEW_PR. `message` mirrors `errormessage` here
- * because this example's request used `lang=en`; the same call with `lang=ar`
- * would return `message: errormessageAr` instead.
+ * rejection from LEAV_OF_ABSEN_NEW_PR. `message` is the English text here
+ * because this example's request used `lang=en` (default); the same call
+ * with `lang=ar` would return the Arabic text instead — the client never
+ * sees both.
  */
 export const LEAVE_APPLY_EXAMPLE = {
   status: 'error',
   successflag: 'N',
   message: 'Reason does not exist with Absence',
-  errormessage: 'Reason does not exist with Absence',
-  errormessageAr: 'سبب الغياب غير موجود',
   httpStatusCode: 200,
   result: { leaveDays: 0 },
+};
+
+/**
+ * op 56 — POST /leave/return response (action envelope) — a real
+ * business-rule rejection from RET_FRM_LEAV_PR. `message` reflects `lang=en`
+ * (the default); the same call with `lang=ar` returns the Arabic text
+ * instead.
+ */
+export const LEAVE_RETURN_EXAMPLE = {
+  status: 'error',
+  successflag: 'N',
+  message: 'Duty resumption date should not be in future.',
+  httpStatusCode: 200,
 };
 
 /*

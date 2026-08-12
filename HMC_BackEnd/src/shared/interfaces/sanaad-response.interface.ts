@@ -12,41 +12,34 @@ export interface SanaadSuccessEnvelope<T = unknown> {
 
 /**
  * Envelope for action/submit operations backed by Oracle `_PR`/`_PKG`.
- * `message` is `errormessage` or `errormessageAr` depending on the request's
- * `lang` (`en`/`ar`) — added so clients don't need to pick the field
- * themselves; `errormessage`/`errormessageAr` are kept for backward
- * compatibility with existing consumers.
+ * `message` is `errormessage` (English) or `errormessageAr` (Arabic)
+ * depending on the request's `lang` (`en`/`ar`, default `en`) — the client
+ * only ever sees the one that matches its language, not both.
  */
 export interface SanaadActionEnvelope<T = unknown> {
   status: 'success' | 'error';
   successflag: 'S' | 'N';
   message: string;
-  errormessage: string;
-  errormessageAr?: string;
   httpStatusCode: number;
   result?: T;
 }
 
 /**
- * Error envelope produced by the global exception filter. The primary contract
- * is `success` + `message` + `category` (+ `errors` for validation); the legacy
- * `status`/`opstatus`/`errormessage` fields are retained for backward
- * compatibility and always carry the SAME safe message (never technical detail).
+ * Error envelope produced by the global exception filter — kept minimal and
+ * consistent across every API: `success`/`status` for a quick check,
+ * `message` already resolved to the request's `lang` (default `en`), and
+ * `httpStatusCode` mirroring the actual HTTP status. `errors` is the only
+ * optional addition, present for validation failures (400) to describe which
+ * fields were invalid. No technical detail (ORA codes, SQL, stack traces,
+ * correlation id, timestamp, path, category) is put in the body — that detail
+ * is only ever logged server-side (see AllExceptionsFilter.logInternal).
  */
 export interface SanaadErrorEnvelope {
   success: false;
   message: string;
-  category: string;
-  errors?: Record<string, unknown>;
-  httpStatusCode: number;
-  correlationId?: string;
-  timestamp?: string;
-  path?: string;
-  // ── Backward-compatible fields (safe values only) ──
   status: 'error';
-  opstatus: 1;
-  errormessage: string;
-  errormessageAr?: string;
+  httpStatusCode: number;
+  errors?: Record<string, unknown>;
 }
 
 export type SanaadEnvelope<T = unknown> =

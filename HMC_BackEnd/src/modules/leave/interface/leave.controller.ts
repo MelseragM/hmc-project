@@ -30,6 +30,7 @@ import {
   LEAVE_REASONS_LOV_EXAMPLE,
   LEAVE_REQUEST_LOV_EXAMPLE,
   LEAVE_RETURN_BODY,
+  LEAVE_RETURN_EXAMPLE,
   LEAVE_TYPES_LOV_EXAMPLE,
 } from './leave.examples';
 
@@ -102,7 +103,7 @@ export class LeaveController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 56 — Return from leave', operationId: 'leave_return' })
   @ApiBody(LEAVE_RETURN_BODY)
-  @ApiOkResponse({ type: SubmitResultDto })
+  @ApiActionOkResponse({ example: LEAVE_RETURN_EXAMPLE })
   returnFromLeave(
     @Body() body: LeaveReturnRequestDto,
     @CurrentUser() user: AuthenticatedUser,

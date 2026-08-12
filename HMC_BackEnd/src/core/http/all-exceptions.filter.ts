@@ -42,27 +42,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return;
     }
 
-    // `message` picks the language-appropriate safe text (mirrors the
-    // ResponseInterceptor's action-envelope `message` field) so clients don't
-    // have to choose between errormessage/errormessageAr themselves.
+    // `message` picks the language-appropriate safe text (default `en`) —
+    // the response body carries only this one resolved message, plus
+    // success/status/httpStatusCode; everything else (category, correlation
+    // id, timestamp, path) stays server-side only, in logInternal above.
     const lang = toLang(req?.query?.lang);
-    const messageAr = CATEGORY_MESSAGE_AR[classified.category];
-    const message = lang === 'ar' ? messageAr : classified.message;
+    const message = lang === 'ar' ? CATEGORY_MESSAGE_AR[classified.category] : classified.message;
 
     const body: SanaadErrorEnvelope = {
       success: false,
       message,
-      category: classified.category,
-      ...(classified.errors ? { errors: classified.errors } : {}),
-      httpStatusCode: classified.httpStatus,
-      correlationId: req?.correlationId,
-      timestamp: new Date().toISOString(),
-      path: req?.url,
-      // Backward-compatible fields — never raw detail.
       status: 'error',
-      opstatus: 1,
-      errormessage: classified.message,
-      errormessageAr: messageAr,
+      httpStatusCode: classified.httpStatus,
+      ...(classified.errors ? { errors: classified.errors } : {}),
     };
 
     res.status(classified.httpStatus).json(body);
