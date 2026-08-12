@@ -10,10 +10,17 @@ export interface SanaadSuccessEnvelope<T = unknown> {
   httpStatusCode: number;
 }
 
-/** Envelope for action/submit operations backed by Oracle `_PR`/`_PKG`. */
+/**
+ * Envelope for action/submit operations backed by Oracle `_PR`/`_PKG`.
+ * `message` is `errormessage` or `errormessageAr` depending on the request's
+ * `lang` (`en`/`ar`) — added so clients don't need to pick the field
+ * themselves; `errormessage`/`errormessageAr` are kept for backward
+ * compatibility with existing consumers.
+ */
 export interface SanaadActionEnvelope<T = unknown> {
   status: 'success' | 'error';
   successflag: 'S' | 'N';
+  message: string;
   errormessage: string;
   errormessageAr?: string;
   httpStatusCode: number;

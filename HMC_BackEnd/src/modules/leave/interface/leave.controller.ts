@@ -9,6 +9,7 @@ import { ProfileQueryDto, LovUserQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
+import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { LeaveService } from '../application/leave.service';
 import {
   ApplyLeaveRequestDto,
@@ -20,6 +21,7 @@ import {
 } from './dto/leave.dto';
 import {
   LEAVE_AMEND_BODY,
+  LEAVE_APPLY_EXAMPLE,
   LEAVE_CALCULATE_EXAMPLE,
   LEAVE_CANCEL_BODY,
   LEAVE_CLASSES_LOV_EXAMPLE,
@@ -47,7 +49,7 @@ export class LeaveController {
   @Post('apply')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 10 — Leave submission', operationId: 'leave_apply' })
-  @ApiOkResponse({ type: SubmitResultDto })
+  @ApiActionOkResponse({ example: LEAVE_APPLY_EXAMPLE })
   apply(
     @Body() dto: ApplyLeaveRequestDto,
     @CurrentUser() user: AuthenticatedUser,

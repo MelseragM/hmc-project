@@ -100,6 +100,7 @@ export const EMPLOYEE_SUPERVISOR_UPDATE_BODY = {
 export const EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE = {
   status: 'success',
   successflag: 'S',
+  message: 'Success',
   errormessage: 'Success',
   httpStatusCode: 200,
 };

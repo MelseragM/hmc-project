@@ -9,6 +9,12 @@ export class SubmitResultDto implements SubmitResult {
   @ApiProperty({ enum: ['success', 'error'], example: 'success' })
   status!: 'success' | 'error';
 
+  @ApiProperty({
+    example: 'Success',
+    description: '`errormessage` or `errormessageAr`, whichever matches the request `lang` (en/ar).',
+  })
+  message!: string;
+
   @ApiProperty({ example: 'Success' })
   errormessage!: string;
 

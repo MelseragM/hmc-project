@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isSubmitResult } from '@shared/domain/submit-result';
+import { toLang } from '@shared/domain/lang';
 import { SanaadEnvelope } from '@shared/interfaces/sanaad-response.interface';
 
 /** Routes decorated with @SkipEnvelope() return their payload unwrapped (e.g. binary payslip). */
@@ -33,7 +34,9 @@ export class ResponseInterceptor implements NestInterceptor<unknown, SanaadEnvel
       context.getClass(),
     ]);
 
-    const res = context.switchToHttp().getResponse<{ statusCode?: number }>();
+    const http = context.switchToHttp();
+    const res = http.getResponse<{ statusCode?: number }>();
+    const req = http.getRequest<{ query?: { lang?: string } }>();
 
     return next.handle().pipe(
       map((data): SanaadEnvelope | unknown => {
@@ -41,9 +44,15 @@ export class ResponseInterceptor implements NestInterceptor<unknown, SanaadEnvel
         const httpStatusCode = res?.statusCode ?? 200;
 
         if (isSubmitResult(data)) {
+          const lang = toLang(req?.query?.lang);
+          // `message` picks the language-appropriate text so clients don't
+          // have to choose between errormessage/errormessageAr themselves;
+          // falls back to errormessage if the Arabic text isn't set.
+          const message = lang === 'ar' ? (data.errormessageAr ?? data.errormessage) : data.errormessage;
           return {
             status: data.status,
             successflag: data.successflag,
+            message,
             errormessage: data.errormessage,
             errormessageAr: data.errormessageAr,
             httpStatusCode,

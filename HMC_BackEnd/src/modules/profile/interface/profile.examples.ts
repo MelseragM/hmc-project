@@ -85,6 +85,7 @@ export const PROFILE_UPDATE_PERSONAL_BODY = {
 export const PROFILE_UPDATE_PERSONAL_EXAMPLE = {
   status: 'success',
   successflag: 'S',
+  message: 'Success',
   errormessage: 'Success',
   httpStatusCode: 200,
 };

@@ -122,6 +122,22 @@ export const LEAVE_CALCULATE_EXAMPLE = {
   errorMessage: ' ',
 };
 
+/**
+ * op 10 — POST /leave/apply response (action envelope) — a real business-rule
+ * rejection from LEAV_OF_ABSEN_NEW_PR. `message` mirrors `errormessage` here
+ * because this example's request used `lang=en`; the same call with `lang=ar`
+ * would return `message: errormessageAr` instead.
+ */
+export const LEAVE_APPLY_EXAMPLE = {
+  status: 'error',
+  successflag: 'N',
+  message: 'Reason does not exist with Absence',
+  errormessage: 'Reason does not exist with Absence',
+  errormessageAr: 'سبب الغياب غير موجود',
+  httpStatusCode: 200,
+  result: { leaveDays: 0 },
+};
+
 /*
  * Request bodies for the leave submit procedures. `p_user_name` and
  * `p_language` are injected server-side and must NOT be sent. Field names are the

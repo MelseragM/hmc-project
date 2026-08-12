@@ -23,7 +23,7 @@ export enum ErrorCategory {
   SCHEMA_MISMATCH = 'SCHEMA_MISMATCH',
 }
 
-/** Safe, high-level message shown to clients per category. */
+/** Safe, high-level message shown to clients per category (English). */
 export const CATEGORY_MESSAGE: Readonly<Record<ErrorCategory, string>> = Object.freeze({
   [ErrorCategory.VALIDATION_ERROR]: 'Validation failed.',
   [ErrorCategory.AUTHENTICATION_ERROR]: 'Authentication failed.',
@@ -37,6 +37,22 @@ export const CATEGORY_MESSAGE: Readonly<Record<ErrorCategory, string>> = Object.
   [ErrorCategory.APPLICATION_ERROR]: 'An unexpected application error occurred.',
   [ErrorCategory.UNKNOWN_ERROR]: 'An unexpected error occurred.',
   [ErrorCategory.SCHEMA_MISMATCH]: 'Success.',
+});
+
+/** Same safe messages, Arabic — selected by request `lang` alongside `CATEGORY_MESSAGE`. */
+export const CATEGORY_MESSAGE_AR: Readonly<Record<ErrorCategory, string>> = Object.freeze({
+  [ErrorCategory.VALIDATION_ERROR]: 'فشل التحقق من صحة البيانات.',
+  [ErrorCategory.AUTHENTICATION_ERROR]: 'فشلت عملية المصادقة.',
+  [ErrorCategory.AUTHORIZATION_ERROR]: 'ليس لديك صلاحية لتنفيذ هذا الإجراء.',
+  [ErrorCategory.NOT_FOUND]: 'المورد المطلوب غير موجود.',
+  [ErrorCategory.BUSINESS_RULE_ERROR]: 'تعذر إتمام العملية المطلوبة.',
+  [ErrorCategory.DATABASE_ERROR]:
+    'تعذر إتمام عملية قاعدة البيانات. يرجى التواصل مع الدعم الفني إذا استمرت المشكلة.',
+  [ErrorCategory.EXTERNAL_SERVICE_ERROR]: 'الخدمة الخارجية غير متاحة حاليًا.',
+  [ErrorCategory.TIMEOUT]: 'استغرق الطلب وقتًا طويلاً. يرجى المحاولة مرة أخرى.',
+  [ErrorCategory.APPLICATION_ERROR]: 'حدث خطأ غير متوقع في التطبيق.',
+  [ErrorCategory.UNKNOWN_ERROR]: 'حدث خطأ غير متوقع.',
+  [ErrorCategory.SCHEMA_MISMATCH]: 'تم بنجاح.',
 });
 
 /** Default HTTP status per category (a concrete HttpException status wins over this). */

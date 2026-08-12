@@ -1,15 +1,17 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { Response } from 'express';
 import { SanaadErrorEnvelope } from '@shared/interfaces/sanaad-response.interface';
+import { toLang } from '@shared/domain/lang';
 import { OracleQueryError } from '../database/oracle.error';
 import { classifyException } from './exception-classifier';
-import { ErrorCategory } from './error-category';
+import { CATEGORY_MESSAGE_AR, ErrorCategory } from './error-category';
 
 interface RequestLike {
   url?: string;
   method?: string;
   correlationId?: string;
   user?: { username?: string; employeeNumber?: string };
+  query?: { lang?: string };
 }
 
 /**
@@ -40,19 +42,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return;
     }
 
+    // `message` picks the language-appropriate safe text (mirrors the
+    // ResponseInterceptor's action-envelope `message` field) so clients don't
+    // have to choose between errormessage/errormessageAr themselves.
+    const lang = toLang(req?.query?.lang);
+    const messageAr = CATEGORY_MESSAGE_AR[classified.category];
+    const message = lang === 'ar' ? messageAr : classified.message;
+
     const body: SanaadErrorEnvelope = {
       success: false,
-      message: classified.message,
+      message,
       category: classified.category,
       ...(classified.errors ? { errors: classified.errors } : {}),
       httpStatusCode: classified.httpStatus,
       correlationId: req?.correlationId,
       timestamp: new Date().toISOString(),
       path: req?.url,
-      // Backward-compatible fields — same safe message, never raw detail.
+      // Backward-compatible fields — never raw detail.
       status: 'error',
       opstatus: 1,
       errormessage: classified.message,
+      errormessageAr: messageAr,
     };
 
     res.status(classified.httpStatus).json(body);
