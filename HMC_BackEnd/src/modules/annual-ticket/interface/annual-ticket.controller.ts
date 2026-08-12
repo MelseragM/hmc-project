@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -9,6 +9,7 @@ import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { AnnualTicketService } from '../application/annual-ticket.service';
 import { AnnualTicketApplyRequestDto } from './dto/annual-ticket.dto';
+import { ANNUAL_TICKET_APPLY_BODY } from './annual-ticket.examples';
 
 /** Annual-ticket endpoints (ops 66, 67). See Docs_Ai/API/README.md. */
 @ApiTags('annual-ticket')
@@ -30,6 +31,7 @@ export class AnnualTicketController {
   @Post('apply')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 67 — Submit annual ticket', operationId: 'annualTicket_apply' })
+  @ApiBody(ANNUAL_TICKET_APPLY_BODY)
   @ApiOkResponse({ type: SubmitResultDto })
   apply(
     @Body() body: AnnualTicketApplyRequestDto,
