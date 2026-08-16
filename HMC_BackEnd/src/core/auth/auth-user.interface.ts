@@ -24,7 +24,7 @@ export interface AuthenticatedUser {
 /** Permissive identity used only when AUTH_DISABLED=true (local dev). */
 export const DEV_USER: AuthenticatedUser = {
   username: 'AIBRAHIM39',
-  employeeNumber: '000000',
+  employeeNumber: '037400',
   roles: [Role.EMPLOYEE, Role.SUPERVISOR, Role.APPROVER],
   functions: ['PYSRS', 'LEAVE', 'LETTER', 'SDCAPT'],
 };

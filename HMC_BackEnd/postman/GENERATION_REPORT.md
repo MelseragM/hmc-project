@@ -1,0 +1,74 @@
+# Postman Collection Generation Report
+
+- Total modules: 16
+- Total endpoints: 94
+- Total success examples: 94
+- Total error examples: 271
+
+## Endpoints requiring manual review (no captured real response — generic placeholder used)
+
+- POST /healthcheck (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/initiate (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/otp/validate (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/mpin/update (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/login (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/mpin/forgot (Auth) — no captured real response; used a generic placeholder example.
+- POST /auth/mpin/update/reset (Auth) — no captured real response; used a generic placeholder example.
+- GET /auth/me (Auth) — no captured real response; used a generic placeholder example.
+- GET /leave/balance (Leave) — no captured real response; used a generic placeholder example.
+- POST /leave/amend (Leave) — no captured real response; used a generic placeholder example.
+- POST /leave/cancel (Leave) — no captured real response; used a generic placeholder example.
+- POST /letters/apply (Letters) — no captured real response; used a generic placeholder example.
+- GET /contact/lov/phone-type (Contact) — no captured real response; used a generic placeholder example.
+- POST /contact/phone (Contact) — no captured real response; used a generic placeholder example.
+- POST /contact/phone/delete (Contact) — no captured real response; used a generic placeholder example.
+- POST /contact/address (Contact) — no captured real response; used a generic placeholder example.
+- POST /contact/address/update (Contact) — no captured real response; used a generic placeholder example.
+- GET /contact/lov/country (Contact) — no captured real response; used a generic placeholder example.
+- POST /dependents (Dependents) — no captured real response; used a generic placeholder example.
+- POST /dependents/update (Dependents) — no captured real response; used a generic placeholder example.
+- POST /dependents/delete (Dependents) — no captured real response; used a generic placeholder example.
+- GET /dependents/lov (Dependents) — no captured real response; used a generic placeholder example.
+- GET /dependents/passport/types (Dependents) — no captured real response; used a generic placeholder example.
+- POST /dependents/passport/apply (Dependents) — no captured real response; used a generic placeholder example.
+- GET /dependents/passport/issue-place (Dependents) — no captured real response; used a generic placeholder example.
+- POST /school-fees/apply (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/lov/schools (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/lov/terms (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/lov/edu-stage (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/lov/academic-year (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/lov/request-type (School Fees) — no captured real response; used a generic placeholder example.
+- GET /school-fees/children (School Fees) — no captured real response; used a generic placeholder example.
+- GET /annual-ticket/master (Annual Ticket) — no captured real response; used a generic placeholder example.
+- POST /annual-ticket/apply (Annual Ticket) — no captured real response; used a generic placeholder example.
+- GET /approvals (Approvals) — no captured real response; used a generic placeholder example.
+- GET /approvals/my-requests (Approvals) — no captured real response; used a generic placeholder example.
+- GET /approvals/worklist (Approvals) — no captured real response; used a generic placeholder example.
+- GET /approvals/worklist/summary (Approvals) — no captured real response; used a generic placeholder example.
+- GET /approvals/worklist/:id/history (Approvals) — no captured real response; used a generic placeholder example.
+- GET /approvals/:id/details (Approvals) — no captured real response; used a generic placeholder example.
+- POST /approvals/:id/decision (Approvals) — no captured real response; used a generic placeholder example.
+- POST /approvals/:id/reassign (Approvals) — no captured real response; used a generic placeholder example.
+- GET /appointments/upcoming (Appointments) — no captured real response; used a generic placeholder example.
+- GET /appointments/masters (Appointments) — no captured real response; used a generic placeholder example.
+- GET /appointments/booking-init (Appointments) — no captured real response; used a generic placeholder example.
+- POST /appointments/book (Appointments) — no captured real response; used a generic placeholder example.
+- GET /lookups/yes-no (Lookups) — no captured real response; used a generic placeholder example.
+- GET /lookups/rfmi-user (Lookups) — no captured real response; used a generic placeholder example.
+- GET /lookups/lov (Lookups) — no captured real response; used a generic placeholder example.
+- GET /lookups/master (Lookups) — no captured real response; used a generic placeholder example.
+- GET /health (Health) — no captured real response; used a generic placeholder example.
+- GET /health/db (Health) — no captured real response; used a generic placeholder example.
+- GET /diagnostics/oracle-logs/view (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /diagnostics/oracle-logs (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /diagnostics/oracle-logs/stats (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /diagnostics/oracle-object (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- DELETE /diagnostics/oracle-logs (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/view (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/statistics (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/errors (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/success (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/slow (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- GET /api-logs/:id (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
+- DELETE /api-logs (Internal - Diagnostics (dev only)) — no captured real response; used a generic placeholder example.
