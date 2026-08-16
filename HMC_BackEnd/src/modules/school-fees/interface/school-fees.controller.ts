@@ -77,7 +77,9 @@ export class SchoolFeesController {
 
   @Get('children')
   @ApiOperation({ summary: 'op 52 — Child details', operationId: 'schoolFees_children' })
-  children(@Query() q: SchoolChildrenQueryDto) {
-    return this.service.children(q.enum, q.acadyrstrtdt, q.lang);
+  children(@Query() q: SchoolChildrenQueryDto, @CurrentUser() user: AuthenticatedUser) {
+    // CHILD_DETS_VIEW's p_user_name takes the USERNAME, not the employee number
+    // (confirmed by the DB team — '053613' returned no rows / PLS-00221 attempts).
+    return this.service.children(user.username, q.acadyrstrtdt, q.lang);
   }
 }

@@ -57,7 +57,7 @@ export class AddDependentRequestDto {
   @RequiredString('Doe')
   p_last_name!: string;
 
-  @RequiredString('S')
+  @RequiredString('Son')
   p_relationship!: string;
 
   @RequiredString('Male')
@@ -84,7 +84,7 @@ defineOptionalStringFields(AddDependentRequestDto, [
 ]);
 
 export class UpdateDependentRequestDto {
-  @RequiredString('5001')
+  @RequiredString('4668195')
   p_dependent_id!: string;
 
   [key: string]: unknown;
@@ -142,7 +142,7 @@ defineOptionalStringFields(UpdateDependentRequestDto, [
 ]);
 
 export class DeleteDependentRequestDto {
-  @RequiredString('5001')
+  @RequiredString('4668195')
   p_dependent_id!: string;
 
   [key: string]: unknown;

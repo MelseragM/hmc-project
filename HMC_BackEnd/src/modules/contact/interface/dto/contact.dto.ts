@@ -44,7 +44,7 @@ export class UpdatePhoneRequestDto {
 
 /** op 32 — DELETE_PHONE_DETAILS_SUBMIT (DEL_PHONE_NUMBER_PR). */
 export class DeletePhoneRequestDto {
-  @ApiProperty({ example: '12345' })
+  @ApiProperty({ example: '1574794', description: 'Existing phone id of the user (see GET /contact/phones).' })
   @IsString()
   @IsNotEmpty()
   phoneId!: string;
@@ -111,15 +111,24 @@ export class UpdateAddressRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(UpdateAddressRequestDto, [
-  'p_address_line1',
-  'p_address_line2',
-  'p_address_line3',
-  'p_city',
-  'p_region1',
-  'p_region2',
-  'p_region3',
-  'p_po_box',
-  'p_address_type',
-  'p_country',
-]);
+defineOptionalStringFields(
+  UpdateAddressRequestDto,
+  [
+    'p_address_line1',
+    'p_address_line2',
+    'p_address_line3',
+    'p_city',
+    'p_region1',
+    'p_region2',
+    'p_region3',
+    'p_po_box',
+    'p_address_type',
+    'p_country',
+  ],
+  {
+    // UPD_ADDRESS_PR accepts only these address types (confirmed by the DB team):
+    // 'HMC Accommodation Address' | 'Work Location Address'.
+    p_address_type: 'HMC Accommodation Address',
+    p_country: 'Qatar',
+  },
+);

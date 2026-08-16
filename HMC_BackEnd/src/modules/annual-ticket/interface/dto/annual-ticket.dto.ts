@@ -15,7 +15,7 @@ export class AnnualTicketApplyRequestDto {
   @RequiredString('Annual Ticket')
   p_request_type!: string;
 
-  @RequiredString('2025-2026')
+  @RequiredString('01-SEP-2025 to 31-AUG-2026')
   p_contractual_year!: string;
 
   @RequiredString('Doha')

@@ -76,7 +76,7 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
       p_user_name: cmd.username,
       p_itemtype: cmd.itemType,
       p_item_key: cmd.itemKey,
-      p_result: cmd.decision === 'APPROVE' ? 'Approve' : 'Reject',
+      p_result: cmd.decision === 'APPROVE' ? 'APPROVED' : 'REJECTED',
       p_notification_id: cmd.approvalId,
       p_user_comment: cmd.comment,
       p_language: toOracleLanguage(cmd.lang),
