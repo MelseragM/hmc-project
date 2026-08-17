@@ -68,7 +68,9 @@ export class LeaveAmendRequestDto {
   @RequiredString('Annual Leave')
   p_leave_type!: string;
 
-  @RequiredString('62')
+  // A leave-record id from the amend LOV (op 62, LEAVE_AMEND_V) — NOT a small
+  // ordinal. Sending an id absent from that value set raises ORA-20001.
+  @RequiredString('56944958')
   p_leave_to_amend!: string;
 
   @RequiredString('20-Jun-2026')
@@ -84,7 +86,9 @@ export class LeaveCancelRequestDto {
   @RequiredString('Annual Leave')
   p_leave_type!: string;
 
-  @RequiredString('62')
+  // A leave-record id from the cancel LOV (op 61, LEAVE_CANCEL_V) — NOT a small
+  // ordinal. Sending an id absent from that value set raises ORA-20001.
+  @RequiredString('56944958')
   p_leave_to_cancel!: string;
 
   @RequiredString('Plans changed')
@@ -97,7 +101,10 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  @RequiredString('62')
+  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_LOV) — NOT a
+  // small ordinal. Call GET /leave/lov/return first; sending an id absent from
+  // that value set raises ORA-20001 (FLEX-VALUE DOES NOT EXIST).
+  @RequiredString('56944958')
   p_leave_details!: string;
 
   @RequiredString('15-Jun-2026')
