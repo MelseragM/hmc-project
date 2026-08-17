@@ -1,0 +1,96 @@
+{
+  "name": "hmc-gateway",
+  "version": "0.1.0",
+  "description": "API gateway for the HMC Sanaad B2E backend: forwards the mobile auth journey to HMC_BackEnd, then validates issued JWTs locally and proxies every other authenticated request through.",
+  "author": "HMC",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build && tsc-alias -p tsconfig.build.json",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "node dist/main",
+    "start:dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/main.ts",
+    "start:debug": "ts-node-dev --inspect --respawn -r tsconfig-paths/register src/main.ts",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@nestjs/axios": "^4.0.1",
+    "@nestjs/common": "^11.1.17",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.17",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.1.17",
+    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/throttler": "^6.4.0",
+    "axios": "^1.6.8",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "compression": "^1.7.4",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.24",
+    "@nestjs/schematics": "^11.1.0",
+    "@nestjs/testing": "^11.1.17",
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.12.7",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.2",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.8"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@core/(.*)$": "<rootDir>/core/$1",
+      "^@modules/(.*)$": "<rootDir>/modules/$1"
+    }
+  }
+}
