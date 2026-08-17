@@ -49,6 +49,20 @@ services:
       LDAP_CA_CERT: "${LDAP_CA_CERT:-}"
       LDAP_CA_CERT_PATH: "${LDAP_CA_CERT_PATH:-}"
       LDAP_TIMEOUT_MS: "${LDAP_TIMEOUT_MS:-10000}"
+      # ── Directory provider + Azure Entra ID (auth framework API-2/5) ──
+      # AUTH_DIRECTORY selects the corporate-directory adapter: `ldap` (default,
+      # LDAPS above) or `entra` (Microsoft Graph app-only lookup below). Set
+      # AUTH_DIRECTORY=entra + the ENTRA_* values to use Entra ID; the Graph app
+      # registration needs User.Read.All (Application) with admin consent.
+      # ENTRA_CLIENT_SECRET must come from the host env, never a committed .env.
+      AUTH_DIRECTORY: "${AUTH_DIRECTORY:-ldap}"
+      ENTRA_TENANT_ID: "${ENTRA_TENANT_ID:-}"
+      ENTRA_CLIENT_ID: "${ENTRA_CLIENT_ID:-}"
+      ENTRA_CLIENT_SECRET: "${ENTRA_CLIENT_SECRET:-}"
+      ENTRA_GRAPH_BASE_URL: "${ENTRA_GRAPH_BASE_URL:-https://graph.microsoft.com/v1.0}"
+      ENTRA_LOGIN_BASE_URL: "${ENTRA_LOGIN_BASE_URL:-https://login.microsoftonline.com}"
+      ENTRA_LOOKUP_ATTRIBUTE: "${ENTRA_LOOKUP_ATTRIBUTE:-userPrincipalName}"
+      ENTRA_TIMEOUT_MS: "${ENTRA_TIMEOUT_MS:-10000}"
     # Host:container port mapping stays in sync with PORT in .env.
     ports:
       - "${PORT:-443}:${PORT:-443}"

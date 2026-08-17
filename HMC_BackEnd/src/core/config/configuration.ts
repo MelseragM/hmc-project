@@ -19,6 +19,8 @@ export interface AppConfig {
   aggregateReadTimeoutMs: number;
   lovCacheTtlMs: number;
   logLevel: string;
+  /** Corporate-directory provider for the auth journey: LDAPS or Entra ID (Graph). */
+  directory: 'ldap' | 'entra';
 }
 
 export interface OracleConfig {
@@ -113,6 +115,25 @@ export interface LdapConfig {
   timeoutMs: number;
 }
 
+/**
+ * Azure Entra ID (Microsoft Graph) directory lookup — the cloud replacement for
+ * the LDAPS `validate()` path. App-only (client-credentials) auth; used only to
+ * resolve employee identity + phone (the mobile journey stays OTP + MPIN).
+ */
+export interface EntraConfig {
+  tenantId: string;
+  clientId: string;
+  clientSecret: string;
+  /** Graph API base, e.g. https://graph.microsoft.com/v1.0. */
+  graphBaseUrl: string;
+  /** AAD login base for the token endpoint, e.g. https://login.microsoftonline.com. */
+  loginBaseUrl: string;
+  /** User property the mobile `username` maps to (default userPrincipalName). */
+  lookupAttribute: string;
+  /** Token + Graph request timeout in milliseconds. */
+  timeoutMs: number;
+}
+
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
@@ -122,6 +143,7 @@ export interface RootConfig {
   mpin: MpinConfig;
   otp: OtpConfig;
   ldap: LdapConfig;
+  entra: EntraConfig;
 }
 
 const toBool = (v: unknown): boolean => v === true || v === 'true';
@@ -161,6 +183,7 @@ export default (): RootConfig => ({
     aggregateReadTimeoutMs: 20000,
     lovCacheTtlMs: Number(process.env.LOV_CACHE_TTL_MS ?? 300000),
     logLevel: process.env.LOG_LEVEL ?? 'debug',
+    directory: process.env.AUTH_DIRECTORY === 'entra' ? 'entra' : 'ldap',
   },
   oracle: {
     user: process.env.ORACLE_USER ?? '',
@@ -228,5 +251,14 @@ export default (): RootConfig => ({
     tlsRejectUnauthorized: toBool(process.env.LDAP_TLS_REJECT_UNAUTHORIZED ?? 'false'),
     caCert: loadLdapCaCert(),
     timeoutMs: Number(process.env.LDAP_TIMEOUT_MS ?? 10000),
+  },
+  entra: {
+    tenantId: process.env.ENTRA_TENANT_ID ?? '',
+    clientId: process.env.ENTRA_CLIENT_ID ?? '',
+    clientSecret: process.env.ENTRA_CLIENT_SECRET ?? '',
+    graphBaseUrl: process.env.ENTRA_GRAPH_BASE_URL ?? 'https://graph.microsoft.com/v1.0',
+    loginBaseUrl: process.env.ENTRA_LOGIN_BASE_URL ?? 'https://login.microsoftonline.com',
+    lookupAttribute: process.env.ENTRA_LOOKUP_ATTRIBUTE ?? 'userPrincipalName',
+    timeoutMs: Number(process.env.ENTRA_TIMEOUT_MS ?? 10000),
   },
 });

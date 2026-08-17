@@ -126,6 +126,36 @@ Rebuild/restart, then confirm `oracle.reachable` is `true` at `/api/v1/health`.
 
 ---
 
+## Authenticating against Azure Entra ID (instead of LDAPS)
+
+The corporate-directory lookup used by the auth journey (API-2 user-validate and
+API-5 login) can run against **Azure Entra ID via Microsoft Graph** instead of
+LDAPS — no mobile-app changes, same OTP + MPIN flow. Select the provider with
+`AUTH_DIRECTORY`:
+
+```env
+AUTH_DIRECTORY=entra
+ENTRA_TENANT_ID=<tenant-guid>
+ENTRA_CLIENT_ID=<app-registration-client-id>
+ENTRA_CLIENT_SECRET=<client-secret>
+```
+
+- The Graph app registration needs the **`User.Read.All` (Application)**
+  permission with **admin consent** — the backend uses app-only
+  (client-credentials) auth to resolve the employee's identity + phone.
+- `ENTRA_LOOKUP_ATTRIBUTE` (default `userPrincipalName`) controls how the
+  mobile `username` is matched; the lookup tries `GET /users/{username}` first,
+  then an OData `$filter` on this attribute (e.g. `mail`, `employeeId`).
+- `AUTH_DIRECTORY=ldap` (the default) keeps the existing LDAPS path — flip back
+  to it at any time as an instant rollback, no code redeploy.
+- `ENTRA_CLIENT_SECRET` must come from the host/jumpstation environment, never a
+  committed `.env`.
+
+Restart after changing these (`docker compose up -d`), then confirm a login/
+user-validate resolves the employee from Entra.
+
+---
+
 ## Common commands
 
 ```powershell

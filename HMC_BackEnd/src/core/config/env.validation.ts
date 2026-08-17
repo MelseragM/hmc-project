@@ -79,6 +79,16 @@ export const envValidationSchema = Joi.object({
   LDAP_CA_CERT_PATH: Joi.string().allow('').default(''),
   LDAP_TIMEOUT_MS: Joi.number().default(10000),
 
+  // Auth framework — directory provider selector + Azure Entra ID (Graph)
+  AUTH_DIRECTORY: Joi.string().valid('ldap', 'entra').default('ldap'),
+  ENTRA_TENANT_ID: Joi.string().allow('').default(''),
+  ENTRA_CLIENT_ID: Joi.string().allow('').default(''),
+  ENTRA_CLIENT_SECRET: Joi.string().allow('').default(''),
+  ENTRA_GRAPH_BASE_URL: Joi.string().uri().default('https://graph.microsoft.com/v1.0'),
+  ENTRA_LOGIN_BASE_URL: Joi.string().uri().default('https://login.microsoftonline.com'),
+  ENTRA_LOOKUP_ATTRIBUTE: Joi.string().default('userPrincipalName'),
+  ENTRA_TIMEOUT_MS: Joi.number().default(10000),
+
   // Misc
   REQUEST_TIMEOUT_MS: Joi.number().default(30000),
   LOV_CACHE_TTL_MS: Joi.number().min(0).default(300000),
