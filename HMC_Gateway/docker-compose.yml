@@ -1,0 +1,55 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hmc-gateway:latest
+    container_name: hmc-gateway
+    restart: unless-stopped
+    # Runtime configuration is read from .env (copy from .env.example if missing).
+    env_file:
+      - .env
+    # Shell/server env vars take precedence over .env, and these entries override
+    # the env_file above. All values fall back to sensible defaults when unset, so
+    # the gateway boots cleanly even with an empty .env.
+    environment:
+      NODE_ENV: "${NODE_ENV:-production}"
+      GATEWAY_PORT: "${GATEWAY_PORT:-443}"
+      API_PREFIX: "${API_PREFIX:-api/v1}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-*}"
+      # ── Upstream HMC_BackEnd the gateway proxies to ──
+      # Use host.docker.internal to reach a backend running on the Docker host;
+      # for the backend running as another container, use its service/host name.
+      BACKEND_BASE_URL: "${BACKEND_BASE_URL:-http://host.docker.internal:443}"
+      BACKEND_API_PREFIX: "${BACKEND_API_PREFIX:-api/v1}"
+      BACKEND_TIMEOUT_MS: "${BACKEND_TIMEOUT_MS:-30000}"
+      # ── Auth — MUST match HMC_BackEnd's JWT settings so tokens issued by the
+      # backend at login verify locally at the gateway. Secrets must come from the
+      # host env, never a committed .env.
+      JWT_SECRET: "${JWT_SECRET:?set JWT_SECRET (must match HMC_BackEnd) in the environment}"
+      JWT_ISSUER: "${JWT_ISSUER:-sanaad}"
+      JWT_AUDIENCE: "${JWT_AUDIENCE:-sanaad-b2e}"
+      JWT_EXPIRES_IN: "${JWT_EXPIRES_IN:-1h}"
+      AUTH_DISABLED: "${AUTH_DISABLED:-false}"
+      # ── Rate limiting for the pre-login auth endpoints ──
+      THROTTLE_LOGIN_LIMIT: "${THROTTLE_LOGIN_LIMIT:-5}"
+      THROTTLE_LOGIN_TTL_MS: "${THROTTLE_LOGIN_TTL_MS:-60000}"
+      REQUEST_TIMEOUT_MS: "${REQUEST_TIMEOUT_MS:-35000}"
+      LOG_LEVEL: "${LOG_LEVEL:-debug}"
+    # Host:container port mapping stays in sync with GATEWAY_PORT in .env.
+    ports:
+      - "${GATEWAY_PORT:-443}:${GATEWAY_PORT:-443}"
+    # Lets the container reach HMC_BackEnd running on the Docker host via
+    # BACKEND_BASE_URL=http://host.docker.internal:<port>.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:'+(process.env.GATEWAY_PORT||443)+'/'+(process.env.API_PREFIX||'api/v1')+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s

@@ -1,0 +1,41 @@
+# Dependencies & build output (rebuilt inside the image)
+node_modules
+dist
+build
+coverage
+.nyc_output
+
+# Env & secrets (provided at runtime via docker-compose)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VCS / IDE / OS
+.git
+.gitignore
+.vscode
+.idea
+.claude
+.DS_Store
+
+# Tooling & docs not needed at build/runtime
+test
+postman
+*.md
+.eslintrc.js
+.prettierrc
+.dependency-cruiser.js
+*.tsbuildinfo
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
