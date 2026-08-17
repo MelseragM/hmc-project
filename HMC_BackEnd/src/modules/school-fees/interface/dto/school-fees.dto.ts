@@ -20,14 +20,14 @@ export class SchoolLovQueryDto extends LovUserQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ type: Number, default: 1, minimum: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page = 1;
 
-  @ApiPropertyOptional({ default: 100, minimum: 1, maximum: 200 })
+  @ApiPropertyOptional({ type: Number, default: 100, minimum: 1, maximum: 200 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

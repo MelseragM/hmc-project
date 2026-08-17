@@ -6,7 +6,11 @@ import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { Lang } from '@shared/domain/lang';
 import { LovItem } from '@shared/domain/lov-item';
 import { isKnownOracleObject } from '@shared/constants/oracle-objects';
-import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
+import {
+  EMP_KEY_COLUMN,
+  PERSON_ID_COLUMN,
+  USERNAME_KEY_CANDIDATES,
+} from '@shared/constants/oracle-columns';
 import { LovReadOptions, LovRepository } from '../../domain/lov.repository';
 import { LovMapper } from './lov.mapper';
 
@@ -14,13 +18,22 @@ import { LovMapper } from './lov.mapper';
  * Generic Oracle adapter for LOV/view reads (Pattern A). Object names are
  * validated against the central allow-list before interpolation (injection-safe).
  *
- * A `username` filter is applied only when supplied and when the object really
- * has a user column: the user-scoped LOVs (SCHOOL_NAME_LOV, REQUEST_TYPE_LOV)
- * are documented with a `USER_NAME` request parameter, and filtering on a
- * hard-coded `username` raised `ORA-00904: "USERNAME": invalid identifier`. The
- * column is therefore resolved from the data dictionary, and a username passed
- * for a LOV that is not user-scoped is ignored instead of failing the request.
+ * A caller filter is applied only when supplied and when the object really has
+ * a matching scoping column: the user-scoped LOVs (SCHOOL_NAME_LOV,
+ * REQUEST_TYPE_LOV) are documented with a `USER_NAME` request parameter, and
+ * filtering on a hard-coded `username` raised `ORA-00904: "USERNAME": invalid
+ * identifier`. The column is therefore resolved from the data dictionary, and
+ * a filter value passed for a LOV that is not scoped is ignored instead of
+ * failing the request.
+ *
+ * Some user-scoped views expose no user column at all: LEAVE_AMEND_V is scoped
+ * by employee number in the legacy service (`lovname=LEAVE_AMEND_LOV&enum=`),
+ * and dropping the filter turned the read into an unfiltered full scan that
+ * blew past the 25s call timeout (ORA-03156). When no user column exists we
+ * fall back to the employee-number / person-id columns so the filter still
+ * applies.
  */
+const EMPLOYEE_SCOPING_CANDIDATES = [EMP_KEY_COLUMN, 'emp_num', PERSON_ID_COLUMN] as const;
 @Injectable()
 export class LovOracleRepository implements LovRepository {
   private readonly cache = new Map<string, { expiresAt: number; items: LovItem[] }>();
@@ -97,9 +110,13 @@ export class LovOracleRepository implements LovRepository {
     return LovMapper.toItems(rows, lang);
   }
 
-  /** The user column of a user-scoped LOV, or undefined when it has none. */
+  /**
+   * The scoping column of a user-scoped LOV: the user column when the view
+   * has one, otherwise the employee-number / person-id column (LEAVE_AMEND_V
+   * case), or undefined when the view is not scoped at all.
+   */
   private async userColumnOf(object: string): Promise<string | undefined> {
-    for (const candidate of USERNAME_KEY_CANDIDATES) {
+    for (const candidate of [...USERNAME_KEY_CANDIDATES, ...EMPLOYEE_SCOPING_CANDIDATES]) {
       if (await this.schema.hasColumn(object, candidate)) return candidate;
     }
     return undefined;

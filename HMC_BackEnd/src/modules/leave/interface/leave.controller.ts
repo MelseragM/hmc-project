@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Query, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
-import { ProfileQueryDto, LovUserQueryDto } from '@shared/dto/common-query.dto';
+import { ProfileQueryDto, LovUserQueryDto, LovScopedQueryDto } from '@shared/dto/common-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
@@ -171,7 +171,11 @@ export class LeaveController {
   @ApiOperation({ summary: 'op 62 — Leave amend LOV', operationId: 'leave_amendLov' })
   @ApiOkResponse({ type: LovResponseDto })
   @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
-  async amendLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.amendLov(q.username, q.lang) };
+  async amendLov(@Query() q: LovScopedQueryDto): Promise<LovResponseDto> {
+    // LEAVE_AMEND_V has no user column — the legacy service scopes it by
+    // employee number (`enum=`), so accept either identifier.
+    const key = q.username ?? q.enum;
+    if (!key) throw new BadRequestException('username or enum query parameter is required.');
+    return { items: await this.service.amendLov(key, q.lang) };
   }
 }
