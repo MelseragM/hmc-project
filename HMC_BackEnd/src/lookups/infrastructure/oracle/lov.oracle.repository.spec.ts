@@ -44,4 +44,22 @@ describe('LovOracleRepository', () => {
     await repository.readLov(object, 'en', 'V-TEST');
     expect(query).toHaveBeenCalledTimes(1);
   });
+
+  it('falls back to the employee-number column when the view has no user column (LEAVE_AMEND_V)', async () => {
+    const query = jest.fn().mockResolvedValue([]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'EMPLOYEE_NUMBER'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_LEAVE_AMEND_V', 'en', '053613');
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE employee_number = :u'),
+      { u: '053613' },
+    );
+  });
 });

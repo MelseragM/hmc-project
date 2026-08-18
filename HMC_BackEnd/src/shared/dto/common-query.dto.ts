@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { LangQueryDto } from './lang-query.dto';
 
 /**
@@ -19,6 +19,24 @@ export class LovUserQueryDto extends LangQueryDto {
   @IsString()
   @IsNotEmpty()
   username!: string;
+}
+
+/**
+ * `?username=` OR `?enum=` — for LOVs whose legacy service accepts either the
+ * Oracle username or the employee number (e.g. LEAVE_AMEND_LOV, documented
+ * with `enum=`). At least one of the two must be supplied; controllers decide
+ * which to forward.
+ */
+export class LovScopedQueryDto extends LangQueryDto {
+  @ApiPropertyOptional({ example: 'V-NFERNANDO', description: 'Oracle username form.' })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @ApiPropertyOptional({ example: '053613', description: 'Employee number (enum).' })
+  @IsOptional()
+  @IsString()
+  enum?: string;
 }
 
 /**
