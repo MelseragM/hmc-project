@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: hmc-gateway:latest
-    container_name: hmc-gateway
+    image: hmc-sanaad-gateway:latest
+    container_name: hmc-sanaad-gateway
     restart: unless-stopped
     # Runtime configuration is read from .env (copy from .env.example if missing).
     env_file:
