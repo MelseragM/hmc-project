@@ -56,7 +56,14 @@ export class LeaveController {
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    return this.service.apply({ ...dto }, user, lang);
+    // Attachment slots (p_file_name1..10 / p_attachment1..10) travel in
+    // `extra` and are bound by LeaveApplyBinds (base64 → BLOB).
+    const { absenceType, absenceReason, startDate, endDate, ...extra } = dto;
+    return this.service.apply(
+      { absenceType, absenceReason, startDate, endDate, extra },
+      user,
+      lang,
+    );
   }
 
   @Post('calculate')

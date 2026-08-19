@@ -5117,7 +5117,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+              "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5149,7 +5149,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5191,7 +5191,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5233,7 +5233,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5275,7 +5275,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5317,7 +5317,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\"\n}",
+                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"

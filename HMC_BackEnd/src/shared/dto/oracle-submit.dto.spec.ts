@@ -9,6 +9,7 @@ import {
   UpdateDependentRequestDto,
 } from '../../modules/dependents/interface/dto/dependents.dto';
 import { SchoolFeeApplyRequestDto } from '../../modules/school-fees/interface/dto/school-fees.dto';
+import { ApplyLeaveRequestDto } from '../../modules/leave/interface/dto/leave.dto';
 
 const validateDto = (type: new () => object, value: object) =>
   validate(plainToInstance(type, value), {
@@ -70,6 +71,29 @@ describe('Oracle submit DTOs', () => {
         'p_country_of_issue',
       ]),
     );
+  });
+
+  it('accepts all ten leave-apply attachment slots and rejects unknown keys', async () => {
+    const attachments: Record<string, string> = {};
+    for (let i = 1; i <= 10; i++) {
+      attachments[`p_file_name${i}`] = `report${i}.pdf`;
+      attachments[`p_attachment${i}`] = 'JVBERi0xLjQKJ...==';
+    }
+    const valid = await validateDto(ApplyLeaveRequestDto, {
+      absenceType: 'Sick Leave',
+      startDate: '12-Jun-2025',
+      endDate: '14-Jun-2025',
+      ...attachments,
+    });
+    expect(valid).toHaveLength(0);
+
+    const invalid = await validateDto(ApplyLeaveRequestDto, {
+      absenceType: 'Sick Leave',
+      startDate: '12-Jun-2025',
+      endDate: '14-Jun-2025',
+      p_attachment11: 'JVBERi0xLjQKJ...==',
+    });
+    expect(invalid.some((error) => error.property === 'p_attachment11')).toBe(true);
   });
 
   it('requires school-fee identifiers and amount', async () => {

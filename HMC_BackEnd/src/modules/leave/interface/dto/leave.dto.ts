@@ -24,7 +24,11 @@ export class LeaveBalanceQueryDto extends PersonIdQueryDto {
   effectivedate: string = EFFECTIVE_DATE_ALL;
 }
 
-/** op 10 — Leave submission (LEAV_OF_ABSEN_NEW_PR core params). */
+/**
+ * op 10 — Leave submission (LEAV_OF_ABSEN_NEW_PR core params + the procedure's
+ * ten optional attachment slots `p_file_name1..10` / `p_attachment1..10`,
+ * base64 content bound as BLOBs by LeaveApplyBinds).
+ */
 export class ApplyLeaveRequestDto {
   @ApiProperty({ example: 'Casual Leave' })
   @IsString()
@@ -44,7 +48,11 @@ export class ApplyLeaveRequestDto {
   @IsString()
   @Matches(DISPLAY_DATE, { message: 'endDate must be dd-Mon-yyyy.' })
   endDate!: string;
+
+  [key: string]: unknown;
 }
+
+defineOptionalStringFields(ApplyLeaveRequestDto, ATTACHMENT_FIELDS);
 
 /** op 47 — Leave duration calculation. */
 export class LeaveCalcRequestDto {

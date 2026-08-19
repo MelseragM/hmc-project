@@ -149,7 +149,11 @@ const MODULES = [
       { name: 'Leave balance', method: 'GET', p: 'leave/balance', auth: 'bearer', kind: 'read', query: { person_id: '852709', lang: 'en' },
         success: [], errors: [401, 404, 500] },
       { name: 'Submit leave application', method: 'POST', p: 'leave/apply', auth: 'bearer', kind: 'action',
-        body: { absenceType: 'Casual Leave', absenceReason: 'Personal', startDate: '12-Oct-2026', endDate: '14-Oct-2026' },
+        // Up to 10 optional attachment slots: p_file_name1..10 (file name) +
+        // p_attachment1..10 (base64 content, bound to Oracle as BLOB).
+        body: { absenceType: 'Casual Leave', absenceReason: 'Personal', startDate: '12-Oct-2026', endDate: '14-Oct-2026',
+          p_file_name1: 'medical-report.pdf', p_attachment1: 'JVBERi0xLjQKJ...==',
+          p_file_name2: 'boarding-pass.pdf', p_attachment2: 'JVBERi0xLjQKJ...==' },
         success: leaveEx.LEAVE_APPLY_EXAMPLE, errors: [400, 401, 409, 500] },
       { name: 'Leave duration calculation', method: 'POST', p: 'leave/calculate', auth: 'bearer', kind: 'read',
         body: { absenceType: 'Casual Leave', startDate: '12-Jun-2025', endDate: '14-Jun-2025' },
