@@ -41,16 +41,33 @@ export class ProfileMapper {
   static toPhone(row: Record<string, any>): EmployeePhone {
     return pruneUndefined<EmployeePhone>({
       phoneId: str(row, 'phone_id') ?? str(row, 'phoneid'),
+      username: str(row, 'user_name') ?? str(row, 'username'),
+      employeeNumber: str(row, 'employee_number') ?? str(row, 'employeenumber'),
       phoneType: str(row, 'phone_type') ?? str(row, 'phonetype'),
+      phoneTypeAr: strAr(row, 'phone_type_ar') ?? strAr(row, 'phonetypear'),
       phoneNumber: str(row, 'phone_number') ?? str(row, 'phonenumber'),
+      dependentId: str(row, 'dependent_id') ?? str(row, 'dependentid'),
     });
   }
 
   static toAddress(row: Record<string, any>): EmployeeAddress {
     return pruneUndefined<EmployeeAddress>({
       addressId: str(row, 'address_id') ?? str(row, 'addressid'),
+      username: str(row, 'user_name') ?? str(row, 'username'),
+      employeeNumber: str(row, 'employee_number') ?? str(row, 'employeenumber'),
+      addressLine1: str(row, 'address_line1') ?? str(row, 'addressline1'),
+      addressLine2: str(row, 'address_line2') ?? str(row, 'addressline2'),
+      addressLine3: str(row, 'address_line3') ?? str(row, 'addressline3'),
       addressType: str(row, 'address_type') ?? str(row, 'addresstype'),
+      addressTypeAr: strAr(row, 'address_type_ar') ?? strAr(row, 'addresstypear'),
       country: str(row, 'country'),
+      townOrCity: str(row, 'town_or_city') ?? str(row, 'townorcity'),
+      region1: str(row, 'region_1') ?? str(row, 'region1'),
+      region2: str(row, 'region_2') ?? str(row, 'region2'),
+      region3: str(row, 'region_3') ?? str(row, 'region3'),
+      postalCode: str(row, 'postal_code') ?? str(row, 'postalcode'),
+      countryMeaning: str(row, 'country_meaning') ?? str(row, 'countrymeaning'),
+      style: str(row, 'style'),
     });
   }
 

@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isSubmitResult } from '@shared/domain/submit-result';
 import { toLang } from '@shared/domain/lang';
+import { localizeArTwins } from '@shared/utils/localize.util';
 import { SanaadEnvelope } from '@shared/interfaces/sanaad-response.interface';
 
 /** Routes decorated with @SkipEnvelope() return their payload unwrapped (e.g. binary payslip). */
@@ -42,24 +43,34 @@ export class ResponseInterceptor implements NestInterceptor<unknown, SanaadEnvel
       map((data): SanaadEnvelope | unknown => {
         if (skip) return data;
         const httpStatusCode = res?.statusCode ?? 200;
+        const lang = toLang(req?.query?.lang);
 
         if (isSubmitResult(data)) {
           // `lang` (default `en`) picks a single `message` — the client never
           // sees errormessage/errormessageAr, only the one that matches its
           // request language; falls back to the English text if the Arabic
           // one isn't set.
-          const lang = toLang(req?.query?.lang);
-          const message = lang === 'ar' ? (data.errormessageAr ?? data.errormessage) : data.errormessage;
+          const message =
+            lang === 'ar' ? (data.errormessageAr ?? data.errormessage) : data.errormessage;
           return {
             status: data.status,
             successflag: data.successflag,
             message,
             httpStatusCode,
-            result: data.result,
+            result: localizeArTwins(data.result, lang),
           };
         }
 
-        return { result: data, opstatus: 0 as const, status: 'success' as const, httpStatusCode };
+        // Same rule for every English/Arabic column twin in read payloads
+        // (PHONE_TYPE/PHONE_TYPE_AR, meaning/meaningAr, VALUE/VALUEAR, ...):
+        // the base field carries the value for the requested language and the
+        // Arabic twin is dropped. See localizeArTwins.
+        return {
+          result: localizeArTwins(data, lang),
+          opstatus: 0 as const,
+          status: 'success' as const,
+          httpStatusCode,
+        };
       }),
     );
   }

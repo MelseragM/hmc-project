@@ -18,15 +18,9 @@ export const EMPLOYEE_EMPLOYMENT_EXAMPLE = {
   JOB: '112216.HICT Analyst.HMC.',
   SUPERVISOR_NUMBER: '037915',
   SUPERVISOR_NAME: 'Mr. Usama Mahmoud Mohamed Maabed Abdelsamad',
-  SUPERVISOR_NAME_AR: 'اسامه محمود محمد معبد عبدالصمد',
-  DEPARTMENT_AR:
-    'إدارة تقنية المعلومات والاتصالات.قسم تقنية المعلومات والاتصالات.الإدارة',
-  JOB_AR: '112216.محلل نظم المعلومات الصحية وتكنولوجيا الإتصالات .HMC.',
   employeeNumber: '053613',
   department:
     'Admin.Information Communication and Technology.Health Information and Communication Technology',
-  departmentAr:
-    'إدارة تقنية المعلومات والاتصالات.قسم تقنية المعلومات والاتصالات.الإدارة',
   supervisorName: 'Mr. Usama Mahmoud Mohamed Maabed Abdelsamad',
 };
 
@@ -37,35 +31,30 @@ export const EMPLOYEE_PERFORMANCE_EXAMPLE = [
     REVIEW_DATE: '16-06-2024',
     LAST_RATING: 'GOOD/5',
     RELATED_EVENT: 'Annual Appraisal',
-    RELATED_EVENT_AR: 'Annual Appraisal',
   },
   {
     USER_NAME: 'V-ISIDDIQUI',
     REVIEW_DATE: '15-02-2023',
     LAST_RATING: 'VERY GOOD/5',
     RELATED_EVENT: 'Annual Appraisal',
-    RELATED_EVENT_AR: 'Annual Appraisal',
   },
   {
     USER_NAME: 'V-ISIDDIQUI',
     REVIEW_DATE: '16-02-2022',
     LAST_RATING: 'VERY GOOD/5',
     RELATED_EVENT: 'Annual Appraisal',
-    RELATED_EVENT_AR: 'Annual Appraisal',
   },
   {
     USER_NAME: 'V-ISIDDIQUI',
     REVIEW_DATE: '09-02-2021',
     LAST_RATING: 'GOOD/5',
     RELATED_EVENT: 'Annual Appraisal',
-    RELATED_EVENT_AR: 'Annual Appraisal',
   },
   {
     USER_NAME: 'V-ISIDDIQUI',
     REVIEW_DATE: '01-04-2020',
     LAST_RATING: 'VERY GOOD/5',
     RELATED_EVENT: 'Annual Appraisal',
-    RELATED_EVENT_AR: 'Annual Appraisal',
   },
 ];
 
@@ -108,19 +97,16 @@ export const EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE = {
 export const EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE = [
   {
     FULL_NAME: '000001 - Dr. Hajar Ahmed Hajar',
-    FULL_NAME_AR: '000001 - حجر احمد حجر ال بوطامى البنعلى',
     EMPLOYEE_NUMBER: '000001',
     PERSON_ID: 112,
   },
   {
     FULL_NAME: '000004 - Dr. Abdulla Al Baker',
-    FULL_NAME_AR: '000004 - عبد الله عبد الرحمن محمد الباكر',
     EMPLOYEE_NUMBER: '000004',
     PERSON_ID: 113,
   },
   {
     FULL_NAME: '000014 - Mr. Omar Hassan Hashisho',
-    FULL_NAME_AR: '000014 - عمر حسن حامد حشيشو',
     EMPLOYEE_NUMBER: '000014',
     PERSON_ID: 116,
   },

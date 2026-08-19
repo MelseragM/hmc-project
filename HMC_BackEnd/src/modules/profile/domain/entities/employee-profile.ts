@@ -24,14 +24,31 @@ export interface PersonalDetails {
 
 export interface EmployeePhone {
   phoneId?: string;
+  username?: string;
+  employeeNumber?: string;
   phoneType?: string;
+  phoneTypeAr?: string;
   phoneNumber?: string;
+  dependentId?: string;
 }
 
 export interface EmployeeAddress {
   addressId?: string;
+  username?: string;
+  employeeNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressLine3?: string;
   addressType?: string;
+  addressTypeAr?: string;
   country?: string;
+  townOrCity?: string;
+  region1?: string;
+  region2?: string;
+  region3?: string;
+  postalCode?: string;
+  countryMeaning?: string;
+  style?: string;
 }
 
 export interface EmployeeProfile {

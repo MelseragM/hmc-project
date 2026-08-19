@@ -9,16 +9,16 @@ import { attachmentProperties, ATTACHMENT_EXAMPLE } from '@shared/swagger/reques
 /** op 12 — GET /leave/lov/types?lang= */
 export const LEAVE_TYPES_LOV_EXAMPLE = {
   items: [
-    { code: 'Annual Leave', meaning: 'Annual Leave', meaningAr: 'أجازة سنوية' },
-    { code: 'Casual Leave', meaning: 'Casual Leave', meaningAr: 'إجازة عارضة' },
-    { code: 'Compassionate Leave', meaning: 'Compassionate Leave', meaningAr: 'Compassionate Leave' },
-    { code: 'Examination leave', meaning: 'Examination leave', meaningAr: 'Examination leave' },
-    { code: 'Haj Leave', meaning: 'Haj Leave', meaningAr: 'Haj Leave' },
-    { code: 'Iddat Leave', meaning: 'Iddat Leave', meaningAr: 'Iddat Leave' },
-    { code: 'Leave without Pay', meaning: 'Leave without Pay', meaningAr: 'Leave without Pay' },
-    { code: 'Marriage Leave', meaning: 'Marriage Leave', meaningAr: 'Marriage Leave' },
-    { code: 'Maternity Leave', meaning: 'Maternity Leave', meaningAr: 'Maternity Leave' },
-    { code: 'Sick Leave', meaning: 'Sick Leave', meaningAr: 'إجازة مرضية' },
+    { code: 'Annual Leave', meaning: 'Annual Leave' },
+    { code: 'Casual Leave', meaning: 'Casual Leave' },
+    { code: 'Compassionate Leave', meaning: 'Compassionate Leave' },
+    { code: 'Examination leave', meaning: 'Examination leave' },
+    { code: 'Haj Leave', meaning: 'Haj Leave' },
+    { code: 'Iddat Leave', meaning: 'Iddat Leave' },
+    { code: 'Leave without Pay', meaning: 'Leave without Pay' },
+    { code: 'Marriage Leave', meaning: 'Marriage Leave' },
+    { code: 'Maternity Leave', meaning: 'Maternity Leave' },
+    { code: 'Sick Leave', meaning: 'Sick Leave' },
   ],
 };
 
@@ -59,15 +59,11 @@ export const LEAVE_DEFAULTS_EXAMPLE = {
     JOB: '112216.HICT Analyst.HMC.',
     SUPERVISOR_NUMBER: '037915',
     SUPERVISOR_NAME: 'Mr. Usama Mahmoud Mohamed Maabed Abdelsamad',
-    SUPERVISOR_NAME_AR: 'اسامه محمود محمد معبد عبدالصمد',
-    DEPARTMENT_AR:
-      'إدارة تقنية المعلومات والاتصالات.قسم تقنية المعلومات والاتصالات.الإدارة',
-    JOB_AR: '112216.محلل نظم المعلومات الصحية وتكنولوجيا الإتصالات .HMC.',
   },
   lovs: {
     annualTicket: [],
-    library: [{ code: 'No', meaning: 'No', meaningAr: 'لا' }],
-    alsr: [{ code: 'No', meaning: 'No', meaningAr: 'لا' }],
+    library: [{ code: 'No', meaning: 'No' }],
+    alsr: [{ code: 'No', meaning: 'No' }],
     contractYear: [],
   },
 };
@@ -95,9 +91,9 @@ export const LEAVE_REQUEST_LOV_EXAMPLE = {
   ],
   contractYear: [],
   types: [
-    { code: 'Annual Leave', meaning: 'Annual Leave', meaningAr: 'أجازة سنوية' },
-    { code: 'Casual Leave', meaning: 'Casual Leave', meaningAr: 'إجازة عارضة' },
-    { code: 'Sick Leave', meaning: 'Sick Leave', meaningAr: 'إجازة مرضية' },
+    { code: 'Annual Leave', meaning: 'Annual Leave' },
+    { code: 'Casual Leave', meaning: 'Casual Leave' },
+    { code: 'Sick Leave', meaning: 'Sick Leave' },
   ],
   reasons: [
     { code: 'Annual Leave', meaning: 'Annual Leave' },
@@ -105,10 +101,10 @@ export const LEAVE_REQUEST_LOV_EXAMPLE = {
     { code: 'Casual Leave', meaning: 'Casual Leave' },
   ],
   leaveType: [
-    { code: 'Annual Leave', meaning: 'Annual Leave', meaningAr: 'أجازة سنوية' },
-    { code: 'Casual Leave', meaning: 'Casual Leave', meaningAr: 'إجازة عارضة' },
-    { code: 'Leave without Pay', meaning: 'Leave without Pay', meaningAr: 'Leave without Pay' },
-    { code: 'Sick Leave', meaning: 'Sick Leave', meaningAr: 'إجازة مرضية' },
+    { code: 'Annual Leave', meaning: 'Annual Leave' },
+    { code: 'Casual Leave', meaning: 'Casual Leave' },
+    { code: 'Leave without Pay', meaning: 'Leave without Pay' },
+    { code: 'Sick Leave', meaning: 'Sick Leave' },
   ],
 };
 
