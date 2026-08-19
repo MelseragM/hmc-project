@@ -9,11 +9,20 @@ import { attachmentProperties, ATTACHMENT_EXAMPLE } from '@shared/swagger/reques
 /** op 2 — GET /profile?enum=&lang= */
 export const PROFILE_GET_EXAMPLE = {
   personal: {
-    employeeNumber: '037400',
-    fullName: 'Mr. Amir Sami Samir Ibrahim',
-    fullNameAr: 'امير سامي سمير ابراهيم',
-    qidNumber: '28481809470',
+    username: 'V-NFERNANDO',
+    employeeNumber: '053613',
+    joiningDate: '18-Jun-2019',
+    emailAddress: 'username@null.qa',
+    fullName: 'Mr. Mohammad Danish Imam',
+    firstName: 'Mohammad Danish',
+    lastName: 'Imam',
+    dateOfBirth: '28-Feb-1981',
+    qidNumber: '28135659441',
+    gender: 'Male',
     maritalStatus: 'Married',
+    fullNameAr: 'محمد دانيش امام',
+    genderAr: 'ذكر',
+    maritalStatusAr: 'متزوج',
   },
   phones: [
     { phoneId: '1574794', phoneType: 'Qatar Mobile Number', phoneNumber: '34445566' },

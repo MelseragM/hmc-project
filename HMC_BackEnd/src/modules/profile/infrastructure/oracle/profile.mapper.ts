@@ -1,5 +1,5 @@
 import { Lang } from '@shared/domain/lang';
-import { str, strAr, pruneUndefined } from '@shared/utils/mapper.util';
+import { dateStr, str, strAr, pruneUndefined } from '@shared/utils/mapper.util';
 import {
   EmployeeAddress,
   EmployeePhone,
@@ -20,12 +20,21 @@ export class ProfileMapper {
   static toPersonal(row: Record<string, any> | undefined, _lang: Lang): PersonalDetails {
     if (!row) return {};
     return pruneUndefined<PersonalDetails>({
+      username: str(row, 'user_name') ?? str(row, 'username'),
       employeeNumber: str(row, 'employee_number') ?? str(row, 'employeenumber'),
-      username: str(row, 'username'),
+      joiningDate: dateStr(row, 'joining_date') ?? dateStr(row, 'joiningdate'),
+      emailAddress: str(row, 'email_address') ?? str(row, 'emailaddress'),
       fullName: str(row, 'full_name') ?? str(row, 'fullname'),
-      fullNameAr: strAr(row, 'full_name_ar') ?? strAr(row, 'fullnamear'),
+      firstName: str(row, 'first_name') ?? str(row, 'firstname'),
+      middleNames: str(row, 'middle_names') ?? str(row, 'middlenames'),
+      lastName: str(row, 'last_name') ?? str(row, 'lastname'),
+      dateOfBirth: dateStr(row, 'date_of_birth') ?? dateStr(row, 'dateofbirth'),
       qidNumber: str(row, 'qid_number') ?? str(row, 'qidnumber'),
+      gender: str(row, 'gender'),
       maritalStatus: str(row, 'marital_status') ?? str(row, 'maritalstatus'),
+      fullNameAr: strAr(row, 'full_name_ar') ?? strAr(row, 'fullnamear'),
+      genderAr: strAr(row, 'gender_ar') ?? strAr(row, 'genderar'),
+      maritalStatusAr: strAr(row, 'marital_status_ar') ?? strAr(row, 'maritalstatusar'),
     });
   }
 

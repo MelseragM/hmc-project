@@ -4,12 +4,21 @@
  * are pruned before serialization.
  */
 export interface PersonalDetails {
-  employeeNumber?: string;
   username?: string;
+  employeeNumber?: string;
+  joiningDate?: string;
+  emailAddress?: string;
   fullName?: string;
-  fullNameAr?: string;
+  firstName?: string;
+  middleNames?: string;
+  lastName?: string;
+  dateOfBirth?: string;
   qidNumber?: string;
+  gender?: string;
   maritalStatus?: string;
+  fullNameAr?: string;
+  genderAr?: string;
+  maritalStatusAr?: string;
   [extra: string]: unknown;
 }
 
