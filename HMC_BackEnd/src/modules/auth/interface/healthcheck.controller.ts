@@ -17,7 +17,7 @@ export class HealthCheckController {
   @Post()
   @ApiOperation({ summary: 'API-1 — Health Check (app launch)', operationId: 'auth_healthCheck' })
   @ApiOkResponse({ type: HealthCheckResponseDto })
-  check(@Body() dto: HealthCheckRequestDto): HealthCheckResponseDto {
+  check(@Body() dto: HealthCheckRequestDto): Promise<HealthCheckResponseDto> {
     return this.service.check(dto);
   }
 }

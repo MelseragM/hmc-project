@@ -7,6 +7,7 @@ import { MpinConfig } from '@core/config/configuration';
 import { MPIN_STORE_PORT, MpinStorePort } from '../domain/ports/mpin-store.port';
 import { OTP_PORT, OtpPort } from '../domain/ports/otp.port';
 import { DEVICE_REGISTRY_PORT, DeviceRegistryPort } from '../domain/ports/device-registry.port';
+import { LDAP_USER_PORT, LdapUserPort } from '../domain/ports/ldap-user.port';
 import {
   ForgotMpinInitRequestDto,
   ForgotMpinInitResponseDto,
@@ -30,6 +31,7 @@ export class MpinService {
     @Inject(MPIN_STORE_PORT) private readonly store: MpinStorePort,
     @Inject(OTP_PORT) private readonly otp: OtpPort,
     @Inject(DEVICE_REGISTRY_PORT) private readonly devices: DeviceRegistryPort,
+    @Inject(LDAP_USER_PORT) private readonly ldap: LdapUserPort,
     private readonly audit: AuditService,
     config: ConfigService,
   ) {
@@ -56,10 +58,32 @@ export class MpinService {
 
   async forgotInitiate(dto: ForgotMpinInitRequestDto): Promise<ForgotMpinInitResponseDto> {
     const ctx = this.ctx(dto);
-    const requestid = this.devBypass
-      ? randomUUID().replace(/-/g, '').toUpperCase()
-      : (await this.otp.send({ username: dto.username, imei: dto.imeinumber, purpose: 'FORGOT_MPIN' }))
-          .requestId;
+    let requestid: string;
+    if (this.devBypass) {
+      requestid = randomUUID().replace(/-/g, '').toUpperCase();
+    } else {
+      // Legacy forgetMPIN semantics: the device must already be registered for
+      // this user (SELECT DeviceID ... WHERE IMEINumber AND LoginID).
+      if (!(await this.devices.isBound(dto.username, dto.imeinumber))) {
+        this.audit.lifecycle(AuthLifecycleEvent.OTP_FAILED, { ...ctx, status: 'error' });
+        return { status: 'error', message: 'Device is not registered for this user.' };
+      }
+      // Phone number for the OTP SMS comes from the corporate directory
+      // (LDAP/Entra) — the same identity source API-2 uses.
+      const identity = await this.ldap.validate({
+        username: dto.username,
+        imei: dto.imeinumber,
+        platform: dto.platform,
+      });
+      requestid = (
+        await this.otp.send({
+          username: dto.username,
+          phoneNumber: identity.phoneNumber,
+          imei: dto.imeinumber,
+          purpose: 'FORGOT_MPIN',
+        })
+      ).requestId;
+    }
     this.audit.lifecycle(AuthLifecycleEvent.OTP_SENT, ctx);
     return { status: 'initiated successfully', requestid };
   }
