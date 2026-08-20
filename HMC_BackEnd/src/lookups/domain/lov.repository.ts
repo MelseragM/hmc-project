@@ -10,6 +10,7 @@ export interface LovReadOptions {
   search?: string;
   offset?: number;
   limit?: number;
+  dataType?: string;
 }
 
 export interface LovRepository {

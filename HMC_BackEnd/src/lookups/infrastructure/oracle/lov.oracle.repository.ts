@@ -84,6 +84,7 @@ export class LovOracleRepository implements LovRepository {
   ): Promise<LovItem[]> {
     const keyColumn = username ? await this.userColumnOf(object) : undefined;
     const searchColumn = options.search ? await this.searchColumnOf(object) : undefined;
+    const typeColumn = options.dataType ? await this.typeColumnOf(object) : undefined;
     const conditions: string[] = [];
     const binds: oracledb.BindParameters = {};
     if (keyColumn) {
@@ -93,6 +94,10 @@ export class LovOracleRepository implements LovRepository {
     if (searchColumn && options.search) {
       conditions.push(`UPPER(${searchColumn}) LIKE :search`);
       binds.search = `%${options.search.trim().toUpperCase()}%`;
+    }
+    if (typeColumn && options.dataType) {
+      conditions.push(`UPPER(${typeColumn}) = :dataType`);
+      binds.dataType = options.dataType.trim().toUpperCase();
     }
     const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
     const limit = options.limit;
@@ -124,6 +129,18 @@ export class LovOracleRepository implements LovRepository {
 
   private async searchColumnOf(object: string): Promise<string | undefined> {
     for (const candidate of ['NAME', 'VALUE', 'MEANING', 'FLEX_VALUE_MEANING']) {
+      if (await this.schema.hasColumn(object, candidate)) return candidate;
+    }
+    return undefined;
+  }
+
+  /**
+   * The grouping column of a multi-type LOV (DEP_LOOKUP_LOV exposes
+   * `D_DATA_TYPE`), resolved from the data dictionary like the other filters
+   * so a dataType passed for a single-type LOV is ignored instead of failing.
+   */
+  private async typeColumnOf(object: string): Promise<string | undefined> {
+    for (const candidate of ['D_DATA_TYPE', 'DATATYPE', 'DATA_TYPE', 'LOOKUP_TYPE']) {
       if (await this.schema.hasColumn(object, candidate)) return candidate;
     }
     return undefined;

@@ -1,8 +1,23 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
+import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import {
   ATTACHMENT_FIELDS,
   defineOptionalStringFields,
   RequiredString,
 } from '@shared/dto/oracle-submit.dto';
+
+/** op 64 — dependent LOV query. DEP_LOOKUP_LOV mixes several vocabularies in one view. */
+export class DependentLovQueryDto extends LangQueryDto {
+  @ApiPropertyOptional({
+    example: 'CONTACT',
+    description:
+      "Optional filter on the view's grouping column (Oracle D_DATA_TYPE) — returns only the rows of that type (e.g. relationships) instead of the full mixed list.",
+  })
+  @IsOptional()
+  @IsString()
+  data_type?: string;
+}
 
 const IDENTITY_FIELDS = [
   'p_title',

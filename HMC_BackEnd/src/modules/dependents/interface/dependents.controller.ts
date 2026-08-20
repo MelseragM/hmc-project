@@ -11,6 +11,7 @@ import { DependentService, PassportService } from '../application/dependents.ser
 import {
   AddDependentRequestDto,
   DeleteDependentRequestDto,
+  DependentLovQueryDto,
   PassportApplyRequestDto,
   UpdateDependentRequestDto,
 } from './dto/dependents.dto';
@@ -67,8 +68,8 @@ export class DependentsController {
   @Get('lov')
   @ApiOperation({ summary: 'op 64 — Dependent LOV', operationId: 'dependents_lov' })
   @ApiOkResponse({ type: LovResponseDto })
-  async dependentLov(@Query() q: LangQueryDto): Promise<LovResponseDto> {
-    return { items: await this.dependents.dependentLov(q.lang) };
+  async dependentLov(@Query() q: DependentLovQueryDto): Promise<LovResponseDto> {
+    return { items: await this.dependents.dependentLov(q.lang, q.data_type) };
   }
 
   @Get('passport/types')

@@ -37,8 +37,13 @@ export class DependentService {
     return this.repo.delete({ username: user.username, lang, dependentId, fields });
   }
 
-  dependentLov(lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.DEP_LOOKUP_LOV, lang);
+  dependentLov(lang: Lang, dataType?: string): Promise<LovItem[]> {
+    return this.lookups.getByObject(
+      ORACLE_OBJECTS.DEP_LOOKUP_LOV,
+      lang,
+      undefined,
+      dataType ? { dataType } : undefined,
+    );
   }
 }
 

@@ -69,8 +69,8 @@ export class LovMapper {
     'name_ar',
   ];
 
-  /** Column that groups the multi-type LOVs (DEP_LOOKUP_LOV). */
-  private static readonly TYPE_COLUMNS = ['datatype', 'data_type', 'lookup_type'];
+  /** Column that groups the multi-type LOVs (DEP_LOOKUP_LOV exposes `D_DATA_TYPE`). */
+  private static readonly TYPE_COLUMNS = ['datatype', 'data_type', 'd_data_type', 'lookup_type'];
 
   /** Never used as a label by the generic fallback. */
   private static readonly TECHNICAL_COLUMNS = new Set([

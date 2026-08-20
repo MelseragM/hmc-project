@@ -45,6 +45,27 @@ describe('LovOracleRepository', () => {
     expect(query).toHaveBeenCalledTimes(1);
   });
 
+  it('filters the multi-type LOV by its grouping column when dataType is passed (DEP_LOOKUP_LOV)', async () => {
+    const query = jest.fn().mockResolvedValue([{ CODE: 'C', DATA: 'Child', D_DATA_TYPE: 'CONTACT' }]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'D_DATA_TYPE'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    const items = await repository.readLov('XXHMC_SND_DEP_LOOKUP_LOV', 'en', undefined, {
+      dataType: 'contact',
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE UPPER(D_DATA_TYPE) = :dataType'),
+      { dataType: 'CONTACT' },
+    );
+    expect(items).toEqual([expect.objectContaining({ code: 'C', meaning: 'Child', type: 'CONTACT' })]);
+  });
+
   it('falls back to the employee-number column when the view has no user column (LEAVE_AMEND_V)', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const ora = { query } as unknown as OracleService;
