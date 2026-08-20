@@ -59,45 +59,6 @@ export interface AppLaunchConfig {
   downtime: boolean;
   downtimeStart: string;
   downtimeEnd: string;
-  /** App name matched against HMC_Sanad_AppMaster_Tbl.AppName (DB-backed API-1). */
-  appName: string;
-}
-
-/**
- * Users/Sanaad SQL Server database — backs the auth cycle (device registration,
- * MPIN, OTP rows) and the API-1 downtime/app-update tables. Legacy tables:
- * HMC_Sanad_DeviceRegn_tbl, HMC_RHAP_OTP_tbl, HMC_Sanad_AppDownTime_tbl, ...
- */
-export interface UsersDbConfig {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-  poolMin: number;
-  poolMax: number;
-  /** Per-request timeout (ms) — mirrors ORACLE_CALL_TIMEOUT_MS convention. */
-  requestTimeoutMs: number;
-  connectTimeoutMs: number;
-  /** TLS to the SQL Server (true unless the instance has no cert). */
-  encrypt: boolean;
-  /** Accept the server cert without CA validation (self-signed instances). */
-  trustServerCertificate: boolean;
-  disabled: boolean;
-}
-
-/**
- * SMS gateway used for OTP delivery. Generic config-driven HTTP adapter until
- * the corporate gateway contract is finalized; unset base URL = log-only in
- * non-production, hard failure in production.
- */
-export interface SmsConfig {
-  baseUrl: string;
-  apiKey: string;
-  senderId: string;
-  timeoutMs: number;
-  /** Message body; `{otp}` is substituted with the raw OTP at send time. */
-  messageTemplate: string;
 }
 
 export interface MpinConfig {
@@ -176,8 +137,6 @@ export interface EntraConfig {
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
-  usersDb: UsersDbConfig;
-  sms: SmsConfig;
   auth: AuthConfig;
   cerner: CernerConfig;
   appLaunch: AppLaunchConfig;
@@ -239,27 +198,6 @@ export default (): RootConfig => ({
     thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
   },
-  usersDb: {
-    host: process.env.USERS_DB_HOST ?? '',
-    port: Number(process.env.USERS_DB_PORT ?? 1433),
-    database: process.env.USERS_DB_NAME ?? '',
-    user: process.env.USERS_DB_USER ?? '',
-    password: process.env.USERS_DB_PASSWORD ?? '',
-    poolMin: Number(process.env.USERS_DB_POOL_MIN ?? 2),
-    poolMax: Number(process.env.USERS_DB_POOL_MAX ?? 10),
-    requestTimeoutMs: Number(process.env.USERS_DB_REQUEST_TIMEOUT_MS ?? 25000),
-    connectTimeoutMs: Number(process.env.USERS_DB_CONNECT_TIMEOUT_MS ?? 15000),
-    encrypt: toBool(process.env.USERS_DB_ENCRYPT ?? 'true'),
-    trustServerCertificate: toBool(process.env.USERS_DB_TRUST_SERVER_CERT ?? 'false'),
-    disabled: toBool(process.env.USERS_DB_DISABLED),
-  },
-  sms: {
-    baseUrl: process.env.SMS_API_BASE_URL ?? '',
-    apiKey: process.env.SMS_API_KEY ?? '',
-    senderId: process.env.SMS_SENDER_ID ?? '',
-    timeoutMs: Number(process.env.SMS_API_TIMEOUT_MS ?? 25000),
-    messageTemplate: process.env.SMS_MESSAGE_TEMPLATE ?? 'Your Sanaad verification code is {otp}',
-  },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? 'dev-only-secret-change-me',
     jwtIssuer: process.env.JWT_ISSUER ?? 'sanaad',
@@ -277,7 +215,6 @@ export default (): RootConfig => ({
     downtime: toBool(process.env.APP_DOWNTIME),
     downtimeStart: process.env.APP_DOWNTIME_START ?? '',
     downtimeEnd: process.env.APP_DOWNTIME_END ?? '',
-    appName: process.env.APP_NAME ?? 'SanaadHealth',
   },
   mpin: {
     minLength: Number(process.env.MPIN_MIN_LENGTH ?? 4),
