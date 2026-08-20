@@ -44,7 +44,9 @@ export class HealthCheckService {
       return await this.checkFromDb(req);
     } catch (err) {
       // API-1 must not hard-fail app launches on a DB hiccup — degrade to config.
-      this.logger.error(`Users DB healthcheck failed, using config fallback: ${(err as Error).message}`);
+      this.logger.error(
+        `Users DB healthcheck failed, using config fallback: ${(err as Error).message}`,
+      );
       return this.checkFromConfig(req);
     }
   }

@@ -67,6 +67,7 @@ export const LOV_OBJECT: Readonly<Record<string, string>> = Object.freeze({
   // shared
   YES_NO_LOV: ORACLE_OBJECTS.YES_NO_LOV,
   RFMI_USER_LOV: ORACLE_OBJECTS.RFMI_USER_LOV,
+  EMPLOYMENT_STATUS_LOV: ORACLE_OBJECTS.EMPLOYMENT_STATUS_LOV,
 });
 
 export type LovName = keyof typeof LOV_OBJECT;

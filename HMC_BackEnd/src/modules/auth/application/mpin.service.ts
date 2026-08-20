@@ -48,7 +48,11 @@ export class MpinService {
     if (this.devBypass) {
       this.logger.warn(`DEV bypass: MPIN set for "${dto.username}" not persisted.`);
     } else {
-      await this.devices.bind({ username: dto.username, imei: dto.imeinumber, platform: dto.platform });
+      await this.devices.bind({
+        username: dto.username,
+        imei: dto.imeinumber,
+        platform: dto.platform,
+      });
       await this.store.set({ username: dto.username, imei: dto.imeinumber, mpin: dto.mpin });
     }
 

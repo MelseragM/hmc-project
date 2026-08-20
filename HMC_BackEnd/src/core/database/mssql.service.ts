@@ -42,7 +42,9 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     if (!this.cfg.host || !this.cfg.database || !this.cfg.user) {
-      this.logger.warn('Users DB host/database/user missing — pool not created. Auth-cycle DB calls will fail.');
+      this.logger.warn(
+        'Users DB host/database/user missing — pool not created. Auth-cycle DB calls will fail.',
+      );
       return;
     }
     try {
@@ -105,7 +107,7 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
     const result = await this.run(statement, params);
     return {
       rowsAffected: result.rowsAffected.reduce((a, b) => a + b, 0),
-      rows: ((result.recordset ?? []) as T[]),
+      rows: (result.recordset ?? []) as T[],
     };
   }
 
@@ -125,7 +127,9 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
       const result = await request.query(statement);
       const ms = Date.now() - started;
       const rows = result.recordset?.length ?? 0;
-      this.logger.log(`[mssql#${id}] done ${label} ${rows} row(s), ${result.rowsAffected} affected (${ms}ms)`);
+      this.logger.log(
+        `[mssql#${id}] done ${label} ${rows} row(s), ${result.rowsAffected} affected (${ms}ms)`,
+      );
       return result;
     } catch (err) {
       const ms = Date.now() - started;

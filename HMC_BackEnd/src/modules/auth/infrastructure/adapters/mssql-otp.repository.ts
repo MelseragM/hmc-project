@@ -3,7 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { randomInt, timingSafeEqual } from 'node:crypto';
 import { MssqlService } from '@core/database/mssql.service';
 import { OtpConfig } from '@core/config/configuration';
-import { OtpPort, SendOtpCommand, SendOtpResult, VerifyOtpCommand } from '../../domain/ports/otp.port';
+import {
+  OtpPort,
+  SendOtpCommand,
+  SendOtpResult,
+  VerifyOtpCommand,
+} from '../../domain/ports/otp.port';
 import { OTP_DELIVERY_PORT, OtpDeliveryPort } from '../../domain/ports/otp-delivery.port';
 
 /** Latest OTP row for a user+device (legacy OTPValidate/OTPResend projection). */
@@ -66,7 +71,10 @@ export class MssqlOtpRepository implements OtpPort {
     );
     const seqNo = inserted.rows[0]?.SeqNo ?? (await this.latestRow(cmd.username, cmd.imei))?.SeqNo;
     if (seqNo === undefined) {
-      throw new HttpException('Could not create the OTP request.', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Could not create the OTP request.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
 
     // Raw OTP goes only to the delivery port — never logged, never returned.
