@@ -14,6 +14,15 @@ import {
   WorklistRepository,
 } from '../domain/approvals.repository';
 
+/** Controller-facing shape of the RFMI submit (route carries the notification id). */
+export interface RequestInfoDto {
+  itemType: string;
+  itemKey: string;
+  mode: string;
+  comment: string;
+  toUsername?: string;
+}
+
 /** Approvals summary/detail/decision/my-requests (ops 20, 21, 22, 23). */
 @Injectable()
 export class ApprovalsService {
@@ -34,6 +43,15 @@ export class ApprovalsService {
     lang: Lang,
   ): Promise<SubmitResult> {
     return this.repo.decide({ username: user.username, lang, approvalId, ...dto });
+  }
+
+  requestInfo(
+    approvalId: string,
+    dto: RequestInfoDto,
+    user: AuthenticatedUser,
+    lang: Lang,
+  ): Promise<SubmitResult> {
+    return this.repo.requestInfo({ username: user.username, lang, approvalId, ...dto });
   }
 
   myRequests(username: string, lang: Lang): Promise<MyRequests> {

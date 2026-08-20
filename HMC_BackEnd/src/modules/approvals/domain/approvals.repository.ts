@@ -41,6 +41,25 @@ export interface ReassignCommand {
 }
 
 /**
+ * Request-more-information on a notification (HR_RFMI_PR). `mode` is the
+ * procedure's `p_mode`; `toUsername` (`p_to_user_name`, optional) is who the
+ * question is directed to — pick from the RFMI user LOV (op 26).
+ */
+export interface RequestInfoCommand {
+  /** Caller — bound as `p_from_user_name`. */
+  username: string;
+  lang: Lang;
+  /** Notification id — the path parameter of the route (`p_notification_id`). */
+  approvalId: string;
+  toUsername?: string;
+  /** Workflow item type, `HRSSA` for the HR self-service flows. */
+  itemType: string;
+  itemKey: string;
+  mode: string;
+  comment: string;
+}
+
+/**
  * Port: approvals summary/detail/decision/my-requests (ops 20, 21, 22, 23).
  * The reads are scoped by the caller's username — the legacy services take
  * USER_NAME, and the views carry no employee-number column.
@@ -49,6 +68,7 @@ export interface ApprovalsRepository {
   getSummary(username: string, lang: Lang): Promise<ApprovalsSummary>;
   getDetails(approvalId: string, lang: Lang): Promise<ApprovalRow[]>;
   decide(cmd: DecisionCommand): Promise<SubmitResult>;
+  requestInfo(cmd: RequestInfoCommand): Promise<SubmitResult>;
   getMyRequests(username: string, lang: Lang): Promise<MyRequests>;
 }
 export const APPROVALS_REPOSITORY = Symbol('APPROVALS_REPOSITORY');

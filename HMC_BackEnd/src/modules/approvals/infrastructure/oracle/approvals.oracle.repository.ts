@@ -21,6 +21,7 @@ import {
   DecisionCommand,
   MyRequests,
   ReassignCommand,
+  RequestInfoCommand,
   WorklistRepository,
 } from '../../domain/approvals.repository';
 
@@ -33,6 +34,21 @@ const APPROVE_REJECT_PARAMS = [
   'p_notification_id',
   'p_user_comment',
   'p_language',
+] as const;
+
+/**
+ * HR_RFMI_PR input params (request-more-information; signature provided by the
+ * DB team — no p_language parameter, OUT contract is the usual
+ * p_success_flag/p_error_msg/p_error_msg_ar resolved from the dictionary).
+ */
+const RFMI_PARAMS = [
+  'p_from_user_name',
+  'p_to_user_name',
+  'p_itemtype',
+  'p_item_key',
+  'p_notification_id',
+  'p_mode',
+  'p_comments',
 ] as const;
 
 /**
@@ -80,6 +96,18 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
       p_notification_id: cmd.approvalId,
       p_user_comment: cmd.comment,
       p_language: toOracleLanguage(cmd.lang),
+    });
+  }
+
+  async requestInfo(cmd: RequestInfoCommand): Promise<SubmitResult> {
+    return this.callSubmitProc(ORACLE_OBJECTS.HR_RFMI_PR, RFMI_PARAMS, {
+      p_from_user_name: cmd.username,
+      p_to_user_name: cmd.toUsername ?? null,
+      p_itemtype: cmd.itemType,
+      p_item_key: cmd.itemKey,
+      p_notification_id: cmd.approvalId,
+      p_mode: cmd.mode,
+      p_comments: cmd.comment,
     });
   }
 

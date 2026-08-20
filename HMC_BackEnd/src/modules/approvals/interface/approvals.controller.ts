@@ -13,6 +13,7 @@ import {
   ApprovalDetailQueryDto,
   ApproveRejectRequestDto,
   ReassignApprovalRequestDto,
+  RequestInfoRequestDto,
   WorklistSummaryQueryDto,
 } from './dto/approvals.dto';
 
@@ -81,6 +82,34 @@ export class ApprovalsController {
         itemKey: dto.itemKey,
         itemType: dto.itemType ?? 'HRSSA',
         comment: dto.comment,
+      },
+      user,
+      lang,
+    );
+  }
+
+  /** `id` is the notification id, like the decision route. */
+  @Post(':id/request-info')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'RFMI — Request more information (HR_RFMI_PR)',
+    operationId: 'approvals_requestInfo',
+  })
+  @ApiOkResponse({ type: SubmitResultDto })
+  requestInfo(
+    @Param('id') id: string,
+    @Body() dto: RequestInfoRequestDto,
+    @CurrentUser() user: AuthenticatedUser,
+    @Lang() lang: LangCode,
+  ) {
+    return this.approvals.requestInfo(
+      id,
+      {
+        itemKey: dto.itemKey,
+        itemType: dto.itemType ?? 'HRSSA',
+        mode: dto.mode ?? 'QUESTION',
+        comment: dto.comment,
+        toUsername: dto.toUsername,
       },
       user,
       lang,

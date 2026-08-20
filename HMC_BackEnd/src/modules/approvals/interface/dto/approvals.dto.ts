@@ -52,6 +52,44 @@ export class ApproveRejectRequestDto {
   comment?: string;
 }
 
+/**
+ * RFMI — request more information on a notification (HR_RFMI_PR, companion to
+ * the op 26 RFMI user LOV). The notification id comes from the route.
+ */
+export class RequestInfoRequestDto {
+  @ApiProperty({ example: '18873561', description: 'Workflow item key of the request.' })
+  @IsString()
+  @IsNotEmpty()
+  itemKey!: string;
+
+  @ApiPropertyOptional({ example: 'HRSSA', default: 'HRSSA' })
+  @IsOptional()
+  @IsString()
+  itemType?: string;
+
+  @ApiPropertyOptional({
+    example: 'QUESTION',
+    default: 'QUESTION',
+    description: "Procedure p_mode (e.g. 'QUESTION' to ask, 'ANSWER' to respond).",
+  })
+  @IsOptional()
+  @IsString()
+  mode?: string;
+
+  @ApiPropertyOptional({
+    example: 'V-NFERNANDO',
+    description: 'Username the question is directed to (p_to_user_name) — see the RFMI user LOV (op 26).',
+  })
+  @IsOptional()
+  @IsString()
+  toUsername?: string;
+
+  @ApiProperty({ example: 'Please attach the supporting documents.' })
+  @IsString()
+  @IsNotEmpty()
+  comment!: string;
+}
+
 /** op 71 — Reassign approval (delegate or transfer). */
 export class ReassignApprovalRequestDto {
   @ApiProperty({ example: 'V-OTHERSUP', description: 'Username to reassign the task to.' })
