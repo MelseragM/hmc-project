@@ -63,6 +63,33 @@ services:
       ENTRA_LOGIN_BASE_URL: "${ENTRA_LOGIN_BASE_URL:-https://login.microsoftonline.com}"
       ENTRA_LOOKUP_ATTRIBUTE: "${ENTRA_LOOKUP_ATTRIBUTE:-userPrincipalName}"
       ENTRA_TIMEOUT_MS: "${ENTRA_TIMEOUT_MS:-10000}"
+      # ── Users/Sanaad SQL Server DB (auth cycle + API-1 healthcheck tables) ──
+      # DevOps-managed via host env. USERS_DB_PASSWORD must come from the host
+      # env, never a committed .env. Leave USERS_DB_HOST unset (or set
+      # USERS_DB_DISABLED=true) to boot without the pool — auth-cycle DB calls
+      # then fail while the rest of the API keeps working.
+      USERS_DB_HOST: "${USERS_DB_HOST:-}"
+      USERS_DB_PORT: "${USERS_DB_PORT:-1433}"
+      USERS_DB_NAME: "${USERS_DB_NAME:-}"
+      USERS_DB_USER: "${USERS_DB_USER:-}"
+      USERS_DB_PASSWORD: "${USERS_DB_PASSWORD:-}"
+      USERS_DB_POOL_MIN: "${USERS_DB_POOL_MIN:-2}"
+      USERS_DB_POOL_MAX: "${USERS_DB_POOL_MAX:-10}"
+      USERS_DB_REQUEST_TIMEOUT_MS: "${USERS_DB_REQUEST_TIMEOUT_MS:-25000}"
+      USERS_DB_CONNECT_TIMEOUT_MS: "${USERS_DB_CONNECT_TIMEOUT_MS:-15000}"
+      USERS_DB_ENCRYPT: "${USERS_DB_ENCRYPT:-true}"
+      USERS_DB_TRUST_SERVER_CERT: "${USERS_DB_TRUST_SERVER_CERT:-false}"
+      USERS_DB_DISABLED: "${USERS_DB_DISABLED:-false}"
+      # ── SMS gateway (OTP delivery) ──
+      # SMS_API_KEY must come from the host env. Empty SMS_API_BASE_URL is a
+      # hard 503 on OTP sends in production (log-only in non-production).
+      SMS_API_BASE_URL: "${SMS_API_BASE_URL:-}"
+      SMS_API_KEY: "${SMS_API_KEY:-}"
+      SMS_SENDER_ID: "${SMS_SENDER_ID:-}"
+      SMS_API_TIMEOUT_MS: "${SMS_API_TIMEOUT_MS:-25000}"
+      SMS_MESSAGE_TEMPLATE: "${SMS_MESSAGE_TEMPLATE:-Your Sanaad verification code is {otp}}"
+      # ── App-launch health check (API-1) — AppName matched in the Users DB ──
+      APP_NAME: "${APP_NAME:-SanaadHealth}"
     # Host:container port mapping stays in sync with PORT in .env.
     ports:
       - "${PORT:-443}:${PORT:-443}"
