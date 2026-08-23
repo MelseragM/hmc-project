@@ -11,6 +11,25 @@ export interface MssqlExecuteResult<T = Record<string, any>> {
   rows: T[];
 }
 
+/** Connectivity probe report for /health/users-db (mirrors OracleDiagnostics). */
+export interface MssqlDiagnostics {
+  enabled: boolean;
+  connected: boolean;
+  latencyMs: number | null;
+  connection: {
+    user: string;
+    server: string;
+    database: string;
+    poolMin: number;
+    poolMax: number;
+    encrypt: boolean;
+  };
+  pool: { size: number; available: number; borrowed: number; pending: number } | null;
+  server: { version: string; dbTime: string } | null;
+  error: { message: string; code?: string } | null;
+  checkedAt: string;
+}
+
 /**
  * Single `mssql` connection pool for the Users/Sanaad SQL Server database —
  * the second database wired into the app (sibling of OracleService, same
@@ -66,9 +85,31 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
       this.logger.log(
         `Users DB pool created (min=${this.cfg.poolMin}, max=${this.cfg.poolMax}) → ${this.cfg.host}:${this.cfg.port}/${this.cfg.database}`,
       );
+      await this.verifyConnectivity();
     } catch (err) {
       this.logger.error(`Failed to create Users DB pool: ${(err as Error).message}`);
       throw err;
+    }
+  }
+
+  /**
+   * Startup probe: run a real query so the boot log states unambiguously
+   * whether the Users DB is usable (a pool can connect yet still fail on
+   * queries — wrong DB, missing grants). Logs only; never blocks boot.
+   */
+  private async verifyConnectivity(): Promise<void> {
+    try {
+      const started = Date.now();
+      const result = await this.pool!.request().query<{ dbTime: Date }>(
+        'SELECT SYSDATETIMEOFFSET() AS dbTime',
+      );
+      this.logger.log(
+        `Users DB connectivity verified in ${Date.now() - started}ms (server time: ${String(result.recordset[0]?.dbTime ?? 'unknown')})`,
+      );
+    } catch (err) {
+      this.logger.error(
+        `Users DB pool connected but probe query FAILED — auth-cycle calls will fail: ${(err as Error).message}`,
+      );
     }
   }
 
@@ -147,6 +188,80 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
       /\b(?:update|insert\s+into|delete\s+from)\s+([a-z0-9_$.\[\]]+)/i.exec(compact);
     if (target) return target[1].toUpperCase();
     return compact.length > 60 ? `${compact.slice(0, 57)}...` : compact;
+  }
+
+  /** Lightweight readiness check for the /health endpoint. */
+  async ping(): Promise<boolean> {
+    if (!this.pool) return false;
+    try {
+      await this.pool.request().query('SELECT 1 AS ok');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Full connectivity probe for the /health/users-db endpoint. Never throws:
+   * failures are captured in `error` so the caller can report exactly why the
+   * database is unreachable. Mirrors OracleService.diagnose.
+   */
+  async diagnose(): Promise<MssqlDiagnostics> {
+    const diag: MssqlDiagnostics = {
+      enabled: this.pool !== undefined,
+      connected: false,
+      latencyMs: null,
+      connection: {
+        user: this.cfg.user || '(not set)',
+        server: this.cfg.host ? `${this.cfg.host}:${this.cfg.port}` : '(not set)',
+        database: this.cfg.database || '(not set)',
+        poolMin: this.cfg.poolMin,
+        poolMax: this.cfg.poolMax,
+        encrypt: this.cfg.encrypt,
+      },
+      pool: null,
+      server: null,
+      error: null,
+      checkedAt: new Date().toISOString(),
+    };
+
+    if (this.cfg.disabled) {
+      diag.error = { message: 'USERS_DB_DISABLED=true — Users DB pool not created.' };
+      return diag;
+    }
+    if (!this.pool) {
+      diag.error = {
+        message: 'Users DB host/database/user missing — pool not initialized.',
+      };
+      return diag;
+    }
+
+    const start = Date.now();
+    try {
+      const result = await this.pool.request().query<{ version: string; dbTime: Date }>(
+        'SELECT @@VERSION AS version, SYSDATETIMEOFFSET() AS dbTime',
+      );
+      diag.latencyMs = Date.now() - start;
+      diag.connected = true;
+      const row = result.recordset[0];
+      diag.server = {
+        version: String(row?.version ?? 'unknown').split('\n')[0].trim(),
+        dbTime: String(row?.dbTime ?? 'unknown'),
+      };
+      diag.pool = {
+        size: this.pool.size,
+        available: this.pool.available,
+        borrowed: this.pool.borrowed,
+        pending: this.pool.pending,
+      };
+      this.logger.log(`Users DB diagnose OK (${diag.latencyMs}ms)`);
+    } catch (err) {
+      diag.latencyMs = Date.now() - start;
+      const wrapped = MssqlQueryError.from(err);
+      diag.error = { message: wrapped.message, code: (err as { code?: string }).code };
+      this.logger.error(`Users DB diagnose FAILED after ${diag.latencyMs}ms: ${wrapped.message}`);
+    }
+    return diag;
   }
 
   /** Loggable `{ k=v, ... }` with secrets redacted. */
