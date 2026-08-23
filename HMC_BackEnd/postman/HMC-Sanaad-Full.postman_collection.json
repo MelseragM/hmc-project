@@ -5068,6 +5068,231 @@
           ]
         },
         {
+          "name": "GET /leaves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has success envelope fields\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('status', 'success');",
+                  "    pm.expect(json).to.have.property('result');",
+                  "    pm.expect(json).to.have.property('httpStatusCode');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leaves"
+              ],
+              "query": [
+                {
+                  "key": "user_name",
+                  "value": "V-NFERNANDO"
+                },
+                {
+                  "key": "leave_type",
+                  "value": "Casual Leave"
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+          },
+          "response": [
+            {
+              "name": "Success (200)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": [\n    {\n      \"absenceType\": \"Casual Leave\",\n      \"absenceReason\": \"Personal\",\n      \"actualStartDate\": \"12-Jun-2025\",\n      \"actualEndDate\": \"14-Jun-2025\",\n      \"absenceDays\": 3\n    },\n    {\n      \"absenceType\": \"Annual Leave\",\n      \"absenceReason\": \"Annual Leave\",\n      \"actualStartDate\": \"02-Feb-2025\",\n      \"actualEndDate\": \"20-Feb-2025\",\n      \"absenceDays\": 19\n    }\n  ],\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Error (400)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 400,\n  \"errors\": {\n    \"details\": [\n      \"field must not be empty\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "Error (401)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Authentication failed.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 401\n}"
+            },
+            {
+              "name": "Error (500)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
+            }
+          ]
+        },
+        {
           "name": "POST /leave/apply",
           "event": [
             {

@@ -105,7 +105,7 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
    * ResponseInterceptor collapses the `*Ar` twins per the request's lang.
    */
   async list(query: LeaveListQuery): Promise<LeaveRecord[]> {
-    const binds: Record<string, unknown> = { u: query.username };
+    const binds: { u: string; t?: string } = { u: query.username };
     let sql =
       `SELECT ABSENCE_TYPE, ABSENCE_TYPE_AR, ABSENCE_REASON, ABSENCE_REASON_AR,
               ACTUAL_START_DATE, ACTUAL_END_DATE, ABSENCE_DAYS

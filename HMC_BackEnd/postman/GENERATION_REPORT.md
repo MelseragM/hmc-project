@@ -1,9 +1,9 @@
 # Postman Collection Generation Report
 
 - Total modules: 16
-- Total endpoints: 94
-- Total success examples: 94
-- Total error examples: 271
+- Total endpoints: 95
+- Total success examples: 95
+- Total error examples: 274
 
 ## Endpoints requiring manual review (no captured real response — generic placeholder used)
 
