@@ -19,8 +19,11 @@ export interface AppConfig {
   aggregateReadTimeoutMs: number;
   lovCacheTtlMs: number;
   logLevel: string;
-  /** Corporate-directory provider for the auth journey: LDAPS or Entra ID (Graph). */
-  directory: 'ldap' | 'entra';
+  /**
+   * Identity provider for the auth journey: LDAPS, Entra ID (Graph), or the
+   * legacy Users DB itself (`usersdb` — HMC_Sanad_DeviceRegn_tbl, no directory).
+   */
+  directory: 'ldap' | 'entra' | 'usersdb';
 }
 
 export interface OracleConfig {
@@ -47,9 +50,14 @@ export interface AuthConfig {
   disabled: boolean;
   /**
    * Users-DB view/table holding the login `functionaccesslist` (module name/
-   * code/status per function). Columns are resolved tolerantly at runtime.
+   * code/status per function). The documented legacy query is
+   * `SELECT FunctionName, FunctionCode, Description, StatusCode FROM
+   *  HMC_Sanad_AppMaster_VW WHERE AppID = 1`; columns are resolved tolerantly
+   * when that projection fails.
    */
   functionAccessView: string;
+  /** AppID filter of the documented AppMaster query (Sanaad = 1). */
+  functionAccessAppId: number;
 }
 
 export interface CernerConfig {
@@ -229,7 +237,12 @@ export default (): RootConfig => ({
     aggregateReadTimeoutMs: 20000,
     lovCacheTtlMs: Number(process.env.LOV_CACHE_TTL_MS ?? 300000),
     logLevel: process.env.LOG_LEVEL ?? 'debug',
-    directory: process.env.AUTH_DIRECTORY === 'entra' ? 'entra' : 'ldap',
+    directory:
+      process.env.AUTH_DIRECTORY === 'entra'
+        ? 'entra'
+        : process.env.AUTH_DIRECTORY === 'usersdb'
+          ? 'usersdb'
+          : 'ldap',
   },
   oracle: {
     user: process.env.ORACLE_USER ?? '',
@@ -272,6 +285,7 @@ export default (): RootConfig => ({
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
     disabled: toBool(process.env.AUTH_DISABLED),
     functionAccessView: process.env.FUNCTION_ACCESS_VIEW ?? 'HMC_Sanad_AppMaster_VW',
+    functionAccessAppId: Number(process.env.FUNCTION_ACCESS_APP_ID ?? 1),
   },
   cerner: {
     baseUrl: process.env.CERNER_BASE_URL ?? '',

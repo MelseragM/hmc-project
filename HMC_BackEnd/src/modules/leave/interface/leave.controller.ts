@@ -32,6 +32,7 @@ import {
   LEAVE_REASONS_LOV_EXAMPLE,
   LEAVE_REQUEST_LOV_EXAMPLE,
   LEAVE_RETURN_BODY,
+  LEAVE_RFL_LOV_EXAMPLE,
   LEAVE_RETURN_EXAMPLE,
   LEAVE_TYPES_LOV_EXAMPLE,
 } from './leave.examples';
@@ -189,6 +190,36 @@ export class LeaveController {
   @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
   async returnLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
     return { items: await this.service.returnLov(q.username, q.lang) };
+  }
+
+  @Get('lov/return-details')
+  @ApiOperation({
+    summary: 'RFL_LEAVE_DET_LOV — return-from-leave details (all view columns)',
+    operationId: 'leave_returnDetailsLov',
+  })
+  @ApiReadOkResponse({ example: LEAVE_RFL_LOV_EXAMPLE })
+  async returnDetailsLov(@Query() q: LovUserQueryDto) {
+    return { items: await this.service.returnDetailsLov(q.username) };
+  }
+
+  @Get('lov/return-related1')
+  @ApiOperation({
+    summary: 'RFL_REL_LEAVE1_LOV — related leave 1 (all view columns)',
+    operationId: 'leave_relatedLeave1Lov',
+  })
+  @ApiReadOkResponse({ example: LEAVE_RFL_LOV_EXAMPLE })
+  async relatedLeave1Lov(@Query() q: LovUserQueryDto) {
+    return { items: await this.service.relatedLeave1Lov(q.username) };
+  }
+
+  @Get('lov/return-related2')
+  @ApiOperation({
+    summary: 'RFL_REL_LEAVE2_LOV — related leave 2 (all view columns)',
+    operationId: 'leave_relatedLeave2Lov',
+  })
+  @ApiReadOkResponse({ example: LEAVE_RFL_LOV_EXAMPLE })
+  async relatedLeave2Lov(@Query() q: LovUserQueryDto) {
+    return { items: await this.service.relatedLeave2Lov(q.username) };
   }
 
   @Get('lov/cancel')

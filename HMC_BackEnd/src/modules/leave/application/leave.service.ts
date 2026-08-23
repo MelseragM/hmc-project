@@ -92,6 +92,16 @@ export class LeaveService {
   returnLov(username: string, lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.RFL_REL_LEAVE1_V, lang, username);
   }
+  // ── Return-from-leave raw LOVs (ALL view columns, USER_NAME-scoped) ──
+  returnDetailsLov(username: string): Promise<Record<string, unknown>[]> {
+    return this.repo.rflLov('details', username);
+  }
+  relatedLeave1Lov(username: string): Promise<Record<string, unknown>[]> {
+    return this.repo.rflLov('related1', username);
+  }
+  relatedLeave2Lov(username: string): Promise<Record<string, unknown>[]> {
+    return this.repo.rflLov('related2', username);
+  }
   cancelLov(username: string, lang: Lang): Promise<LovItem[]> {
     const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
     return this.settle('LEAVE_CANCEL_V', t, [] as LovItem[], () =>

@@ -18,6 +18,7 @@ import {
   LeaveMutationCommand,
   LeaveRecord,
   LeaveRepository,
+  RflLovKind,
 } from '../../domain/leave.repository';
 import { LeaveApplyBinds } from './leave-apply.binds';
 
@@ -193,6 +194,24 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
 
   async returnFromLeave(cmd: LeaveMutationCommand): Promise<SubmitResult> {
     return this.callSubmitProc(ORACLE_OBJECTS.RET_FRM_LEAV_PR, LEAVE_RETURN_PARAMS, this.values(cmd));
+  }
+
+  /** The return-from-leave LOV view backing each kind (op 56 inputs). */
+  private static readonly RFL_LOV_VIEW: Record<RflLovKind, string> = {
+    details: ORACLE_OBJECTS.RFL_LEAVE_DET_V,
+    related1: ORACLE_OBJECTS.RFL_REL_LEAVE1_V,
+    related2: ORACLE_OBJECTS.RFL_REL_LEAVE2_V,
+  };
+
+  /**
+   * RFL_LEAVE_DET_LOV / RFL_REL_LEAVE1_LOV / RFL_REL_LEAVE2_LOV — raw rows via
+   * `SELECT * FROM <view> WHERE USER_NAME = :u`, keeping EVERY column
+   * (RFL_LEAVE_DET_V: USER_NAME, ABSENCE_ATTENDANCE_ID, LEAVE): the op 56
+   * submit needs the full LEAVE value string, and the record id would be lost
+   * through the LovItem mapping.
+   */
+  rflLov(kind: RflLovKind, username: string): Promise<Record<string, unknown>[]> {
+    return this.readByUsername(LeaveOracleRepository.RFL_LOV_VIEW[kind], username);
   }
 
   /** Merge the posted p_* body with the enforced user + resolved language. */

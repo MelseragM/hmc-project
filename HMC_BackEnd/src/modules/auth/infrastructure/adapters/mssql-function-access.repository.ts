@@ -10,15 +10,20 @@ import { FunctionAccess, FunctionStatus } from '../../domain/auth-identity';
  * Sanaad Users DB view `HMC_Sanad_AppMaster_VW` (name overridable via
  * FUNCTION_ACCESS_VIEW).
  *
- * The view's exact column layout is not documented anywhere in the workspace,
- * so — mirroring the Oracle side's ask-the-database philosophy — the adapter
- * reads the whole view (a small app/function master) and resolves the columns
- * tolerantly by name at runtime:
+ * The client's service mapping documents the exact legacy LoginMPIN companion
+ * query, which is tried first:
+ *   `SELECT A.FunctionName, A.FunctionCode, A.Description, A.StatusCode
+ *      FROM HMC_Sanad_AppMaster_VW A WHERE A.AppID = 1`
+ * (`AppID` configurable via FUNCTION_ACCESS_APP_ID, default 1).
+ *
+ * If that projection fails (renamed columns, different view), the adapter
+ * falls back to `SELECT *` and resolves the columns tolerantly by name —
+ * mirroring the Oracle side's ask-the-database philosophy:
  *
  *  - function name  ← FunctionName / Function_Name / FuncName / AppFunctionName / Name
  *  - function code  ← FunctionCode / Function_Code / FuncCode / Code
  *  - remarks        ← Remarks / Remark / Description / Descr
- *  - status         ← Status / FunctionStatus / Active / Enabled / IsActive / IsEnabled
+ *  - status         ← StatusCode / Status / FunctionStatus / Active / Enabled / ...
  *  - optional per-user column (LoginID/UserName/EmployeeNumber/...) → filtered
  *    by the caller's identifier when present
  *  - optional AppName column → filtered by APP_NAME when the filter matches
@@ -32,6 +37,7 @@ export class MssqlFunctionAccessRepository implements FunctionAccessPort {
   private readonly logger = new Logger(MssqlFunctionAccessRepository.name);
   private readonly view: string;
   private readonly appName: string;
+  private readonly appId: number;
 
   private static readonly NAME_COLUMNS = [
     'functionname',
@@ -43,6 +49,7 @@ export class MssqlFunctionAccessRepository implements FunctionAccessPort {
   private static readonly CODE_COLUMNS = ['functioncode', 'function_code', 'funccode', 'code'];
   private static readonly REMARKS_COLUMNS = ['remarks', 'remark', 'description', 'descr'];
   private static readonly STATUS_COLUMNS = [
+    'statuscode',
     'status',
     'functionstatus',
     'active',
@@ -62,18 +69,34 @@ export class MssqlFunctionAccessRepository implements FunctionAccessPort {
     private readonly db: MssqlService,
     config: ConfigService,
   ) {
-    const view = config.getOrThrow<AuthConfig>('auth').functionAccessView;
+    const auth = config.getOrThrow<AuthConfig>('auth');
     // The name is config-controlled (never user input) but is interpolated
     // into SQL as an identifier, so keep it to identifier characters.
-    if (!/^[A-Za-z0-9_.[\]]+$/.test(view)) {
-      throw new Error(`Invalid FUNCTION_ACCESS_VIEW "${view}" — not a SQL identifier.`);
+    if (!/^[A-Za-z0-9_.[\]]+$/.test(auth.functionAccessView)) {
+      throw new Error(
+        `Invalid FUNCTION_ACCESS_VIEW "${auth.functionAccessView}" — not a SQL identifier.`,
+      );
     }
-    this.view = view;
+    this.view = auth.functionAccessView;
+    this.appId = auth.functionAccessAppId;
     this.appName = config.get<string>('appLaunch.appName', '');
   }
 
   async list(employeeNumber: string): Promise<FunctionAccess[]> {
-    let rows = await this.db.query<Record<string, unknown>>(`SELECT * FROM ${this.view}`);
+    let rows: Record<string, unknown>[];
+    try {
+      // The exact legacy query from the client's service mapping.
+      rows = await this.db.query<Record<string, unknown>>(
+        `SELECT A.FunctionName, A.FunctionCode, A.Description, A.StatusCode
+           FROM ${this.view} A WHERE A.AppID = @appId`,
+        { appId: this.appId },
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Documented AppMaster query failed (${(err as Error).message}) — falling back to SELECT * with tolerant column mapping.`,
+      );
+      rows = await this.db.query<Record<string, unknown>>(`SELECT * FROM ${this.view}`);
+    }
     if (rows.length === 0) {
       this.logger.warn(`${this.view} returned no rows — functionaccesslist will be empty.`);
       return [];

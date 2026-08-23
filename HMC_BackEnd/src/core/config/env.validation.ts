@@ -101,8 +101,12 @@ export const envValidationSchema = Joi.object({
   LDAP_CA_CERT_PATH: Joi.string().allow('').default(''),
   LDAP_TIMEOUT_MS: Joi.number().default(10000),
 
-  // Auth framework — directory provider selector + Azure Entra ID (Graph)
-  AUTH_DIRECTORY: Joi.string().valid('ldap', 'entra').default('ldap'),
+  // Auth framework — identity provider selector + Azure Entra ID (Graph).
+  // `usersdb` = legacy Users SQL Server only (no corporate directory).
+  AUTH_DIRECTORY: Joi.string().valid('ldap', 'entra', 'usersdb').default('ldap'),
+  // Login functionaccesslist source (documented AppMaster query).
+  FUNCTION_ACCESS_VIEW: Joi.string().default('HMC_Sanad_AppMaster_VW'),
+  FUNCTION_ACCESS_APP_ID: Joi.number().default(1),
   ENTRA_TENANT_ID: Joi.string().allow('').default(''),
   ENTRA_CLIENT_ID: Joi.string().allow('').default(''),
   ENTRA_CLIENT_SECRET: Joi.string().allow('').default(''),

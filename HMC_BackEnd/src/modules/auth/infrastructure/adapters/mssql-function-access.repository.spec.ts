@@ -9,23 +9,28 @@ function makeDb() {
 
 function makeConfig(view = 'HMC_Sanad_AppMaster_VW', appName = '') {
   return {
-    getOrThrow: jest.fn().mockReturnValue({ functionAccessView: view }),
+    getOrThrow: jest.fn().mockReturnValue({ functionAccessView: view, functionAccessAppId: 1 }),
     get: jest.fn().mockReturnValue(appName),
   } as unknown as ConfigService;
 }
 
 describe('MssqlFunctionAccessRepository', () => {
-  it('reads the configured view and maps name/code/remarks/status columns', async () => {
+  it('runs the documented AppMaster query and maps name/code/description/statuscode', async () => {
     const db = makeDb();
     db.query.mockResolvedValue([
-      { FunctionName: 'Payroll SSRS', FunctionCode: 'PYSRS', Remarks: 'Payroll', Status: '1' },
-      { FunctionName: 'Housing', FunctionCode: 'HOUSNG', Remarks: null, Status: '2' },
-      { FunctionName: 'Letters', FunctionCode: 'LETTER', Remarks: '', Status: '0' },
+      { FunctionName: 'Payroll SSRS', FunctionCode: 'PYSRS', Description: 'Payroll', StatusCode: '1' },
+      { FunctionName: 'Housing', FunctionCode: 'HOUSNG', Description: null, StatusCode: '2' },
+      { FunctionName: 'Letters', FunctionCode: 'LETTER', Description: '', StatusCode: '0' },
     ]);
 
     const list = await new MssqlFunctionAccessRepository(db, makeConfig()).list('053613');
 
-    expect(db.query).toHaveBeenCalledWith('SELECT * FROM HMC_Sanad_AppMaster_VW');
+    expect(db.query).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /SELECT A\.FunctionName, A\.FunctionCode, A\.Description, A\.StatusCode[\s\S]*FROM HMC_Sanad_AppMaster_VW A WHERE A\.AppID = @appId/,
+      ),
+      { appId: 1 },
+    );
     expect(list).toEqual([
       {
         functionname: 'Payroll SSRS',
@@ -120,6 +125,25 @@ describe('MssqlFunctionAccessRepository', () => {
     await expect(new MssqlFunctionAccessRepository(db, makeConfig()).list('hmc1')).rejects.toThrow(
       /actual columns: \[Foo, Bar\]/,
     );
+  });
+
+  it('falls back to SELECT * with tolerant mapping when the documented query fails', async () => {
+    const db = makeDb();
+    db.query
+      .mockRejectedValueOnce(new Error("Invalid column name 'StatusCode'."))
+      .mockResolvedValueOnce([{ FuncName: 'Leave', FuncCode: 'LEAVE', Remarks: 'r', Status: '1' }]);
+
+    const list = await new MssqlFunctionAccessRepository(db, makeConfig()).list('053613');
+
+    expect(db.query).toHaveBeenLastCalledWith('SELECT * FROM HMC_Sanad_AppMaster_VW');
+    expect(list).toEqual([
+      {
+        functionname: 'Leave',
+        functioncode: 'LEAVE',
+        remarks: 'r',
+        status: FunctionStatus.ENABLED,
+      },
+    ]);
   });
 
   it('rejects a non-identifier FUNCTION_ACCESS_VIEW at construction', () => {

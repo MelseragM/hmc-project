@@ -44,6 +44,15 @@ export interface LeaveRecord {
   absenceDays?: number | string;
 }
 
+/**
+ * The three return-from-leave LOV views feeding op 56's p_leave_details /
+ * p_related_leave1 / p_related_leave2 (RFL_LEAVE_DET_V, RFL_REL_LEAVE1_V,
+ * RFL_REL_LEAVE2_V). Read raw — ALL view columns are returned (confirmed
+ * RFL_LEAVE_DET_V layout: USER_NAME VARCHAR2(100), ABSENCE_ATTENDANCE_ID
+ * NUMBER(10), LEAVE VARCHAR2(94)).
+ */
+export type RflLovKind = 'details' | 'related1' | 'related2';
+
 /** GET /leaves — `?user_name=&leave_type=` against ABSENCE_V. */
 export interface LeaveListQuery {
   username: string;
@@ -90,6 +99,8 @@ export interface LeaveRepository {
   amend(cmd: LeaveMutationCommand): Promise<SubmitResult>;
   cancel(cmd: LeaveMutationCommand): Promise<SubmitResult>;
   returnFromLeave(cmd: LeaveMutationCommand): Promise<SubmitResult>;
+  /** Full rows of a return-from-leave LOV view, scoped by USER_NAME. */
+  rflLov(kind: RflLovKind, username: string): Promise<Record<string, unknown>[]>;
   getEmploymentContext(employeeNumber: string): Promise<Record<string, unknown> | undefined>;
 }
 

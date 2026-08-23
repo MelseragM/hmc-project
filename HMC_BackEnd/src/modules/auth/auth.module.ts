@@ -20,6 +20,7 @@ import { MssqlMpinStoreRepository } from './infrastructure/adapters/mssql-mpin-s
 import { MssqlDeviceRegistryRepository } from './infrastructure/adapters/mssql-device-registry.repository';
 import { SmsOtpDeliveryAdapter } from './infrastructure/adapters/sms-otp-delivery.adapter';
 import { MssqlFunctionAccessRepository } from './infrastructure/adapters/mssql-function-access.repository';
+import { MssqlUserRepository } from './infrastructure/adapters/mssql-user.repository';
 
 /**
  * Auth feature module — Sanaad User Authentication & Access Control framework
@@ -32,10 +33,12 @@ import { MssqlFunctionAccessRepository } from './infrastructure/adapters/mssql-f
  * FUNCTION_ACCESS_VIEW (default HMC_Sanad_AppMaster_VW). The dev bypass inside
  * each application service triggers on AUTH_DISABLED=true only.
  *
- * The corporate-directory port (LDAP_USER_PORT) is bound at runtime by
- * AUTH_DIRECTORY: `entra` → Microsoft Graph (EntraGraphUserRepository), else
- * LDAPS (LdapUserRepository, the default/fallback). HttpModule backs the Graph
- * and SMS adapters' outbound calls.
+ * The identity port (LDAP_USER_PORT) is bound at runtime by AUTH_DIRECTORY:
+ * `entra` → Microsoft Graph (EntraGraphUserRepository), `usersdb` → the legacy
+ * Users DB itself (MssqlUserRepository — no corporate directory, mirrors the
+ * legacy userValidate device check), else LDAPS (LdapUserRepository, the
+ * default/fallback). HttpModule backs the Graph and SMS adapters' outbound
+ * calls.
  */
 @Module({
   imports: [HttpModule],
@@ -47,14 +50,19 @@ import { MssqlFunctionAccessRepository } from './infrastructure/adapters/mssql-f
     HealthCheckService,
     LdapUserRepository,
     EntraGraphUserRepository,
+    MssqlUserRepository,
     {
       provide: LDAP_USER_PORT,
-      inject: [ConfigService, LdapUserRepository, EntraGraphUserRepository],
+      inject: [ConfigService, LdapUserRepository, EntraGraphUserRepository, MssqlUserRepository],
       useFactory: (
         config: ConfigService,
         ldap: LdapUserRepository,
         entra: EntraGraphUserRepository,
-      ): LdapUserPort => (config.get('app.directory') === 'entra' ? entra : ldap),
+        usersDb: MssqlUserRepository,
+      ): LdapUserPort => {
+        const directory = config.get<string>('app.directory');
+        return directory === 'entra' ? entra : directory === 'usersdb' ? usersDb : ldap;
+      },
     },
     { provide: OTP_DELIVERY_PORT, useClass: SmsOtpDeliveryAdapter },
     { provide: OTP_PORT, useClass: MssqlOtpRepository },

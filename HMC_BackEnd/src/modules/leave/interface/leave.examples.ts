@@ -114,6 +114,22 @@ export const LEAVE_REQUEST_LOV_EXAMPLE = {
 /** ops 55/61/62 — GET /leave/lov/{return,cancel,amend}?username=&lang= (empty when there's nothing eligible). */
 export const LEAVE_EMPTY_ITEMS_EXAMPLE = { items: [] };
 
+/**
+ * GET /leave/lov/{return-details,return-related1,return-related2}?username=&lang=
+ * (RFL_LEAVE_DET_LOV / RFL_REL_LEAVE1_LOV / RFL_REL_LEAVE2_LOV) — the raw
+ * `SELECT * ... WHERE USER_NAME = :u` rows with EVERY view column, so the op 56
+ * submit can bind the full LEAVE value string and keep the record id.
+ */
+export const LEAVE_RFL_LOV_EXAMPLE = {
+  items: [
+    {
+      USER_NAME: 'V-NFERNANDO',
+      ABSENCE_ATTENDANCE_ID: 56944958,
+      LEAVE: 'Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026',
+    },
+  ],
+};
+
 /** op 47 — POST /leave/calculate (CALC_LEAV_DUR_PR: read result, not a submit envelope). */
 export const LEAVE_CALCULATE_EXAMPLE = {
   days: 3,
