@@ -85,6 +85,7 @@ export class LovOracleRepository implements LovRepository {
     const keyColumn = username ? await this.userColumnOf(object) : undefined;
     const searchColumn = options.search ? await this.searchColumnOf(object) : undefined;
     const typeColumn = options.dataType ? await this.typeColumnOf(object) : undefined;
+    const leaveTypeColumn = options.leaveType ? await this.leaveTypeColumnOf(object) : undefined;
     const conditions: string[] = [];
     const binds: oracledb.BindParameters = {};
     if (keyColumn) {
@@ -98,6 +99,10 @@ export class LovOracleRepository implements LovRepository {
     if (typeColumn && options.dataType) {
       conditions.push(`UPPER(${typeColumn}) = :dataType`);
       binds.dataType = options.dataType.trim().toUpperCase();
+    }
+    if (leaveTypeColumn && options.leaveType) {
+      conditions.push(`UPPER(${leaveTypeColumn}) = :leaveType`);
+      binds.leaveType = options.leaveType.trim().toUpperCase();
     }
     const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
     const limit = options.limit;
@@ -141,6 +146,18 @@ export class LovOracleRepository implements LovRepository {
    */
   private async typeColumnOf(object: string): Promise<string | undefined> {
     for (const candidate of ['D_DATA_TYPE', 'DATATYPE', 'DATA_TYPE', 'LOOKUP_TYPE']) {
+      if (await this.schema.hasColumn(object, candidate)) return candidate;
+    }
+    return undefined;
+  }
+
+  /**
+   * The leave-type column of a type-scoped LOV (ABSENCE_REASON_V exposes
+   * `LEAVE_TYPE`), resolved from the data dictionary like the other filters
+   * so a leaveType passed for an unscoped LOV is ignored instead of failing.
+   */
+  private async leaveTypeColumnOf(object: string): Promise<string | undefined> {
+    for (const candidate of ['LEAVE_TYPE', 'ABSENCE_TYPE']) {
       if (await this.schema.hasColumn(object, candidate)) return candidate;
     }
     return undefined;

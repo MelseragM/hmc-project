@@ -27,19 +27,17 @@ export const LEAVE_TYPES_LOV_EXAMPLE = {
   ],
 };
 
-/** op 13 — GET /leave/lov/reasons?lang= */
+/**
+ * op 13 — GET /leave/lov/reasons?lang=[&leave_type=] — ABSENCE_REASON_V's
+ * LEAVE_REASON labels. `?leave_type=Compassionate Leave` narrows the list to
+ * that type's reasons (shown here); omitting it returns every reason.
+ */
 export const LEAVE_REASONS_LOV_EXAMPLE = {
   items: [
-    { code: 'Annual Leave', meaning: 'Annual Leave' },
-    { code: 'Compassionate Leave', meaning: 'Compassionate Leave' },
-    { code: 'Haj Leave', meaning: 'Haj Leave' },
-    { code: 'Iddat Leave', meaning: 'Iddat Leave' },
-    { code: 'Marriage Leave', meaning: 'Marriage Leave' },
-    { code: 'Sick Leave', meaning: 'Sick Leave' },
-    { code: 'Casual Leave', meaning: 'Casual Leave' },
-    { code: 'Maternity Leave', meaning: 'Maternity Leave' },
-    { code: 'Examination leave', meaning: 'Examination leave' },
-    { code: 'Leave without Pay', meaning: 'Leave without Pay' },
+    { code: 'Death of 1st Degree Relative', meaning: 'Death of 1st Degree Relative' },
+    { code: 'Death of 2nd Degree Relative', meaning: 'Death of 2nd Degree Relative' },
+    { code: 'Death of 3rd Degree Relative', meaning: 'Death of 3rd Degree Relative' },
+    { code: 'Death of 4th Degree Relative', meaning: 'Death of 4th Degree Relative' },
   ],
 };
 

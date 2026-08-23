@@ -78,8 +78,13 @@ export class LeaveService {
   types(lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_TYPE_V, lang);
   }
-  reasons(lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_REASON_V, lang);
+  reasons(lang: Lang, leaveType?: string): Promise<LovItem[]> {
+    return this.lookups.getByObject(
+      ORACLE_OBJECTS.ABSENCE_REASON_V,
+      lang,
+      undefined,
+      leaveType ? { leaveType } : undefined,
+    );
   }
   classes(lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.LEAV_CLASS_V, lang);

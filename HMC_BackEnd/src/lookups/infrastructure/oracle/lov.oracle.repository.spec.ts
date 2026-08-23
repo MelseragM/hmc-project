@@ -66,6 +66,33 @@ describe('LovOracleRepository', () => {
     expect(items).toEqual([expect.objectContaining({ code: 'C', meaning: 'Child', type: 'CONTACT' })]);
   });
 
+  it('filters the reasons LOV by its LEAVE_TYPE column when leaveType is passed (ABSENCE_REASON_V)', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValue([
+        { LEAVE_TYPE: 'Compassionate Leave', LEAVE_REASON: 'Death of 2nd Degree Relative' },
+      ]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'LEAVE_TYPE'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    const items = await repository.readLov('XXHMC_SND_ABSENCE_REASON_V', 'en', undefined, {
+      leaveType: 'Compassionate Leave',
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE UPPER(LEAVE_TYPE) = :leaveType'),
+      { leaveType: 'COMPASSIONATE LEAVE' },
+    );
+    expect(items).toEqual([
+      expect.objectContaining({ meaning: 'Death of 2nd Degree Relative' }),
+    ]);
+  });
+
   it('falls back to the employee-number column when the view has no user column (LEAVE_AMEND_V)', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const ora = { query } as unknown as OracleService;

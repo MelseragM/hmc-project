@@ -6802,7 +6802,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+              "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6815,10 +6815,14 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "leave_type",
+                  "value": "Compassionate Leave"
                 }
               ]
             },
-            "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+            "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
           },
           "response": [
             {
@@ -6827,7 +6831,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6840,10 +6844,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "OK",
               "code": 200,
@@ -6854,7 +6862,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"Annual Leave\",\n        \"meaning\": \"Annual Leave\"\n      },\n      {\n        \"code\": \"Compassionate Leave\",\n        \"meaning\": \"Compassionate Leave\"\n      },\n      {\n        \"code\": \"Haj Leave\",\n        \"meaning\": \"Haj Leave\"\n      },\n      {\n        \"code\": \"Iddat Leave\",\n        \"meaning\": \"Iddat Leave\"\n      },\n      {\n        \"code\": \"Marriage Leave\",\n        \"meaning\": \"Marriage Leave\"\n      },\n      {\n        \"code\": \"Sick Leave\",\n        \"meaning\": \"Sick Leave\"\n      },\n      {\n        \"code\": \"Casual Leave\",\n        \"meaning\": \"Casual Leave\"\n      },\n      {\n        \"code\": \"Maternity Leave\",\n        \"meaning\": \"Maternity Leave\"\n      },\n      {\n        \"code\": \"Examination leave\",\n        \"meaning\": \"Examination leave\"\n      },\n      {\n        \"code\": \"Leave without Pay\",\n        \"meaning\": \"Leave without Pay\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"Death of 1st Degree Relative\",\n        \"meaning\": \"Death of 1st Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 2nd Degree Relative\",\n        \"meaning\": \"Death of 2nd Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 3rd Degree Relative\",\n        \"meaning\": \"Death of 3rd Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 4th Degree Relative\",\n        \"meaning\": \"Death of 4th Degree Relative\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Error (401)",
@@ -6862,7 +6870,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6875,10 +6883,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "Unauthorized",
               "code": 401,
@@ -6897,7 +6909,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6910,10 +6922,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "Internal Server Error",
               "code": 500,

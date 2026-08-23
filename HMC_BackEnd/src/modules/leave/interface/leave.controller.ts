@@ -17,6 +17,7 @@ import {
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
   LeaveCancelRequestDto,
+  LeaveReasonsQueryDto,
   LeaveReturnRequestDto,
 } from './dto/leave.dto';
 import {
@@ -150,11 +151,14 @@ export class LeaveController {
   }
 
   @Get('lov/reasons')
-  @ApiOperation({ summary: 'op 13 — Leave reasons LOV', operationId: 'leave_reasonsLov' })
+  @ApiOperation({
+    summary: 'op 13 — Leave reasons LOV (optionally filtered by ?leave_type=)',
+    operationId: 'leave_reasonsLov',
+  })
   @ApiOkResponse({ type: LovResponseDto })
   @ApiReadOkResponse({ example: LEAVE_REASONS_LOV_EXAMPLE })
-  async reasons(@Query() q: LangQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.reasons(q.lang) };
+  async reasons(@Query() q: LeaveReasonsQueryDto): Promise<LovResponseDto> {
+    return { items: await this.service.reasons(q.lang, q.leave_type) };
   }
 
   @Get('lov/classes')

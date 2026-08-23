@@ -141,6 +141,18 @@ defineOptionalStringFields(ApplyLeaveRequestDto, [
   ...ATTACHMENT_FIELDS,
 ]);
 
+/** op 13 — GET /leave/lov/reasons `?lang=&leave_type=` (ABSENCE_REASON_V). */
+export class LeaveReasonsQueryDto extends LangQueryDto {
+  @ApiPropertyOptional({
+    example: 'Compassionate Leave',
+    description:
+      'Optional LEAVE_TYPE filter (English value from the leave-types LOV) — returns only that type’s reasons.',
+  })
+  @IsOptional()
+  @IsString()
+  leave_type?: string;
+}
+
 /** GET /leaves — `?user_name=&leave_type=&lang=` against ABSENCE_V. */
 export class LeavesQueryDto extends LangQueryDto {
   @ApiProperty({ example: 'V-NFERNANDO', description: 'Oracle username (ABSENCE_V.USER_NAME).' })

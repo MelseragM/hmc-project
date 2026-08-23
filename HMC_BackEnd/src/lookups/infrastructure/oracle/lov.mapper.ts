@@ -38,6 +38,9 @@ export class LovMapper {
     'meaning',
     'flex_value_meaning',
     'flexvaluemeaning',
+    // ABSENCE_REASON_V pairs LEAVE_REASON/LEAVE_REASON_AR with a LEAVE_TYPE
+    // grouping column — the reason is the label, never the type.
+    'leave_reason',
     'description',
     'display_value',
     'value',
@@ -56,6 +59,7 @@ export class LovMapper {
     'meaningar',
     'flex_value_meaning_ar',
     'flexvaluemeaningar',
+    'leave_reason_ar',
     'description_ar',
     'valuear',
     'value_ar',

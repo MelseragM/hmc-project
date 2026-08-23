@@ -11,6 +11,12 @@ export interface LovReadOptions {
   offset?: number;
   limit?: number;
   dataType?: string;
+  /**
+   * Equality filter on the LOV's leave-type column (ABSENCE_REASON_V exposes
+   * `LEAVE_TYPE`) — e.g. `Compassionate Leave` returns only that type's
+   * reasons. Ignored when the object has no such column.
+   */
+  leaveType?: string;
 }
 
 export interface LovRepository {

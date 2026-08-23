@@ -195,7 +195,9 @@ const MODULES = [
         success: leaveEx.LEAVE_RETURN_EXAMPLE, errors: [400, 401, 409, 500] },
       { name: 'Leave types LOV', method: 'GET', p: 'leave/lov/types', auth: 'bearer', kind: 'lov', query: { lang: 'en' },
         success: leaveEx.LEAVE_TYPES_LOV_EXAMPLE, errors: [401, 500] },
-      { name: 'Leave reasons LOV', method: 'GET', p: 'leave/lov/reasons', auth: 'bearer', kind: 'lov', query: { lang: 'en' },
+      { name: 'Leave reasons LOV', method: 'GET', p: 'leave/lov/reasons', auth: 'bearer', kind: 'lov',
+        // leave_type is optional — omit it to get every type's reasons.
+        query: { lang: 'en', leave_type: 'Compassionate Leave' },
         success: leaveEx.LEAVE_REASONS_LOV_EXAMPLE, errors: [401, 500] },
       { name: 'Leave classes LOV', method: 'GET', p: 'leave/lov/classes', auth: 'bearer', kind: 'lov', query: { lang: 'en' },
         success: leaveEx.LEAVE_CLASSES_LOV_EXAMPLE, errors: [401, 500] },
