@@ -14,6 +14,12 @@ export const envValidationSchema = Joi.object({
   BACKEND_BASE_URL: Joi.string().uri().default('http://localhost:3009'),
   BACKEND_API_PREFIX: Joi.string().default('api/v1'),
   BACKEND_TIMEOUT_MS: Joi.number().min(1).default(30000),
+  // TLS to an https:// backend: keep validation on and provide the CA
+  // (inline PEM or file path — inline wins); set REJECT_UNAUTHORIZED=false
+  // only as a last resort for an internal cert whose CA can't be provided.
+  BACKEND_TLS_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
+  BACKEND_CA_CERT: Joi.string().allow('').default(''),
+  BACKEND_CA_CERT_PATH: Joi.string().allow('').default(''),
 
   // Auth — MUST match HMC_BackEnd's JWT_SECRET/JWT_ISSUER/JWT_AUDIENCE so
   // tokens issued by the backend at login verify locally at the gateway.
