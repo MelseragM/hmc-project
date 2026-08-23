@@ -149,11 +149,33 @@ const MODULES = [
       { name: 'Leave balance', method: 'GET', p: 'leave/balance', auth: 'bearer', kind: 'read', query: { person_id: '852709', lang: 'en' },
         success: [], errors: [401, 404, 500] },
       { name: 'Submit leave application', method: 'POST', p: 'leave/apply', auth: 'bearer', kind: 'action',
-        // Up to 10 optional attachment slots: p_file_name1..10 (file name) +
-        // p_attachment1..10 (base64 content, bound to Oracle as BLOB).
-        body: { absenceType: 'Casual Leave', absenceReason: 'Personal', startDate: '12-Oct-2026', endDate: '14-Oct-2026',
-          p_file_name1: 'medical-report.pdf', p_attachment1: 'JVBERi0xLjQKJ...==',
-          p_file_name2: 'boarding-pass.pdf', p_attachment2: 'JVBERi0xLjQKJ...==' },
+        // Full LEAV_OF_ABSEN_NEW_PR `p_*` payload (legacy camelCase
+        // absenceType/absenceReason/startDate/endDate still accepted). Unused
+        // params are sent as null (equivalent to omitting them); dates accept
+        // yyyy-MM-dd or dd-Mon-yyyy. Up to 10 optional attachment slots:
+        // p_file_name1..10 (file name) + p_attachment1..10 (base64 content,
+        // bound to Oracle as BLOB).
+        body: {
+          p_absence_type: 'Casual Leave', p_absence_reason: 'Personal',
+          p_start_date: '2025-06-12', p_end_date: '2025-06-14',
+          p_adv_leave_salary: null, p_travel_days: null, p_leave_inc_bonus: null,
+          p_annual_tkt: null, p_contractual_year: null, p_remarks: null,
+          p_relationship_bereaved: null, p_bereavement_date: null,
+          p_leave_classification: null, p_exam_date: null, p_examination_centre: null,
+          p_marriage_date: null, p_delivery_date: null, p_number_of_children: null,
+          p_doctor_comments: null, p_med_commt_decision: null, p_hc_number: null,
+          p_order_id: null, p_order_date: null, p_encounter_id: null,
+          p_visit_date: null, p_discharge_date: null, p_medical_service: null,
+          p_facility: null, p_special_instructions: null, p_work_related_injury: null,
+          p_unfit_number_of_days: null, p_practitioner_name: null,
+          p_practitionr_corp_number: null, p_electronicaly_signed_on: null,
+          p_deliver_date: null, p_primary_diagnosis: null,
+          p_spouse_name: null, p_spouse_id: null,
+          p_file_name1: null, p_attachment1: null, p_file_name2: null, p_attachment2: null,
+          p_file_name3: null, p_attachment3: null, p_file_name4: null, p_attachment4: null,
+          p_file_name5: null, p_attachment5: null, p_file_name6: null, p_attachment6: null,
+          p_file_name7: null, p_attachment7: null, p_file_name8: null, p_attachment8: null,
+          p_file_name9: null, p_attachment9: null, p_file_name10: null, p_attachment10: null },
         success: leaveEx.LEAVE_APPLY_EXAMPLE, errors: [400, 401, 409, 500] },
       { name: 'Leave duration calculation', method: 'POST', p: 'leave/calculate', auth: 'bearer', kind: 'read',
         body: { absenceType: 'Casual Leave', startDate: '12-Jun-2025', endDate: '14-Jun-2025' },

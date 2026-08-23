@@ -1,4 +1,9 @@
-import { attachmentProperties, ATTACHMENT_EXAMPLE } from '@shared/swagger/request-body.util';
+import {
+  attachmentProperties,
+  ATTACHMENT_EXAMPLE,
+  nullAttachmentExample,
+} from '@shared/swagger/request-body.util';
+import { LEAVE_APPLY_OPTIONAL_PARAMS } from './dto/leave.dto';
 
 /**
  * Real successful `result` payloads captured from api_test.json, used as Swagger
@@ -152,6 +157,48 @@ export const LEAVE_RETURN_EXAMPLE = {
  * procedures' `p_*` binds (the backend also accepts the bare form). Attachment
  * slots `p_file_name1..10` / `p_attachment1..10` are optional.
  */
+
+/**
+ * op 10 — POST /leave/apply request body (LEAV_OF_ABSEN_NEW_PR `p_*` binds).
+ * The legacy camelCase core spellings (absenceType/absenceReason/startDate/
+ * endDate) remain accepted; the example below is the full documented `p_*`
+ * payload — unused params sent explicitly as null (equivalent to omitting
+ * them). Dates accept `yyyy-MM-dd` or `dd-Mon-yyyy`.
+ */
+export const LEAVE_APPLY_BODY = {
+  description:
+    'Leave-apply payload (LEAV_OF_ABSEN_NEW_PR `p_*` binds). `p_user_name` and the OUT params are injected server-side and must NOT be sent.',
+  schema: {
+    type: 'object',
+    required: ['p_absence_type', 'p_start_date', 'p_end_date'],
+    properties: {
+      p_absence_type: { type: 'string', example: 'Casual Leave' },
+      p_absence_reason: { type: 'string', example: 'Personal', nullable: true },
+      p_start_date: {
+        type: 'string',
+        example: '2025-06-12',
+        description: 'Leave start date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      p_end_date: {
+        type: 'string',
+        example: '2025-06-14',
+        description: 'Leave end date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      ...Object.fromEntries(
+        LEAVE_APPLY_OPTIONAL_PARAMS.map((name) => [name, { type: 'string', nullable: true }]),
+      ),
+      ...attachmentProperties(),
+    },
+    example: {
+      p_absence_type: 'Casual Leave',
+      p_absence_reason: 'Personal',
+      p_start_date: '2025-06-12',
+      p_end_date: '2025-06-14',
+      ...Object.fromEntries(LEAVE_APPLY_OPTIONAL_PARAMS.map((name) => [name, null])),
+      ...nullAttachmentExample(),
+    },
+  },
+};
 
 /** op 57 — POST /leave/amend request body (HR_LEAV_AMEND_PR). */
 export const LEAVE_AMEND_BODY = {
