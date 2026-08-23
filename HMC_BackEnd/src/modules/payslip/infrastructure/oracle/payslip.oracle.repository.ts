@@ -23,8 +23,14 @@ import {
  */
 const PERIODS_PARAMS = ['user_name'] as const;
 
-/** CHK_PAYROLL_CNT input params (Sanaad spec — CHECK_PAYSLIP_COUNT: PERSON_ID, LANGUAGE, PERIOD). */
-const COUNT_PARAMS = ['person_id', 'language', 'period'] as const;
+/**
+ * CHK_PAYROLL_CNT confirmed signature (client's proc-call sample — no language):
+ *   xxhmc_snd_chk_payroll_cnt(p_person_id IN, p_period IN,
+ *     p_get_pay_assignment_details OUT SYS_REFCURSOR,
+ *     p_flag OUT, p_success_flag OUT, p_error_msg OUT)
+ * Cursor rows: (PERIOD_NAME, PERIOD_NAME_AR, ASSIGNMENT_ACTION_ID).
+ */
+const COUNT_PARAMS = ['person_id', 'period'] as const;
 
 /**
  * PAYSLIP_PR confirmed signature (there is NO p_language):
@@ -95,11 +101,11 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       COUNT_PARAMS,
       {
         person_id: personId,
-        language: toOracleLanguage(lang),
         period: payslipPeriod,
       },
+      'p_get_pay_assignment_details',
     );
-    return { count: rows.length };
+    return { count: rows.length, rows };
   }
 
   async generate(query: GeneratePayslipQuery): Promise<PayslipDocument> {

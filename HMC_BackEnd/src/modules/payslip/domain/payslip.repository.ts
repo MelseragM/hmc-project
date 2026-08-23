@@ -5,8 +5,14 @@ export interface PayslipPeriod {
   [extra: string]: unknown;
 }
 
+/**
+ * CHK_PAYROLL_CNT returns its assignment details through a REF CURSOR whose
+ * rows are (PERIOD_NAME, PERIOD_NAME_AR, ASSIGNMENT_ACTION_ID); the *_AR twin
+ * is collapsed into PERIOD_NAME per `lang` by the ResponseInterceptor.
+ */
 export interface PayslipCount {
   count: number;
+  rows: Record<string, unknown>[];
 }
 
 /**

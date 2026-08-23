@@ -13,7 +13,10 @@ export const PAYSLIP_PERIODS_EXAMPLE = [
 ];
 
 /** op 6 — GET /payslip/count?person_id=&lang=&payslipperiod= */
-export const PAYSLIP_COUNT_EXAMPLE = { count: 0 };
+export const PAYSLIP_COUNT_EXAMPLE = {
+  count: 1,
+  rows: [{ PERIOD_NAME: 'August 2023', ASSIGNMENT_ACTION_ID: 45178342 }],
+};
 
 /** op 11 — GET /payslip?person_id=&lang=&payperiod=&assignmentid= */
 export const PAYSLIP_GENERATE_EXAMPLE = {
