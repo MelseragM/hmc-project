@@ -44,7 +44,7 @@ export class UpdatePhoneRequestDto {
 
 /** op 32 — DELETE_PHONE_DETAILS_SUBMIT (DEL_PHONE_NUMBER_PR). */
 export class DeletePhoneRequestDto {
-  @ApiProperty({ example: '1574794', description: 'Existing phone id of the user (see GET /contact/phones).' })
+  @ApiProperty({ example: '1574794', description: 'Existing phone id of the user (see GET /profile → phones[].phoneId).' })
   @IsString()
   @IsNotEmpty()
   phoneId!: string;
@@ -62,22 +62,23 @@ export class DeletePhoneRequestDto {
 
 /**
  * op 29 — CREATE_ADDRESS_PR. Example values are pinned to a combination
- * confirmed to work end-to-end against staging (see
- * Real-Data-Needed.json/op 29) so anyone opening Swagger can hit "Try it
- * out" and get a real success response without having to guess a country
- * name or address type first.
+ * confirmed to work end-to-end against staging (2026-08-23: successflag S
+ * with `Temporary Offer Address`). Rules verified live: `p_country` is the
+ * country NAME from the op 30 LOV (`Qatar`, not `QA`), and creating a second
+ * address of a type whose date range overlaps an existing one fails with
+ * "You have already created an address ... which overlaps this date range".
  */
 export class CreateAddressRequestDto {
-  @RequiredString('20240911')
+  @RequiredString('20260823')
   p_effective_date!: string;
 
-  @RequiredString('Y')
+  @RequiredString('N')
   p_primary_flag!: string;
 
   @RequiredString('Qatar')
   p_country!: string;
 
-  @RequiredString('Primary Local Address')
+  @RequiredString('Temporary Offer Address')
   p_address_type!: string;
 
   @RequiredString('Building 45')
@@ -101,11 +102,20 @@ defineOptionalStringFields(
   },
 );
 
+/**
+ * op 25 — UPD_ADDRESS_PR. Rules verified live on staging (2026-08-23,
+ * successflag S with the pinned example): `p_address_id` must be an address
+ * the caller OWNS (GET /profile → outsideAddresses[].addressId),
+ * `p_address_type` must match that address's own type, `p_country` takes the
+ * country NAME (`Qatar`; the 2-letter `QA` returns "Invalid Country"), and
+ * Oracle date-tracks the change — repeating the same update with the same
+ * `p_effective_date` fails, so use a fresh effective date per update.
+ */
 export class UpdateAddressRequestDto {
-  @RequiredString('312605')
+  @RequiredString('1720601')
   p_address_id!: string;
 
-  @RequiredString('20240911')
+  @RequiredString('20260823')
   p_effective_date!: string;
 
   [key: string]: unknown;
@@ -126,9 +136,8 @@ defineOptionalStringFields(
     'p_country',
   ],
   {
-    // UPD_ADDRESS_PR accepts only these address types (confirmed by the DB team):
-    // 'HMC Accommodation Address' | 'Work Location Address'.
-    p_address_type: 'HMC Accommodation Address',
+    p_address_type: 'Primary Home Country Address',
     p_country: 'Qatar',
+    p_address_line1: 'Building 45',
   },
 );

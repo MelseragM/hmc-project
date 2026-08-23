@@ -21,7 +21,7 @@ export class ActionHistoryQueryDto extends LangQueryDto {
 
 /** op 69 — worklist summary is scoped to a single notification. */
 export class WorklistSummaryQueryDto extends ProfileQueryDto {
-  @ApiPropertyOptional({ example: '123888822' })
+  @ApiPropertyOptional({ example: '123859197', description: 'NOTIFICATION_ID from the worklist rows; omit for the full list.' })
   @IsOptional()
   @IsString()
   notificationId?: string;
@@ -36,7 +36,10 @@ export class ApproveRejectRequestDto {
   @IsIn(['APPROVE', 'REJECT'])
   decision!: ApprovalDecision;
 
-  @ApiProperty({ example: '18873561', description: 'Workflow item key of the request.' })
+  @ApiProperty({
+    example: '18875905',
+    description: 'Workflow ITEM_KEY of the request (from the worklist rows); the route :id is the NOTIFICATION_ID.',
+  })
   @IsString()
   @IsNotEmpty()
   itemKey!: string;
@@ -46,7 +49,7 @@ export class ApproveRejectRequestDto {
   @IsString()
   itemType?: string;
 
-  @ApiPropertyOptional({ example: 'Approved as per policy.' })
+  @ApiPropertyOptional({ example: 'Approved.' })
   @IsOptional()
   @IsString()
   comment?: string;
@@ -57,7 +60,10 @@ export class ApproveRejectRequestDto {
  * the op 26 RFMI user LOV). The notification id comes from the route.
  */
 export class RequestInfoRequestDto {
-  @ApiProperty({ example: '18873561', description: 'Workflow item key of the request.' })
+  @ApiProperty({
+    example: '18875965',
+    description: 'Workflow ITEM_KEY of the request (from the worklist rows); the route :id is the NOTIFICATION_ID.',
+  })
   @IsString()
   @IsNotEmpty()
   itemKey!: string;
@@ -92,17 +98,17 @@ export class RequestInfoRequestDto {
 
 /** op 71 — Reassign approval (delegate or transfer). */
 export class ReassignApprovalRequestDto {
-  @ApiProperty({ example: 'V-OTHERSUP', description: 'Username to reassign the task to.' })
+  @ApiProperty({ example: 'V-NFERNANDO', description: 'Username to reassign the task to (username form, not employee number).' })
   @IsString()
   @IsNotEmpty()
   assignTo!: string;
 
-  @ApiPropertyOptional({ enum: ['DELEGATE', 'TRANSFER'], default: 'DELEGATE' })
+  @ApiPropertyOptional({ enum: ['DELEGATE', 'TRANSFER'], default: 'DELEGATE', example: 'DELEGATE' })
   @IsOptional()
   @IsIn(['DELEGATE', 'TRANSFER'])
   type?: ReassignType;
 
-  @ApiPropertyOptional({ example: 'Out of office.' })
+  @ApiPropertyOptional({ example: 'Reassigning while on leave.' })
   @IsOptional()
   @IsString()
   comment?: string;
