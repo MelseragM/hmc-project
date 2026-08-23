@@ -19,7 +19,9 @@ import { StatusMessageDto } from '../interface/dto/auth.dto';
 /**
  * MPIN lifecycle: set (API-4), forgot-initiate (API-6), reset (API-7). Policy is
  * enforced here; salting+hashing at rest is delegated to the MPIN store adapter
- * (MpinHasher). Non-prod dev bypass skips persistence and accepts well-formed OTP.
+ * (MpinHasher). The AUTH_DISABLED dev bypass skips persistence and accepts
+ * well-formed OTP; with AUTH_DISABLED=false the real DB/OTP path runs in every
+ * environment.
  */
 @Injectable()
 export class MpinService {
@@ -35,9 +37,7 @@ export class MpinService {
     private readonly audit: AuditService,
     config: ConfigService,
   ) {
-    const nodeEnv = config.get<string>('app.nodeEnv', 'development');
-    const authDisabled = config.get<boolean>('auth.disabled', false);
-    this.devBypass = authDisabled || nodeEnv !== 'production';
+    this.devBypass = config.get<boolean>('auth.disabled', false);
     this.mpin = config.getOrThrow<MpinConfig>('mpin');
   }
 

@@ -2,9 +2,9 @@ import { Role } from '@core/auth/auth-user.interface';
 import { EmployeeIdentity, FunctionAccess, FunctionStatus } from '../domain/auth-identity';
 
 /**
- * Dev-only fallbacks used when auth is bypassed (AUTH_DISABLED or non-production),
+ * Dev-only fallbacks used when auth is explicitly bypassed (AUTH_DISABLED=true),
  * mirroring the repo's existing dev-token philosophy so the full journey can be
- * exercised without LDAP/OTP/MPIN backends. NEVER used in production.
+ * exercised without LDAP/OTP/MPIN backends. NEVER enable in production.
  */
 export const DEV_FUNCTION_ACCESS: FunctionAccess[] = [
   { functionname: 'Payroll SSRS', functioncode: 'PYSRS', remarks: 'Payroll SSRS', status: FunctionStatus.ENABLED },

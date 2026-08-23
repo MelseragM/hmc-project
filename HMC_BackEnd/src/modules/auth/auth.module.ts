@@ -19,7 +19,7 @@ import { MssqlOtpRepository } from './infrastructure/adapters/mssql-otp.reposito
 import { MssqlMpinStoreRepository } from './infrastructure/adapters/mssql-mpin-store.repository';
 import { MssqlDeviceRegistryRepository } from './infrastructure/adapters/mssql-device-registry.repository';
 import { SmsOtpDeliveryAdapter } from './infrastructure/adapters/sms-otp-delivery.adapter';
-import { FunctionAccessStubRepository } from './infrastructure/adapters/function-access.stub.repository';
+import { MssqlFunctionAccessRepository } from './infrastructure/adapters/mssql-function-access.repository';
 
 /**
  * Auth feature module — Sanaad User Authentication & Access Control framework
@@ -28,8 +28,9 @@ import { FunctionAccessStubRepository } from './infrastructure/adapters/function
  * OTP / MPIN / device-registry are backed by the legacy Sanaad SQL Server
  * tables (HMC_RHAP_OTP_tbl, HMC_Sanad_DeviceRegn_tbl) via the global
  * MssqlService pool; OTP delivery goes out through the config-driven SMS
- * gateway adapter. Function-access remains a stub (spec pending); non-prod
- * still uses the dev bypass inside each application service.
+ * gateway adapter. Function-access reads the Users DB view named by
+ * FUNCTION_ACCESS_VIEW (default HMC_Sanad_AppMaster_VW). The dev bypass inside
+ * each application service triggers on AUTH_DISABLED=true only.
  *
  * The corporate-directory port (LDAP_USER_PORT) is bound at runtime by
  * AUTH_DIRECTORY: `entra` → Microsoft Graph (EntraGraphUserRepository), else
@@ -59,7 +60,7 @@ import { FunctionAccessStubRepository } from './infrastructure/adapters/function
     { provide: OTP_PORT, useClass: MssqlOtpRepository },
     { provide: MPIN_STORE_PORT, useClass: MssqlMpinStoreRepository },
     { provide: DEVICE_REGISTRY_PORT, useClass: MssqlDeviceRegistryRepository },
-    { provide: FUNCTION_ACCESS_PORT, useClass: FunctionAccessStubRepository },
+    { provide: FUNCTION_ACCESS_PORT, useClass: MssqlFunctionAccessRepository },
   ],
 })
 export class AuthModule {}

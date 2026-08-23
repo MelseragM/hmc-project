@@ -45,6 +45,11 @@ export interface AuthConfig {
   jwtAudience: string;
   jwtExpiresIn: string;
   disabled: boolean;
+  /**
+   * Users-DB view/table holding the login `functionaccesslist` (module name/
+   * code/status per function). Columns are resolved tolerantly at runtime.
+   */
+  functionAccessView: string;
 }
 
 export interface CernerConfig {
@@ -266,6 +271,7 @@ export default (): RootConfig => ({
     jwtAudience: process.env.JWT_AUDIENCE ?? 'sanaad-b2e',
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
     disabled: toBool(process.env.AUTH_DISABLED),
+    functionAccessView: process.env.FUNCTION_ACCESS_VIEW ?? 'HMC_Sanad_AppMaster_VW',
   },
   cerner: {
     baseUrl: process.env.CERNER_BASE_URL ?? '',

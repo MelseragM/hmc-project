@@ -15,7 +15,7 @@ const IDENTITY: EmployeeIdentity = {
   isNewUser: false,
 };
 
-function makeService({ nodeEnv = 'production', authDisabled = false } = {}) {
+function makeService({ authDisabled = false } = {}) {
   const store: jest.Mocked<MpinStorePort> = {
     set: jest.fn().mockResolvedValue(undefined),
     verify: jest.fn(),
@@ -36,7 +36,6 @@ function makeService({ nodeEnv = 'production', authDisabled = false } = {}) {
   const audit = { lifecycle: jest.fn() } as unknown as AuditService;
   const config = {
     get: jest.fn((key: string, def?: unknown) => {
-      if (key === 'app.nodeEnv') return nodeEnv;
       if (key === 'auth.disabled') return authDisabled;
       return def;
     }),
@@ -81,8 +80,8 @@ describe('MpinService.forgotInitiate (API-6)', () => {
     expect(result).toMatchObject({ status: 'initiated successfully', requestid: '42' });
   });
 
-  it('keeps the dev bypass: no DB/directory/OTP calls outside production', async () => {
-    const { service, otp, devices, ldap } = makeService({ nodeEnv: 'development' });
+  it('keeps the dev bypass: no DB/directory/OTP calls when AUTH_DISABLED=true', async () => {
+    const { service, otp, devices, ldap } = makeService({ authDisabled: true });
 
     const result = await service.forgotInitiate(DTO);
 

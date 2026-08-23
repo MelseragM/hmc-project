@@ -15,8 +15,10 @@ import { DEV_FUNCTION_ACCESS, devIdentity } from './dev-fallback';
 /**
  * API-5 Login + current-identity. Verifies the MPIN (MpinStorePort), resolves the
  * employee (LdapUserPort), builds the function-access list (FunctionAccessPort),
- * and issues a JWT carrying roles + enabled function codes. In non-production a
- * dev bypass skips MPIN verification (preserving the prior dev-token behavior).
+ * and issues a JWT carrying roles + enabled function codes. When
+ * AUTH_DISABLED=true an explicit dev bypass skips MPIN verification and returns
+ * a static identity/function list; with AUTH_DISABLED=false the real journey
+ * runs in every environment (MPIN → directory → function access).
  */
 @Injectable()
 export class AuthService {
@@ -32,9 +34,7 @@ export class AuthService {
     private readonly audit: AuditService,
     config: ConfigService,
   ) {
-    const nodeEnv = config.get<string>('app.nodeEnv', 'development');
-    const authDisabled = config.get<boolean>('auth.disabled', false);
-    this.devBypass = authDisabled || nodeEnv !== 'production';
+    this.devBypass = config.get<boolean>('auth.disabled', false);
     this.expiresIn = config.getOrThrow<AuthConfig>('auth').jwtExpiresIn;
   }
 

@@ -19,8 +19,9 @@ import { devIdentity } from './dev-fallback';
  * API-2 (User Validate) + API-3 (Validate OTP). Per the auth framework doc,
  * API-2 looks the username up in LDAP (NO password): it confirms the user is a
  * valid employee, resolves the registered phone number, decides new-vs-existing
- * user (from the MPIN store), then triggers OTP delivery. In non-prod a dev
- * bypass synthesizes identity and accepts any well-formed OTP.
+ * user (from the MPIN store), then triggers OTP delivery. When
+ * AUTH_DISABLED=true a dev bypass synthesizes identity and accepts any
+ * well-formed OTP; otherwise the real LDAP/OTP path runs in every environment.
  */
 @Injectable()
 export class OnboardingService {
@@ -34,9 +35,7 @@ export class OnboardingService {
     private readonly audit: AuditService,
     config: ConfigService,
   ) {
-    const nodeEnv = config.get<string>('app.nodeEnv', 'development');
-    const authDisabled = config.get<boolean>('auth.disabled', false);
-    this.devBypass = authDisabled || nodeEnv !== 'production';
+    this.devBypass = config.get<boolean>('auth.disabled', false);
   }
 
   async validateUser(dto: UserValidateRequestDto): Promise<UserValidateResponseDto> {

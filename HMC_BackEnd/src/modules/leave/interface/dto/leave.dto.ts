@@ -255,7 +255,7 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_LOV) — NOT a
+  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_V) — NOT a
   // small ordinal. Call GET /leave/lov/return first; sending an id absent from
   // that value set raises ORA-20001 (FLEX-VALUE DOES NOT EXIST).
   @RequiredString('56944958')
