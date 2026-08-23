@@ -1,5 +1,5 @@
 /**
- * Central registry of the 88 Oracle `XXHMC_SND_*` objects the backend calls
+ * Central registry of the 89 Oracle `XXHMC_SND_*` objects the backend calls
  * (the "data contract"). Repositories MUST reference names from here — never
  * hard-code table/view/procedure identifiers (OCP + SQL-injection allow-list).
  *
@@ -14,6 +14,7 @@ export const ORACLE_OBJECTS = {
   // ── Views (_V) ────────────────────────────────────────────
   ABSENCE_REASON_V: o('ABSENCE_REASON_V'),
   ABSENCE_TYPE_V: o('ABSENCE_TYPE_V'),
+  ABSENCE_V: o('ABSENCE_V'),
   ACTION_HISTORY_V: o('ACTION_HISTORY_V'),
   APPROVE_SUMRY_V: o('APPROVE_SUMRY_V'),
   BEREAV_RELAT_V: o('BEREAV_RELAT_V'),
@@ -27,6 +28,7 @@ export const ORACLE_OBJECTS = {
   EXAM_CENTRE_V: o('EXAM_CENTRE_V'),
   LEAV_CLASS_V: o('LEAV_CLASS_V'),
   LEAVE_AMEND_V: o('LEAVE_AMEND_V'),
+  ABSENCE_AMEND_TYPE_V: o('ABSENCE_AMEND_TYPE_V'),
   LEAVE_CANCEL_V: o('LEAVE_CANCEL_V'),
   LEAVE_TYPE_V: o('LEAVE_TYPE_V'),
   MY_REQEST_SUMMARY_V: o('MY_REQEST_SUMMARY_V'),

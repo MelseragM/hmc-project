@@ -1,4 +1,10 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Explicit because the base config has no `baseUrl` (deprecated in TS 6/7;
+    // `paths` are tsconfig-relative instead) and tsc-alias requires a rootDir
+    // when baseUrl is implicit. Only compiled sources live under src/.
+    "rootDir": "./src"
+  },
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }

@@ -17,10 +17,12 @@ import {
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
   LeaveCancelRequestDto,
+  LeaveReasonsQueryDto,
   LeaveReturnRequestDto,
 } from './dto/leave.dto';
 import {
   LEAVE_AMEND_BODY,
+  LEAVE_APPLY_BODY,
   LEAVE_APPLY_EXAMPLE,
   LEAVE_CALCULATE_EXAMPLE,
   LEAVE_CANCEL_BODY,
@@ -50,17 +52,37 @@ export class LeaveController {
   @Post('apply')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 10 — Leave submission', operationId: 'leave_apply' })
+  @ApiBody(LEAVE_APPLY_BODY)
   @ApiActionOkResponse({ example: LEAVE_APPLY_EXAMPLE })
   apply(
     @Body() dto: ApplyLeaveRequestDto,
     @CurrentUser() user: AuthenticatedUser,
     @Lang() lang: LangCode,
   ) {
-    // Attachment slots (p_file_name1..10 / p_attachment1..10) travel in
-    // `extra` and are bound by LeaveApplyBinds (base64 → BLOB).
-    const { absenceType, absenceReason, startDate, endDate, ...extra } = dto;
+    // Core params accept both the spec `p_*` spelling and the legacy camelCase
+    // (camelCase wins when both are sent). Everything else — the optional p_*
+    // params + attachment slots (p_file_name1..10 / p_attachment1..10,
+    // base64 → BLOB) — travels in `extra` and is bound by LeaveApplyBinds by
+    // its documented p_* name.
+    const {
+      absenceType,
+      absenceReason,
+      startDate,
+      endDate,
+      p_absence_type,
+      p_absence_reason,
+      p_start_date,
+      p_end_date,
+      ...extra
+    } = dto;
     return this.service.apply(
-      { absenceType, absenceReason, startDate, endDate, extra },
+      {
+        absenceType: (absenceType ?? p_absence_type) as string,
+        absenceReason: absenceReason ?? p_absence_reason ?? undefined,
+        startDate: (startDate ?? p_start_date) as string,
+        endDate: (endDate ?? p_end_date) as string,
+        extra,
+      },
       user,
       lang,
     );
@@ -129,11 +151,14 @@ export class LeaveController {
   }
 
   @Get('lov/reasons')
-  @ApiOperation({ summary: 'op 13 — Leave reasons LOV', operationId: 'leave_reasonsLov' })
+  @ApiOperation({
+    summary: 'op 13 — Leave reasons LOV (optionally filtered by ?leave_type=)',
+    operationId: 'leave_reasonsLov',
+  })
   @ApiOkResponse({ type: LovResponseDto })
   @ApiReadOkResponse({ example: LEAVE_REASONS_LOV_EXAMPLE })
-  async reasons(@Query() q: LangQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.reasons(q.lang) };
+  async reasons(@Query() q: LeaveReasonsQueryDto): Promise<LovResponseDto> {
+    return { items: await this.service.reasons(q.lang, q.leave_type) };
   }
 
   @Get('lov/classes')

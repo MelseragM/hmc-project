@@ -43,6 +43,11 @@ export class LeaveService {
     return this.repo.apply({ ...cmd, username: user.username, lang });
   }
 
+  /** GET /leaves — leave history from ABSENCE_V (optionally filtered by type). */
+  listLeaves(username: string, leaveType?: string) {
+    return this.repo.list({ username, leaveType });
+  }
+
   calculate(
     absenceType: string,
     startDate: string,
@@ -73,8 +78,13 @@ export class LeaveService {
   types(lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_TYPE_V, lang);
   }
-  reasons(lang: Lang): Promise<LovItem[]> {
-    return this.lookups.getByObject(ORACLE_OBJECTS.ABSENCE_REASON_V, lang);
+  reasons(lang: Lang, leaveType?: string): Promise<LovItem[]> {
+    return this.lookups.getByObject(
+      ORACLE_OBJECTS.ABSENCE_REASON_V,
+      lang,
+      undefined,
+      leaveType ? { leaveType } : undefined,
+    );
   }
   classes(lang: Lang): Promise<LovItem[]> {
     return this.lookups.getByObject(ORACLE_OBJECTS.LEAV_CLASS_V, lang);

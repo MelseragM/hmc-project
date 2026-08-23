@@ -52,4 +52,27 @@ describe('LovMapper', () => {
       meaning: '2025-2026',
     });
   });
+
+  it('labels ABSENCE_REASON_V rows with the LEAVE_REASON, never the LEAVE_TYPE', () => {
+    expect(
+      map({
+        LEAVE_TYPE: 'Compassionate Leave',
+        LEAVE_REASON: 'Death of 2nd Degree Relative',
+        LEAVE_TYPE_AR: '%D8%A5%D8%AC%D8%A7%D8%B2%D8%A9',
+        LEAVE_REASON_AR: '%D8%A7%D9%84%D8%AF%D8%B1%D8%AC%D8%A9%20%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A%D8%A9',
+      }),
+    ).toMatchObject({
+      code: 'Death of 2nd Degree Relative',
+      meaning: 'Death of 2nd Degree Relative',
+      meaningAr: 'الدرجة الثانية',
+      used_value: 'Death of 2nd Degree Relative',
+    });
+  });
+
+  it('always carries the English label in used_value', () => {
+    expect(map({ CODE: 'QA', VALUE: 'Qatar', VALUEAR: '%D9%82%D8%B7%D8%B1' })).toMatchObject({
+      meaning: 'Qatar',
+      used_value: 'Qatar',
+    });
+  });
 });

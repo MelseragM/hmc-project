@@ -5068,6 +5068,231 @@
           ]
         },
         {
+          "name": "GET /leaves",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has success envelope fields\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('status', 'success');",
+                  "    pm.expect(json).to.have.property('result');",
+                  "    pm.expect(json).to.have.property('httpStatusCode');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leaves"
+              ],
+              "query": [
+                {
+                  "key": "user_name",
+                  "value": "V-NFERNANDO"
+                },
+                {
+                  "key": "leave_type",
+                  "value": "Casual Leave"
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+          },
+          "response": [
+            {
+              "name": "Success (200)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"result\": [\n    {\n      \"absenceType\": \"Casual Leave\",\n      \"absenceReason\": \"Personal\",\n      \"actualStartDate\": \"12-Jun-2025\",\n      \"actualEndDate\": \"14-Jun-2025\",\n      \"absenceDays\": 3\n    },\n    {\n      \"absenceType\": \"Annual Leave\",\n      \"absenceReason\": \"Annual Leave\",\n      \"actualStartDate\": \"02-Feb-2025\",\n      \"actualEndDate\": \"20-Feb-2025\",\n      \"absenceDays\": 19\n    }\n  ],\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Error (400)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 400,\n  \"errors\": {\n    \"details\": [\n      \"field must not be empty\"\n    ]\n  }\n}"
+            },
+            {
+              "name": "Error (401)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Authentication failed.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 401\n}"
+            },
+            {
+              "name": "Error (500)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leaves?user_name=V-NFERNANDO&leave_type=Casual%20Leave&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leaves"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_name",
+                      "value": "V-NFERNANDO"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Casual Leave"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "description": "**Purpose:** Leave history (ABSENCE_V)\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** user_name, leave_type, lang\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
+            }
+          ]
+        },
+        {
           "name": "POST /leave/apply",
           "event": [
             {
@@ -5117,7 +5342,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5149,7 +5374,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5191,7 +5416,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5233,7 +5458,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5275,7 +5500,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5317,7 +5542,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"absenceType\": \"Casual Leave\",\n  \"absenceReason\": \"Personal\",\n  \"startDate\": \"12-Oct-2026\",\n  \"endDate\": \"14-Oct-2026\",\n  \"p_file_name1\": \"medical-report.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\",\n  \"p_file_name2\": \"boarding-pass.pdf\",\n  \"p_attachment2\": \"JVBERi0xLjQKJ...==\"\n}",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5619,7 +5844,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5651,7 +5876,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5693,7 +5918,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5735,7 +5960,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5777,7 +6002,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5819,7 +6044,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"20-Jun-2026\",\n  \"p_comments\": \"Extending by two days.\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_user_name\": \"AIBRAHIM39\",\n  \"p_leave_to_amend\": \"62\",\n  \"p_new_end_date\": \"2026-06-20\",\n  \"p_comments\": \"Extending by two days.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6577,7 +6802,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+              "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -6590,10 +6815,14 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "leave_type",
+                  "value": "Compassionate Leave"
                 }
               ]
             },
-            "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+            "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
           },
           "response": [
             {
@@ -6602,7 +6831,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6615,10 +6844,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "OK",
               "code": 200,
@@ -6629,7 +6862,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"Annual Leave\",\n        \"meaning\": \"Annual Leave\"\n      },\n      {\n        \"code\": \"Compassionate Leave\",\n        \"meaning\": \"Compassionate Leave\"\n      },\n      {\n        \"code\": \"Haj Leave\",\n        \"meaning\": \"Haj Leave\"\n      },\n      {\n        \"code\": \"Iddat Leave\",\n        \"meaning\": \"Iddat Leave\"\n      },\n      {\n        \"code\": \"Marriage Leave\",\n        \"meaning\": \"Marriage Leave\"\n      },\n      {\n        \"code\": \"Sick Leave\",\n        \"meaning\": \"Sick Leave\"\n      },\n      {\n        \"code\": \"Casual Leave\",\n        \"meaning\": \"Casual Leave\"\n      },\n      {\n        \"code\": \"Maternity Leave\",\n        \"meaning\": \"Maternity Leave\"\n      },\n      {\n        \"code\": \"Examination leave\",\n        \"meaning\": \"Examination leave\"\n      },\n      {\n        \"code\": \"Leave without Pay\",\n        \"meaning\": \"Leave without Pay\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"Death of 1st Degree Relative\",\n        \"meaning\": \"Death of 1st Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 2nd Degree Relative\",\n        \"meaning\": \"Death of 2nd Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 3rd Degree Relative\",\n        \"meaning\": \"Death of 3rd Degree Relative\"\n      },\n      {\n        \"code\": \"Death of 4th Degree Relative\",\n        \"meaning\": \"Death of 4th Degree Relative\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Error (401)",
@@ -6637,7 +6870,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6650,10 +6883,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "Unauthorized",
               "code": 401,
@@ -6672,7 +6909,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en",
+                  "raw": "{{baseUrl}}/leave/lov/reasons?lang=en&leave_type=Compassionate%20Leave",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -6685,10 +6922,14 @@
                     {
                       "key": "lang",
                       "value": "en"
+                    },
+                    {
+                      "key": "leave_type",
+                      "value": "Compassionate Leave"
                     }
                   ]
                 },
-                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+                "description": "**Purpose:** Leave reasons LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** lang, leave_type\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
               },
               "status": "Internal Server Error",
               "code": 500,

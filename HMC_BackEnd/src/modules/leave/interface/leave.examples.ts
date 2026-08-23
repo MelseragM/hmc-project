@@ -1,4 +1,9 @@
-import { attachmentProperties, ATTACHMENT_EXAMPLE } from '@shared/swagger/request-body.util';
+import {
+  attachmentProperties,
+  ATTACHMENT_EXAMPLE,
+  nullAttachmentExample,
+} from '@shared/swagger/request-body.util';
+import { LEAVE_APPLY_OPTIONAL_PARAMS } from './dto/leave.dto';
 
 /**
  * Real successful `result` payloads captured from api_test.json, used as Swagger
@@ -22,19 +27,17 @@ export const LEAVE_TYPES_LOV_EXAMPLE = {
   ],
 };
 
-/** op 13 — GET /leave/lov/reasons?lang= */
+/**
+ * op 13 — GET /leave/lov/reasons?lang=[&leave_type=] — ABSENCE_REASON_V's
+ * LEAVE_REASON labels. `?leave_type=Compassionate Leave` narrows the list to
+ * that type's reasons (shown here); omitting it returns every reason.
+ */
 export const LEAVE_REASONS_LOV_EXAMPLE = {
   items: [
-    { code: 'Annual Leave', meaning: 'Annual Leave' },
-    { code: 'Compassionate Leave', meaning: 'Compassionate Leave' },
-    { code: 'Haj Leave', meaning: 'Haj Leave' },
-    { code: 'Iddat Leave', meaning: 'Iddat Leave' },
-    { code: 'Marriage Leave', meaning: 'Marriage Leave' },
-    { code: 'Sick Leave', meaning: 'Sick Leave' },
-    { code: 'Casual Leave', meaning: 'Casual Leave' },
-    { code: 'Maternity Leave', meaning: 'Maternity Leave' },
-    { code: 'Examination leave', meaning: 'Examination leave' },
-    { code: 'Leave without Pay', meaning: 'Leave without Pay' },
+    { code: 'Death of 1st Degree Relative', meaning: 'Death of 1st Degree Relative' },
+    { code: 'Death of 2nd Degree Relative', meaning: 'Death of 2nd Degree Relative' },
+    { code: 'Death of 3rd Degree Relative', meaning: 'Death of 3rd Degree Relative' },
+    { code: 'Death of 4th Degree Relative', meaning: 'Death of 4th Degree Relative' },
   ],
 };
 
@@ -153,7 +156,76 @@ export const LEAVE_RETURN_EXAMPLE = {
  * slots `p_file_name1..10` / `p_attachment1..10` are optional.
  */
 
-/** op 57 — POST /leave/amend request body (HR_LEAV_AMEND_PR). */
+/**
+ * GET /leaves — leave history from ABSENCE_V. `absenceType`/`absenceReason`
+ * carry the requested `lang` (the `*Ar` twins are collapsed by the
+ * ResponseInterceptor before the response leaves the app).
+ */
+export const LEAVES_LIST_EXAMPLE = [
+  {
+    absenceType: 'Casual Leave',
+    absenceReason: 'Personal',
+    actualStartDate: '12-Jun-2025',
+    actualEndDate: '14-Jun-2025',
+    absenceDays: 3,
+  },
+  {
+    absenceType: 'Annual Leave',
+    absenceReason: 'Annual Leave',
+    actualStartDate: '02-Feb-2025',
+    actualEndDate: '20-Feb-2025',
+    absenceDays: 19,
+  },
+];
+
+/**
+ * op 10 — POST /leave/apply request body (LEAV_OF_ABSEN_NEW_PR `p_*` binds).
+ * The legacy camelCase core spellings (absenceType/absenceReason/startDate/
+ * endDate) remain accepted; the example below is the full documented `p_*`
+ * payload — unused params sent explicitly as null (equivalent to omitting
+ * them). Dates accept `yyyy-MM-dd` or `dd-Mon-yyyy`.
+ */
+export const LEAVE_APPLY_BODY = {
+  description:
+    'Leave-apply payload (LEAV_OF_ABSEN_NEW_PR `p_*` binds). `p_user_name` and the OUT params are injected server-side and must NOT be sent.',
+  schema: {
+    type: 'object',
+    required: ['p_absence_type', 'p_start_date', 'p_end_date'],
+    properties: {
+      p_absence_type: { type: 'string', example: 'Casual Leave' },
+      p_absence_reason: { type: 'string', example: 'Personal', nullable: true },
+      p_start_date: {
+        type: 'string',
+        example: '2025-06-12',
+        description: 'Leave start date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      p_end_date: {
+        type: 'string',
+        example: '2025-06-14',
+        description: 'Leave end date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      ...Object.fromEntries(
+        LEAVE_APPLY_OPTIONAL_PARAMS.map((name) => [name, { type: 'string', nullable: true }]),
+      ),
+      ...attachmentProperties(),
+    },
+    example: {
+      p_absence_type: 'Casual Leave',
+      p_absence_reason: 'Personal',
+      p_start_date: '2025-06-12',
+      p_end_date: '2025-06-14',
+      ...Object.fromEntries(LEAVE_APPLY_OPTIONAL_PARAMS.map((name) => [name, null])),
+      ...nullAttachmentExample(),
+    },
+  },
+};
+
+/**
+ * op 57 — POST /leave/amend request body (HR_LEAV_AMEND_PR). Unused attachment
+ * slots may be sent explicitly as null (equivalent to omitting them);
+ * `p_user_name` is accepted but the authenticated username is enforced
+ * server-side; `p_language` is injected server-side and must NOT be sent.
+ */
 export const LEAVE_AMEND_BODY = {
   description: 'Leave-amend payload (HR_LEAV_AMEND_PR `p_*` binds).',
   schema: {
@@ -161,17 +233,27 @@ export const LEAVE_AMEND_BODY = {
     required: ['p_leave_type', 'p_leave_to_amend', 'p_new_end_date'],
     properties: {
       p_leave_type: { type: 'string', example: 'Annual Leave' },
-      p_leave_to_amend: { type: 'string', example: '62', description: 'Identifier of the leave to amend.' },
-      p_new_end_date: { type: 'string', example: '20-Jun-2026', description: 'New end date (DD-Mon-YYYY).' },
-      p_comments: { type: 'string', example: 'Extending by two days.' },
+      p_user_name: {
+        type: 'string',
+        example: 'AIBRAHIM39',
+        description: 'Optional; ignored — the authenticated username is enforced server-side.',
+      },
+      p_leave_to_amend: { type: 'string', example: '62', description: 'Identifier of the leave to amend (from the amend LOV, op 62).' },
+      p_new_end_date: {
+        type: 'string',
+        example: '2026-06-20',
+        description: 'New end date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      p_comments: { type: 'string', example: 'Extending by two days.', nullable: true },
       ...attachmentProperties(),
     },
     example: {
       p_leave_type: 'Annual Leave',
+      p_user_name: 'AIBRAHIM39',
       p_leave_to_amend: '62',
-      p_new_end_date: '20-Jun-2026',
+      p_new_end_date: '2026-06-20',
       p_comments: 'Extending by two days.',
-      ...ATTACHMENT_EXAMPLE,
+      ...nullAttachmentExample(),
     },
   },
 };

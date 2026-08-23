@@ -19,12 +19,6 @@ export class ForgotMpinInitResponseDto {
 
   @ApiPropertyOptional({ example: '13131313123' })
   requestid?: string;
-
-  @ApiPropertyOptional({
-    example: 'Device is not registered for this user.',
-    description: 'Present on failure.',
-  })
-  message?: string;
 }
 
 /** API-7 — Reset MPIN (OTP + new MPIN). */
