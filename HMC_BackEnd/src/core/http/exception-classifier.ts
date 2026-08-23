@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { OracleQueryError, OracleUnavailableException } from '../database/oracle.error';
+import { MssqlQueryError, MssqlUnavailableException } from '../database/mssql.error';
 import { SchemaColumnNotFoundException } from '../database/schema-column-not-found.error';
 import { ORA_NO_DATA_FOUND } from '@shared/constants/error-codes';
 import { CATEGORY_MESSAGE, CATEGORY_STATUS, ErrorCategory } from './error-category';
@@ -48,6 +49,11 @@ export function classifyException(exception: unknown): ClassifiedError {
     return of(ErrorCategory.DATABASE_ERROR, { httpStatus: exception.getStatus() });
   }
   if (exception instanceof OracleQueryError) return classifyOracle(exception);
+  // Users DB (SQL Server) failures are database problems too — same treatment.
+  if (exception instanceof MssqlUnavailableException) {
+    return of(ErrorCategory.DATABASE_ERROR, { httpStatus: exception.getStatus() });
+  }
+  if (exception instanceof MssqlQueryError) return of(ErrorCategory.DATABASE_ERROR);
   if (exception instanceof HttpException) return classifyHttp(exception);
   // A thrown Error that isn't an HttpException is an application bug.
   if (exception instanceof Error) return of(ErrorCategory.APPLICATION_ERROR);

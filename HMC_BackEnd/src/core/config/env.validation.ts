@@ -30,6 +30,27 @@ export const envValidationSchema = Joi.object({
   ORACLE_THICK_MODE: Joi.boolean().default(true),
   ORACLE_CLIENT_LIB_DIR: Joi.string().allow('').default(''),
 
+  // Users/Sanaad SQL Server DB (auth cycle: device/MPIN/OTP + API-1 tables)
+  USERS_DB_HOST: Joi.string().allow('').default(''),
+  USERS_DB_PORT: Joi.number().default(1433),
+  USERS_DB_NAME: Joi.string().allow('').default(''),
+  USERS_DB_USER: Joi.string().allow('').default(''),
+  USERS_DB_PASSWORD: Joi.string().allow('').default(''),
+  USERS_DB_POOL_MIN: Joi.number().default(2),
+  USERS_DB_POOL_MAX: Joi.number().default(10),
+  USERS_DB_REQUEST_TIMEOUT_MS: Joi.number().min(1).default(25000),
+  USERS_DB_CONNECT_TIMEOUT_MS: Joi.number().min(1).default(15000),
+  USERS_DB_ENCRYPT: Joi.boolean().default(true),
+  USERS_DB_TRUST_SERVER_CERT: Joi.boolean().default(false),
+  USERS_DB_DISABLED: Joi.boolean().default(false),
+
+  // SMS gateway (OTP delivery)
+  SMS_API_BASE_URL: Joi.string().uri().allow('').default(''),
+  SMS_API_KEY: Joi.string().allow('').default(''),
+  SMS_SENDER_ID: Joi.string().allow('').default(''),
+  SMS_API_TIMEOUT_MS: Joi.number().min(1).default(25000),
+  SMS_MESSAGE_TEMPLATE: Joi.string().default('Your Sanaad verification code is {otp}'),
+
   // Auth
   JWT_SECRET: Joi.string().min(8).default('dev-only-secret-change-me'),
   JWT_ISSUER: Joi.string().default('sanaad'),
@@ -42,6 +63,7 @@ export const envValidationSchema = Joi.object({
   CERNER_TIMEOUT_MS: Joi.number().default(10000),
 
   // Auth framework — app-launch (API-1)
+  APP_NAME: Joi.string().default('SanaadHealth'),
   APP_MIN_SUPPORTED_VERSION: Joi.string().default('1.0.0'),
   APP_LATEST_VERSION: Joi.string().default('1.0.0'),
   APP_DOWNTIME: Joi.boolean().default(false),
