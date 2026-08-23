@@ -255,20 +255,31 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_V) — NOT a
-  
-  @RequiredString('Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026')
+  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_V).
+  @RequiredString('62')
   p_leave_details!: string;
 
-  @RequiredString('20-Apr-2026')
+  /** Return date — `yyyy-MM-dd` or `dd-Mon-yyyy` (DATE formals bind natively). */
+  @RequiredString('2026-06-15')
   p_return_date!: string;
+
+  /**
+   * Accepted for spec-payload compatibility but NOT honored: the authenticated
+   * JWT username is always enforced server-side as `p_user_name`.
+   */
+  @ApiPropertyOptional({
+    example: 'AIBRAHIM39',
+    description: 'Optional; ignored — the authenticated username is enforced server-side.',
+  })
+  @IsOptional()
+  @IsString()
+  p_user_name?: string;
 
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(LeaveReturnRequestDto, [
-  'p_related_leave1',
-  'p_related_leave2',
-  'p_comments',
-  ...ATTACHMENT_FIELDS,
-]);
+defineOptionalStringFields(
+  LeaveReturnRequestDto,
+  ['p_related_leave1', 'p_related_leave2', 'p_comments', ...ATTACHMENT_FIELDS],
+  { p_comments: 'Returned early.' },
+);
