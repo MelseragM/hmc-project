@@ -65,39 +65,81 @@ const ADDRESS_FIELDS = [
   'p_po_box',
 ] as const;
 
+/**
+ * op 65 — ADD_DEPENDENT_PR. The Oracle flexfield enforces more than the DTO's
+ * required fields (verified live 2026-08-23, successflag S with the pinned
+ * example set): at least one attachment ("Attachement is mandatory"),
+ * `p_passport_number`, `p_pp_expiry_date`, `p_country_of_issue`,
+ * `p_visa_type` (op 64 VISA group: 'QID(Qatari)' | 'Residence Permit'),
+ * `p_visa_validity` = Yes|No, and a UNIQUE `p_id_number` (QID — duplicates
+ * return "This QID already exists."). `p_relationship` must be an op 64
+ * CONTACT value ('Child', 'Spouse', ... — not "Son").
+ */
 export class AddDependentRequestDto {
-  @RequiredString('John')
+  @RequiredString('Testchild3')
   p_first_name!: string;
 
-  @RequiredString('Doe')
+  @RequiredString('Ibrahim')
   p_last_name!: string;
 
-  @RequiredString('Son')
+  @RequiredString('Child')
   p_relationship!: string;
 
   @RequiredString('Male')
   p_gender!: string;
 
-  @RequiredString('19900101')
+  @RequiredString('20150101')
   p_date_of_birth!: string;
 
-  @RequiredString('20260809')
+  @RequiredString('20260823')
   p_effective_date!: string;
 
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(AddDependentRequestDto, [
-  ...IDENTITY_FIELDS,
-  'p_phone_type',
-  'p_phone_number',
-  'p_phone_enabled',
-  ...ADDRESS_FIELDS,
-  'p_employment_status',
-  'p_comments',
-  ...ATTACHMENT_FIELDS,
-]);
+defineOptionalStringFields(
+  AddDependentRequestDto,
+  [
+    ...IDENTITY_FIELDS,
+    'p_phone_type',
+    'p_phone_number',
+    'p_phone_enabled',
+    ...ADDRESS_FIELDS,
+    'p_employment_status',
+    'p_comments',
+    ...ATTACHMENT_FIELDS,
+  ],
+  {
+    p_title: 'Mr.',
+    p_relationship_start_date: '20150101',
+    p_email_address: 'testchild3@example.com',
+    p_passport_number: 'A7654323',
+    p_pp_issue_date: '20200101',
+    p_pp_expiry_date: '20300101',
+    p_place_of_issue: 'Doha',
+    p_country_of_issue: 'QA',
+    p_visa_type: 'Residence Permit',
+    p_visa_number: '123456791',
+    p_visa_issue_date: '20250101',
+    p_visa_expiry_date: '20270101',
+    p_visa_validity: 'Yes',
+    p_id_number: '31599876544',
+    p_id_issue_date: '20250101',
+    p_id_expiry_date: '20270101',
+    p_job_as_in_qid: 'Student',
+    p_type_of_sponsorship: 'Employee',
+    p_sponsor_contact_name: 'Amir Ibrahim',
+    p_file_name1: 'birth-certificate.pdf',
+    p_attachment1: 'dGVzdCBhdHRhY2htZW50',
+  },
+);
 
+/**
+ * op 24 — UPDATE_DEPENDENT_PR. Verified live (2026-08-23): like the add, the
+ * procedure REQUIRES at least one attachment ("Attachement is mandatory").
+ * The caller's dependent ids are visible in GET /profile
+ * (dependentPhones/dependentAddresses).
+ */
 export class UpdateDependentRequestDto {
   @RequiredString('4668195')
   p_dependent_id!: string;
@@ -105,7 +147,9 @@ export class UpdateDependentRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(UpdateDependentRequestDto, [
+defineOptionalStringFields(
+  UpdateDependentRequestDto,
+  [
   'p_title',
   'p_first_name',
   'p_middle_name',
@@ -154,7 +198,14 @@ defineOptionalStringFields(UpdateDependentRequestDto, [
   'p_employment_status',
   'p_comments',
   ...ATTACHMENT_FIELDS,
-]);
+  ],
+  {
+    p_first_name: 'John',
+    p_effective_date: '20260823',
+    p_file_name1: 'update-proof.pdf',
+    p_attachment1: 'dGVzdCBhdHRhY2htZW50',
+  },
+);
 
 export class DeleteDependentRequestDto {
   @RequiredString('4668195')
@@ -163,14 +214,18 @@ export class DeleteDependentRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(DeleteDependentRequestDto, [
-  'p_relation_ship_end_date',
-  'p_relationship_end_date',
-  'p_contact_type',
-  'p_relation_ship',
-  'p_relationship',
-  ...ATTACHMENT_FIELDS,
-]);
+defineOptionalStringFields(
+  DeleteDependentRequestDto,
+  [
+    'p_relation_ship_end_date',
+    'p_relationship_end_date',
+    'p_contact_type',
+    'p_relation_ship',
+    'p_relationship',
+    ...ATTACHMENT_FIELDS,
+  ],
+  { p_relationship_end_date: '20260823' },
+);
 
 export class PassportApplyRequestDto {
   @RequiredString('A498989')

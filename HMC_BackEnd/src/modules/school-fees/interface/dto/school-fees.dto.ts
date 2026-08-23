@@ -36,6 +36,15 @@ export class SchoolLovQueryDto extends LovUserQueryDto {
   pageSize = 100;
 }
 
+/**
+ * op 39 — SCHOOL_FEE_PR. Example values verified against the live LOVs
+ * (2026-08-23): `p_request_type` comes from the op 53 LOV (e.g. `Cash` — NOT
+ * "Tuition"), `p_term` from the op 38 LOV (`Term1` — no space), the school
+ * name from the op 37 LOV, and the child name/DOB from GET
+ * /school-fees/children. NOTE: the staging DATABASE currently rejects even
+ * fully valid payloads from inside the procedure (ORA-01403 / intermittent
+ * ORA-00027 at line 114) — pending the DB team.
+ */
 export class SchoolFeeApplyRequestDto {
   @RequiredString('2025-2026')
   p_academic_year!: string;
@@ -46,22 +55,22 @@ export class SchoolFeeApplyRequestDto {
   @RequiredString('20260630')
   p_acd_end_dt!: string;
 
-  @RequiredString('Child Name')
+  @RequiredString('Jerome Amir Sami Samir Ibrahim')
   p_child_name!: string;
 
-  @RequiredString('20150101')
+  @RequiredString('20100923')
   p_child_date_birth!: string;
 
-  @RequiredString('School Name')
+  @RequiredString('Al Arqam Academy')
   p_school_name!: string;
 
   @RequiredString('Primary')
   p_educational_stage!: string;
 
-  @RequiredString('Tuition')
+  @RequiredString('Cash')
   p_request_type!: string;
 
-  @RequiredString('Term 1')
+  @RequiredString('Term1')
   p_term!: string;
 
   @RequiredString('1000')
@@ -70,11 +79,23 @@ export class SchoolFeeApplyRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(SchoolFeeApplyRequestDto, [
-  'p_passport_number',
-  'p_rp_number',
-  'p_receipt_number',
-  'p_spouse_working',
-  'p_comments',
-  ...ATTACHMENT_FIELDS,
-]);
+defineOptionalStringFields(
+  SchoolFeeApplyRequestDto,
+  [
+    'p_passport_number',
+    'p_rp_number',
+    'p_receipt_number',
+    'p_spouse_working',
+    'p_comments',
+    ...ATTACHMENT_FIELDS,
+  ],
+  {
+    p_passport_number: 'A38697134',
+    p_rp_number: '31081804108',
+    p_receipt_number: '123',
+    p_spouse_working: 'No',
+    p_comments: 'test',
+    p_file_name1: 'receipt.pdf',
+    p_attachment1: 'dGVzdCBhdHRhY2htZW50',
+  },
+);

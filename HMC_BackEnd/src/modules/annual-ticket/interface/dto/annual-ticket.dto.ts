@@ -4,12 +4,18 @@ import {
   RequiredString,
 } from '@shared/dto/oracle-submit.dto';
 
-/** op 67 — Submit_Annual_Ticket (TICKET_REQ_PR request template). */
+/**
+ * op 67 — Submit_Annual_Ticket (TICKET_REQ_PR request template).
+ * `p_employee` carries the Oracle PERSON_ID, not the employee number: the
+ * procedure validates it against the HMC_HR_PASSAGE_TICKET_EMPLOYEE_NAME
+ * flexfield value set (verified on staging 2026-08-23 — the employee-number
+ * form fails the flex check and a name string raises ORA-01722).
+ */
 export class AnnualTicketApplyRequestDto {
   @RequiredString('Self')
   p_request_for!: string;
 
-  @RequiredString('053613')
+  @RequiredString('26023')
   p_employee!: string;
 
   @RequiredString('Annual Ticket')

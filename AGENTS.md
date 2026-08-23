@@ -217,3 +217,46 @@ Notes:
   http://localhost:3001/api/v1/...` route falls through to the wildcard and is
   proxied to the real backend untouched (confirmed against
   `/healthcheck`, `/health/db`, and the Oracle diagnostics response).
+## Staging verification facts (2026-08-23, via https://sndstgmobileapi.hamad.qa)
+
+Learned by live-testing contact/dependents/school-fees/appointments/
+annual-ticket/approvals; the Postman collection carries the captured real
+responses as examples.
+
+- Staging runs `AUTH_DISABLED=true`: the gateway forwards without a token and
+  the backend injects dev user `AIBRAHIM39`/`037400` (401/403 not reproducible
+  there). `POST /auth/login` still returns a signed JWT (dev bypass).
+- Approvals/worklist views are keyed by USERNAME (`enum=AIBRAHIM39`), not the
+  employee number — `WORKLISTS_V` returned 44 real rows for the username and
+  none for `037400`/`053613`. `NOTYFY_APPR_V` (op 21 details) appears to hold
+  only OPEN actionable notifications for the recipient.
+- op 67 `TICKET_REQ_PR.p_employee` must be the Oracle **PERSON_ID** (26023 for
+  AIBRAHIM39): the employee number fails the
+  `HMC_HR_PASSAGE_TICKET_EMPLOYEE_NAME` flexfield check and a name string
+  raises ORA-01722. `p_contractual_year` must exist in
+  `HMC_HR_CONTRACTUAL_YEAR_SIT` ('01-SEP-2025 to 31-AUG-2026' passes,
+  calendar-year strings do not). With correct values the test user gets the
+  real business answer "No ticket balance available..." (no entitlement).
+- `UPD_ADDRESS_PR`: `p_country` takes the country NAME (`Qatar`; `QA` →
+  "Invalid Country"), `p_address_type` must equal the target address's own
+  type, and repeating an update on the same `p_effective_date` fails
+  (date-track). `CREATE_ADDRESS_PR` rejects overlapping same-type addresses.
+  Both verified with successflag S.
+- op 65 add dependent returns successflag S only when the flexfield's extra
+  requirements are met (the wire shows a sanitized message; the FLEX-NULL /
+  FLEX-VALUE detail is only in oracle-logs): >=1 attachment,
+  `p_passport_number`, `p_pp_expiry_date`, `p_country_of_issue`,
+  `p_visa_type` ('QID(Qatari)'|'Residence Permit'), `p_visa_validity`
+  (Yes|No), unique `p_id_number` (QID), and `p_relationship` from the op 64
+  CONTACT group ('Child', not "Son"). Working example pinned in the DTO and
+  Postman.
+- op 71 reassign and RFMI request-info returned successflag S when run against
+  an OPEN notification owned by the caller (from WORKLISTS_V). op 22 decision
+  needs an open actionable APPROVAL assigned to the caller (FYI notifications
+  reject APPROVE) — none existed for the dev user.
+- Staging DB issues (request format is correct, procedure fails internally):
+  `ADD_OR_UPDATE_PHONE` rejects every phone type (all LOV meanings+codes and
+  the user's own stored type — the spec's own recorded sample shows the same
+  error); `SCHOOL_FEE_PR` raises ORA-01403 at line 197 / ORA-00027 at line 114
+  for fully valid payloads; `UPDATE_DEPENDENT_PR` intermittently hits
+  ORA-00027 at package line 3506 once an attachment is supplied.

@@ -16,7 +16,7 @@ export class BookAppointmentRequestDto {
   @IsString()
   serviceId?: string;
 
-  @ApiProperty({ example: '2025-06-12T09:30:00', description: 'Requested slot (ISO).' })
+  @ApiProperty({ example: '2026-09-01T09:30:00', description: 'Requested slot (ISO).' })
   @IsString()
   slot!: string;
 }
