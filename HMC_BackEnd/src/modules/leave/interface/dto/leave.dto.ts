@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
 import { PersonIdQueryDto } from '@shared/dto/common-query.dto';
+import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { EFFECTIVE_DATE_ALL } from '@shared/utils/date.util';
 import {
   ATTACHMENT_FIELDS,
@@ -139,6 +140,40 @@ defineOptionalStringFields(ApplyLeaveRequestDto, [
   ...LEAVE_APPLY_OPTIONAL_PARAMS,
   ...ATTACHMENT_FIELDS,
 ]);
+
+/** GET /leaves — `?user_name=&leave_type=&lang=` against ABSENCE_V. */
+export class LeavesQueryDto extends LangQueryDto {
+  @ApiProperty({ example: 'V-NFERNANDO', description: 'Oracle username (ABSENCE_V.USER_NAME).' })
+  @IsString()
+  @IsNotEmpty()
+  user_name!: string;
+
+  @ApiPropertyOptional({
+    example: 'Casual Leave',
+    description: 'Optional ABSENCE_TYPE filter (English value from the leave-types LOV).',
+  })
+  @IsOptional()
+  @IsString()
+  leave_type?: string;
+}
+
+/** One ABSENCE_V row (GET /leaves). `absenceType`/`absenceReason` follow the request's lang. */
+export class LeaveRecordDto {
+  @ApiProperty({ example: 'Casual Leave' })
+  absenceType?: string;
+
+  @ApiPropertyOptional({ example: 'Personal' })
+  absenceReason?: string;
+
+  @ApiProperty({ example: '12-Jun-2025' })
+  actualStartDate?: string;
+
+  @ApiProperty({ example: '14-Jun-2025' })
+  actualEndDate?: string;
+
+  @ApiProperty({ example: 3 })
+  absenceDays?: number;
+}
 
 /** op 47 — Leave duration calculation. */
 export class LeaveCalcRequestDto {

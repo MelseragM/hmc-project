@@ -148,6 +148,10 @@ const MODULES = [
     items: [
       { name: 'Leave balance', method: 'GET', p: 'leave/balance', auth: 'bearer', kind: 'read', query: { person_id: '852709', lang: 'en' },
         success: [], errors: [401, 404, 500] },
+      { name: 'Leave history (ABSENCE_V)', method: 'GET', p: 'leaves', auth: 'bearer', kind: 'read',
+        // leave_type is an optional ABSENCE_TYPE filter (English value).
+        query: { user_name: 'V-NFERNANDO', leave_type: 'Casual Leave', lang: 'en' },
+        success: leaveEx.LEAVES_LIST_EXAMPLE, errors: [400, 401, 500] },
       { name: 'Submit leave application', method: 'POST', p: 'leave/apply', auth: 'bearer', kind: 'action',
         // Full LEAV_OF_ABSEN_NEW_PR `p_*` payload (legacy camelCase
         // absenceType/absenceReason/startDate/endDate still accepted). Unused

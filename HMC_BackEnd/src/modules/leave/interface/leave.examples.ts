@@ -159,6 +159,28 @@ export const LEAVE_RETURN_EXAMPLE = {
  */
 
 /**
+ * GET /leaves — leave history from ABSENCE_V. `absenceType`/`absenceReason`
+ * carry the requested `lang` (the `*Ar` twins are collapsed by the
+ * ResponseInterceptor before the response leaves the app).
+ */
+export const LEAVES_LIST_EXAMPLE = [
+  {
+    absenceType: 'Casual Leave',
+    absenceReason: 'Personal',
+    actualStartDate: '12-Jun-2025',
+    actualEndDate: '14-Jun-2025',
+    absenceDays: 3,
+  },
+  {
+    absenceType: 'Annual Leave',
+    absenceReason: 'Annual Leave',
+    actualStartDate: '02-Feb-2025',
+    actualEndDate: '20-Feb-2025',
+    absenceDays: 19,
+  },
+];
+
+/**
  * op 10 — POST /leave/apply request body (LEAV_OF_ABSEN_NEW_PR `p_*` binds).
  * The legacy camelCase core spellings (absenceType/absenceReason/startDate/
  * endDate) remain accepted; the example below is the full documented `p_*`

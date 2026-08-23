@@ -29,6 +29,28 @@ export interface LeaveBalanceQuery {
   effectiveDate: string;
 }
 
+/**
+ * One row of ABSENCE_V — the user's leave history (GET /leaves). The `*Ar`
+ * twins are collapsed per-request by the ResponseInterceptor (the base field
+ * carries the value for the request's `lang`).
+ */
+export interface LeaveRecord {
+  absenceType?: string;
+  absenceTypeAr?: string;
+  absenceReason?: string;
+  absenceReasonAr?: string;
+  actualStartDate?: string;
+  actualEndDate?: string;
+  absenceDays?: number | string;
+}
+
+/** GET /leaves — `?user_name=&leave_type=` against ABSENCE_V. */
+export interface LeaveListQuery {
+  username: string;
+  /** Optional ABSENCE_TYPE filter (English value, e.g. `Casual Leave`). */
+  leaveType?: string;
+}
+
 /** op 10 — Apply leave (LEAV_OF_ABSEN_NEW_PR, ~50 binds). */
 export interface LeaveApplyCommand {
   username: string;
@@ -62,6 +84,7 @@ export interface LeaveMutationCommand {
  */
 export interface LeaveRepository {
   getBalance(query: LeaveBalanceQuery): Promise<LeaveBalance[]>;
+  list(query: LeaveListQuery): Promise<LeaveRecord[]>;
   apply(cmd: LeaveApplyCommand): Promise<SubmitResult>;
   calculate(cmd: LeaveCalcCommand): Promise<LeaveDuration>;
   amend(cmd: LeaveMutationCommand): Promise<SubmitResult>;

@@ -43,6 +43,11 @@ export class LeaveService {
     return this.repo.apply({ ...cmd, username: user.username, lang });
   }
 
+  /** GET /leaves — leave history from ABSENCE_V (optionally filtered by type). */
+  listLeaves(username: string, leaveType?: string) {
+    return this.repo.list({ username, leaveType });
+  }
+
   calculate(
     absenceType: string,
     startDate: string,

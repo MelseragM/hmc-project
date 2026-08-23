@@ -6,6 +6,7 @@ import { BaseOracleRepository } from '@core/database/base.repository';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { toOracleLanguage } from '@shared/domain/lang';
 import { parseOracleDate } from '@shared/utils/date.util';
+import { col, dateStr, pruneUndefined, str, strAr } from '@shared/utils/mapper.util';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import {
   LeaveApplyCommand,
@@ -13,7 +14,9 @@ import {
   LeaveBalanceQuery,
   LeaveCalcCommand,
   LeaveDuration,
+  LeaveListQuery,
   LeaveMutationCommand,
+  LeaveRecord,
   LeaveRepository,
 } from '../../domain/leave.repository';
 import { LeaveApplyBinds } from './leave-apply.binds';
@@ -94,6 +97,39 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
         p_language: toOracleLanguage(query.lang),
       },
     );
+  }
+
+  /**
+   * GET /leaves — the user's leave history from ABSENCE_V, optionally filtered
+   * by ABSENCE_TYPE (English value). Both language columns are mapped; the
+   * ResponseInterceptor collapses the `*Ar` twins per the request's lang.
+   */
+  async list(query: LeaveListQuery): Promise<LeaveRecord[]> {
+    const binds: Record<string, unknown> = { u: query.username };
+    let sql =
+      `SELECT ABSENCE_TYPE, ABSENCE_TYPE_AR, ABSENCE_REASON, ABSENCE_REASON_AR,
+              ACTUAL_START_DATE, ACTUAL_END_DATE, ABSENCE_DAYS
+         FROM ${ORACLE_OBJECTS.ABSENCE_V}
+        WHERE USER_NAME = :u`;
+    if (query.leaveType) {
+      sql += ' AND ABSENCE_TYPE = :t';
+      binds.t = query.leaveType;
+    }
+    sql += ' ORDER BY ACTUAL_START_DATE DESC';
+    const rows = await this.query(sql, binds);
+    return rows.map((row) => {
+      const days = col(row, 'ABSENCE_DAYS');
+      return pruneUndefined({
+        absenceType: str(row, 'ABSENCE_TYPE'),
+        absenceTypeAr: strAr(row, 'ABSENCE_TYPE_AR'),
+        absenceReason: str(row, 'ABSENCE_REASON'),
+        absenceReasonAr: strAr(row, 'ABSENCE_REASON_AR'),
+        actualStartDate: dateStr(row, 'ACTUAL_START_DATE'),
+        actualEndDate: dateStr(row, 'ACTUAL_END_DATE'),
+        absenceDays:
+          days == null ? undefined : Number.isFinite(Number(days)) ? Number(days) : String(days),
+      });
+    });
   }
 
   async apply(cmd: LeaveApplyCommand): Promise<SubmitResult> {
