@@ -3115,18 +3115,114 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_start_date\": \"2025-06-12\",\n  \"p_end_date\": \"2025-06-14\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 10 — Leave submission (`XXHMC_SND_LEAV_OF_ABSEN_NEW_PR`). Accepts `p_*` spelling or camelCase.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**KNOWN STAGING ISSUE (2026-08-23):** the procedure consistently fails with `ORA-00027: cannot kill current session` at line 168 (same FND-session issue family as SCHOOL_FEE_PR/ADD_DEPENDENT_PKG — see AGENTS.md). Request format is correct per DTO/Swagger.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 10 — Leave submission (`XXHMC_SND_LEAV_OF_ABSEN_NEW_PR`). Accepts `p_*` spelling or camelCase.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**UPDATE 2026-08-23 (PM):** the earlier ORA-00027 kill-session defect at line 168 was FIXED by the DB team — the procedure now returns its real business rules: (1) HMC-Law employees may not apply for more than 1 day of Casual Leave; (2) the caller must first submit the Policy Awareness questionnaire (\"To avail this function, please submit the Policy Awareness questionnaire.\"). A `successflag S` needs a test user who completed the questionnaire.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code, pending staging DB fix (NOT a captured response)",
+              "name": "Expected Success (200) — needs a user who submitted the Policy Awareness questionnaire (NOT a captured response)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — Policy Awareness questionnaire required",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"To avail this function, please submit the Policy Awareness questionnaire.\",\n  \"httpStatusCode\": 200,\n  \"result\": {\n    \"leaveDays\": 0\n  }\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — more than 1 day rejected for HMC Law employees",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3171,55 +3267,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
-            },
-            {
-              "name": "Staging DB error (500) — ORA-00027 inside the procedure (line 168)",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/leave/apply?lang=en",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "leave",
-                    "apply"
-                  ],
-                  "query": [
-                    {
-                      "key": "lang",
-                      "value": "en"
-                    }
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-08\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Leave Days cannot be applied more than 1 days for HMC Law employees\",\n  \"httpStatusCode\": 200,\n  \"result\": {\n    \"leaveDays\": 0\n  }\n}"
             },
             {
               "name": "Validation Error (400) — absence type/dates required",
@@ -4846,11 +4894,11 @@
                 }
               ]
             },
-            "description": "**Purpose:** op 6 — Payslip count for a period.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Query:** `lang`, `person_id`, `payslipperiod` (\"Month YYYY\").\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 6 — Payslip count for a period (`XXHMC_SND_CHK_PAYROLL_CNT`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Query:** `lang`, `person_id`, `payslipperiod` (\"Month YYYY\").\n\n**Heads-up for mobile:** the build deployed on staging returns `{ \"count\": n }`; latest main (commit 0616ca8, not deployed yet at test time) extends it to `{ \"count\": n, \"rows\": [{PERIOD_NAME, PERIOD_NAME_AR, ASSIGNMENT_ACTION_ID}] }` — the ASSIGNMENT_ACTION_ID feeds op 11 (generate). Re-capture after the next staging deploy.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Success (200)",
+              "name": "Success (200) — deployed build shape { count }",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -7101,11 +7149,11 @@
                 }
               }
             },
-            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**Verified (2026-08-23):** attachment is mandatory (`successflag N — \"Attachement is mandatory\"` without one). WITH an attachment, staging currently fails inside the package (intermittent `ORA-00027` at XXHMC_SND_ADD_DEPENDENT_PKG line 3506 → HTTP 500, real example below) — same database-side issue as SCHOOL_FEE_PR; needs the DB team. There is also no API that lists dependent ids (profile only shows dependents that have phones/addresses).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**Verified (2026-08-23):** attachment is mandatory (`successflag N — \"Attachement is mandatory\"` without one). UPDATE (PM): the earlier ORA-00027 kill-session defect at package line 3506 was FIXED by the DB team — the procedure now returns its real check (\"Dependent doesnot exits\" + ORA-01403, sanitized on the wire) for an id that is not the caller's. A success example still needs a REAL dependent id of the caller — no API lists dependent ids (profile only shows dependents that have phones/addresses).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code; blocked by ORA-00027 on staging (NOT a captured response)",
+              "name": "Expected Success (200) — needs a real dependent id of the caller (NOT a captured response)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7132,7 +7180,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
+                  "raw": "{\n  \"p_dependent_id\": \"<real dependent id of the caller>\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7151,6 +7199,54 @@
               ],
               "cookie": [],
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — dependent id not the caller's (ORA-01403 sanitized)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/update?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "update"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Business Error (200, successflag=N) — attachment is mandatory",
@@ -7199,54 +7295,6 @@
               ],
               "cookie": [],
               "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Attachement is mandatory\",\n  \"httpStatusCode\": 200\n}"
-            },
-            {
-              "name": "Staging DB error (500) — intermittent ORA-00027 inside the package",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/dependents/update?lang=en",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "dependents",
-                    "update"
-                  ],
-                  "query": [
-                    {
-                      "key": "lang",
-                      "value": "en"
-                    }
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
             },
             {
               "name": "Validation Error (400) — p_dependent_id required",
@@ -12242,11 +12290,11 @@
                 "db"
               ]
             },
-            "description": "**Purpose:** Oracle DB connectivity test\n\n**Auth:** Public — no token required\n\n**Response:** unwrapped (not part of the standard envelope)."
+            "description": "**Purpose:** Oracle connectivity diagnostics (always HTTP 200 — inspect `status`/`connected`). PUBLIC.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Success (200) — Oracle reachable",
+              "name": "Success (200) — full Oracle diagnostics (current build)",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -12271,7 +12319,55 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"status\": \"ok\",\n  \"enabled\": true,\n  \"connected\": true,\n  \"latencyMs\": 9,\n  \"connection\": {\n    \"user\": \"HMCERP\",\n    \"dsn\": \"10.91.177.20:1521/ebs_EBSDEV\",\n    \"poolMin\": 2,\n    \"poolMax\": 10\n  },\n  \"pool\": {\n    \"connectionsOpen\": 7,\n    \"connectionsInUse\": 0\n  },\n  \"server\": {\n    \"version\": \"19.31.0.0.0\",\n    \"dbTime\": \"2026-08-23T12:38:56.130+03:00\"\n  },\n  \"error\": null,\n  \"checkedAt\": \"2026-08-23T09:38:56.124Z\"\n}"
+              "body": "{\n  \"status\": \"ok\",\n  \"enabled\": true,\n  \"connected\": true,\n  \"latencyMs\": 5172,\n  \"connection\": {\n    \"user\": \"HMCERP\",\n    \"dsn\": \"10.91.177.20:1521/ebs_EBSDEV\",\n    \"poolMin\": 2,\n    \"poolMax\": 10\n  },\n  \"pool\": {\n    \"connectionsOpen\": 2,\n    \"connectionsInUse\": 1\n  },\n  \"server\": {\n    \"version\": \"19.31.0.0.0\",\n    \"dbTime\": \"2026-08-23T16:08:04.588+03:00\"\n  },\n  \"error\": null,\n  \"checkedAt\": \"2026-08-23T13:07:59.420Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /health/users-db",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/users-db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "users-db"
+              ]
+            },
+            "description": "**Purpose:** Users DB (SQL Server — device/MPIN/OTP auth-cycle database) connectivity diagnostics. PUBLIC; always HTTP 200 — inspect `status`/`connected`/`error`.\n\n**Staging status (2026-08-23):** Users DB is NOT configured yet (`USERS_DB host/database/user missing`) — real response below. Once DevOps sets the USERS_DB_* variables the real auth cycle (SMS OTP + persisted MPIN) becomes testable.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+          },
+          "response": [
+            {
+              "name": "Success (200) — Users DB not configured on staging yet",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health/users-db",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health",
+                    "users-db"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"enabled\": false,\n  \"connected\": false,\n  \"latencyMs\": null,\n  \"connection\": {\n    \"user\": \"(not set)\",\n    \"server\": \"(not set)\",\n    \"database\": \"(not set)\",\n    \"poolMin\": 2,\n    \"poolMax\": 10,\n    \"encrypt\": true\n  },\n  \"pool\": null,\n  \"server\": null,\n  \"error\": {\n    \"message\": \"Users DB host/database/user missing — pool not initialized.\"\n  },\n  \"checkedAt\": \"2026-08-23T13:08:04.953Z\"\n}"
             }
           ]
         }
