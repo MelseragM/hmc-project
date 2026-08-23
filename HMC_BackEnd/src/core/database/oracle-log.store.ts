@@ -27,7 +27,11 @@ export interface OracleLogEntry {
    * redacted. A diagnostic aid, not the literal wire text.
    */
   finalSql?: string;
-  /** Sanitized preview of what Oracle returned (rows or OUT-bind values). */
+  /**
+   * What Oracle returned (rows or OUT-bind values), stored AS-IS — no
+   * redaction, truncation or row caps (only non-serializable driver objects
+   * like ResultSets/LOBs are tagged, and BLOB Buffers described by size).
+   */
   response?: unknown;
 }
 

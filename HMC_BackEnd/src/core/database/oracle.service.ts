@@ -53,10 +53,6 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
 
   /** Bind/column keys whose values must never be logged. */
   private static readonly SENSITIVE_BIND = /(mpin|password|pwd|otp|secret|token)/i;
-  /** Response preview caps so the diagnostics log never balloons in size. */
-  private static readonly MAX_RESPONSE_ROWS = 5;
-  private static readonly MAX_RESPONSE_STRING = 300;
-  private static readonly MAX_RESPONSE_DEPTH = 6;
 
   constructor(
     config: ConfigService,
@@ -159,7 +155,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       this.logCallSuccess(call, {
         summary: `${rows.length} row(s)`,
         rowCount: rows.length,
-        response: this.sanitizeResponseValue(rows),
+        response: this.captureRawResponse(rows),
       });
       return rows;
     } catch (err) {
@@ -189,7 +185,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       this.logCallSuccess(call, {
         summary: `out={ ${outKeys.join(', ')} }`,
         outKeys,
-        response: this.sanitizeResponseValue(outBinds),
+        response: this.captureRawResponse(outBinds),
       });
       return outBinds;
     } catch (err) {
@@ -227,7 +223,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       this.logCallSuccess(call, {
         summary: `${rows?.length ?? 0} row(s)`,
         rowCount: rows?.length ?? 0,
-        response: this.sanitizeResponseValue(rows ?? []),
+        response: this.captureRawResponse(rows ?? []),
       });
       return rows ?? [];
     } catch (err) {
@@ -281,7 +277,9 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
           .map(([k, n]) => `${k}:${n}`)
           .join(', ')} } scalars={ ${Object.keys(scalars).join(', ')} }`,
         outKeys: Object.keys(outBinds),
-        response: this.sanitizeResponseValue({ ...rowCounts, ...scalars }),
+        // Full cursor rows + scalar OUT binds — not just the per-cursor row
+        // counts — so the diagnostics log holds the complete Oracle response.
+        response: this.captureRawResponse({ ...cursors, ...scalars }),
       });
       return { cursors, scalars };
     } catch (err) {
@@ -408,52 +406,42 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Render an Oracle result (rows or OUT-bind values) for the diagnostics log:
-   * sensitive columns redacted, strings truncated, and — for arrays — capped to
-   * a handful of rows with a note of how many were omitted. Keeps the log
-   * bounded regardless of how much data a call actually returned.
+   * Capture what Oracle returned (rows or OUT-bind values) for the diagnostics
+   * log AS-IS: no column redaction, no string truncation, no row caps — the
+   * stored response is exactly the data Oracle produced (explicit requirement:
+   * the Oracle-logs endpoint must show the full response untouched).
    *
-   * A REF CURSOR OUT bind is a live `node-oracledb` `ResultSet`, not plain
-   * data — its `_connection`/`_pool` internals hold circular references
-   * (cursor → connection → pool → ...). Walking those with
-   * `Object.entries`/recursion previously ran away into
-   * `RangeError: Maximum call stack size exceeded`, which — thrown from
-   * *inside* the same try block as the successful `conn.execute()` — masked
-   * an otherwise-successful Oracle call as a generic 500. Only plain object
-   * literals and arrays are walked; anything else (ResultSet, LOB, Connection,
-   * Pool, ...) is described by its constructor name instead. A depth cap is
-   * kept too, as a second line of defense against any other deep/self-
-   * referential structure.
+   * The only transformations are structural, to keep the value storable and
+   * JSON-serializable — none of them drop business data:
+   *  - A REF CURSOR OUT bind is a live `node-oracledb` `ResultSet`, not plain
+   *    data — its `_connection`/`_pool` internals hold circular references
+   *    (cursor → connection → pool → ...). Walking those with
+   *    `Object.entries`/recursion previously ran away into
+   *    `RangeError: Maximum call stack size exceeded`, which — thrown from
+   *    *inside* the same try block as the successful `conn.execute()` — masked
+   *    an otherwise-successful Oracle call as a generic 500. Only plain object
+   *    literals and arrays are walked; anything else (ResultSet, LOB,
+   *    Connection, Pool, ...) is described by its constructor name (the call
+   *    sites read cursors into plain rows BEFORE recording, so real data is
+   *    never behind these driver objects).
+   *  - Cycles are broken with a `[circular]` marker (second line of defense).
+   *  - Buffers (BLOB values) are described by size — raw binary is not
+   *    representable in the JSON log; Dates are ISO strings.
    */
-  private sanitizeResponseValue(value: unknown, depth = 0): unknown {
-    if (value === null || value === undefined) return value;
-    if (typeof value === 'string') {
-      return value.length > OracleService.MAX_RESPONSE_STRING
-        ? `${value.slice(0, OracleService.MAX_RESPONSE_STRING)}…`
-        : value;
-    }
-    if (depth >= OracleService.MAX_RESPONSE_DEPTH) {
-      return Array.isArray(value) || (typeof value === 'object' && value !== null) ? '[truncated]' : value;
-    }
-    if (Array.isArray(value)) {
-      const shown = value
-        .slice(0, OracleService.MAX_RESPONSE_ROWS)
-        .map((v) => this.sanitizeResponseValue(v, depth + 1));
-      const omitted = value.length - shown.length;
-      return omitted > 0 ? [...shown, `…(${omitted} more row(s) not shown)`] : shown;
-    }
+  private captureRawResponse(value: unknown, seen = new WeakSet<object>()): unknown {
+    if (value === null || value === undefined || typeof value !== 'object') return value;
     if (Buffer.isBuffer(value)) return `[Buffer ${value.length} byte(s)]`;
     if (value instanceof Date) return value.toISOString();
-    if (typeof value === 'object') {
-      const ctor = (value as { constructor?: { name?: string } }).constructor;
-      if (ctor && ctor !== Object) return `[${ctor.name}]`;
-      const out: Record<string, unknown> = {};
-      for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
-        out[key] = OracleService.SENSITIVE_BIND.test(key) ? '***' : this.sanitizeResponseValue(v, depth + 1);
-      }
-      return out;
+    if (seen.has(value)) return '[circular]';
+    seen.add(value);
+    if (Array.isArray(value)) return value.map((v) => this.captureRawResponse(v, seen));
+    const ctor = (value as { constructor?: { name?: string } }).constructor;
+    if (ctor && ctor !== Object) return `[${ctor.name}]`;
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = this.captureRawResponse(v, seen);
     }
-    return value;
+    return out;
   }
 
   /** Short label for a statement: the view/table read or the procedure invoked. */

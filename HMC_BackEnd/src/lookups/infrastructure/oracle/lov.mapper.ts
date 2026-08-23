@@ -96,6 +96,10 @@ export class LovMapper {
       code: code ?? meaning ?? '',
       meaning: meaning ?? code ?? '',
       meaningAr,
+      // Always the English label: `meaning` is localized (swapped for the
+      // Arabic twin) by the ResponseInterceptor on lang=ar, while `used_value`
+      // has no *Ar twin and therefore survives untouched — submits bind it.
+      used_value: meaning ?? code ?? '',
       ...(type ? { type } : {}),
     };
   }

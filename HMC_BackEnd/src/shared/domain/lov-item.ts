@@ -9,6 +9,13 @@ export interface LovItem {
   meaning: string;
   meaningAr?: string;
   /**
+   * The ENGLISH meaning, always — regardless of the request's `lang`. The
+   * localization interceptor swaps `meaning` for its Arabic twin on `lang=ar`,
+   * but Oracle submit procedures expect the English value, so clients bind
+   * this field back on submits. Present on every LOV item.
+   */
+  used_value: string;
+  /**
    * Grouping key of the multi-type LOVs — DEP_LOOKUP_LOV returns address types,
    * relationships, genders and sponsorship kinds in one result set, told apart by
    * its `DATATYPE` column.
