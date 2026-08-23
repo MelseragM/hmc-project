@@ -4,21 +4,28 @@ import {
   RequiredString,
 } from '@shared/dto/oracle-submit.dto';
 
-/** op 19 — QID_UPD_PR (QID_CHG_PR request template). */
+/**
+ * op 19 — QID_UPD_PR (QID_CHG_PR request template). Example values verified
+ * live on staging 2026-08-23 (successflag S) — dates in `yyyy-MM-dd` work.
+ */
 export class QidUpdateRequestDto {
-  @RequiredString('28381807872')
+  @RequiredString('28481809470')
   p_qid_number!: string;
 
-  @RequiredString('2025-OCT-17')
+  @RequiredString('2025-10-17')
   p_iss_date!: string;
 
-  @RequiredString('2029-OCT-16')
+  @RequiredString('2029-10-16')
   p_exp_date!: string;
 
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(QidUpdateRequestDto, ['p_qid_job', ...ATTACHMENT_FIELDS]);
+defineOptionalStringFields(QidUpdateRequestDto, ['p_qid_job', ...ATTACHMENT_FIELDS], {
+  p_qid_job: 'Analyst',
+  p_file_name1: 'qid-front.jpg',
+  p_attachment1: 'dGVzdCBhdHRhY2htZW50',
+});
 
 /** op 54 — RequestCompanyID (COID_REQ_PR request template). */
 export class CompanyIdApplyRequestDto {
@@ -37,4 +44,6 @@ export class CompanyIdApplyRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(CompanyIdApplyRequestDto, ['p_comments', ...ATTACHMENT_FIELDS]);
+defineOptionalStringFields(CompanyIdApplyRequestDto, ['p_comments', ...ATTACHMENT_FIELDS], {
+  p_comments: 'test',
+});
