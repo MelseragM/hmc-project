@@ -255,12 +255,15 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_V).
-  @RequiredString('62')
+  // The FULL value string from the return LOV (op 55, GET /leave/lov/return →
+  // used_value) — a short ordinal like '62' fails the flexfield. KNOWN STAGING
+  // ISSUE (2026-08-23): the procedure currently raises ORA-06502 "buffer too
+  // small" at line 196 even for its own LOV values (DB team informed).
+  @RequiredString('Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026')
   p_leave_details!: string;
 
   /** Return date — `yyyy-MM-dd` or `dd-Mon-yyyy` (DATE formals bind natively). */
-  @RequiredString('2026-06-15')
+  @RequiredString('20-Apr-2026')
   p_return_date!: string;
 
   /**
