@@ -220,7 +220,12 @@ export const LEAVE_APPLY_BODY = {
   },
 };
 
-/** op 57 — POST /leave/amend request body (HR_LEAV_AMEND_PR). */
+/**
+ * op 57 — POST /leave/amend request body (HR_LEAV_AMEND_PR). Unused attachment
+ * slots may be sent explicitly as null (equivalent to omitting them);
+ * `p_user_name` is accepted but the authenticated username is enforced
+ * server-side; `p_language` is injected server-side and must NOT be sent.
+ */
 export const LEAVE_AMEND_BODY = {
   description: 'Leave-amend payload (HR_LEAV_AMEND_PR `p_*` binds).',
   schema: {
@@ -228,17 +233,27 @@ export const LEAVE_AMEND_BODY = {
     required: ['p_leave_type', 'p_leave_to_amend', 'p_new_end_date'],
     properties: {
       p_leave_type: { type: 'string', example: 'Annual Leave' },
-      p_leave_to_amend: { type: 'string', example: '62', description: 'Identifier of the leave to amend.' },
-      p_new_end_date: { type: 'string', example: '20-Jun-2026', description: 'New end date (DD-Mon-YYYY).' },
-      p_comments: { type: 'string', example: 'Extending by two days.' },
+      p_user_name: {
+        type: 'string',
+        example: 'AIBRAHIM39',
+        description: 'Optional; ignored — the authenticated username is enforced server-side.',
+      },
+      p_leave_to_amend: { type: 'string', example: '62', description: 'Identifier of the leave to amend (from the amend LOV, op 62).' },
+      p_new_end_date: {
+        type: 'string',
+        example: '2026-06-20',
+        description: 'New end date (yyyy-MM-dd or dd-Mon-yyyy) — bound as a DATE.',
+      },
+      p_comments: { type: 'string', example: 'Extending by two days.', nullable: true },
       ...attachmentProperties(),
     },
     example: {
       p_leave_type: 'Annual Leave',
+      p_user_name: 'AIBRAHIM39',
       p_leave_to_amend: '62',
-      p_new_end_date: '20-Jun-2026',
+      p_new_end_date: '2026-06-20',
       p_comments: 'Extending by two days.',
-      ...ATTACHMENT_EXAMPLE,
+      ...nullAttachmentExample(),
     },
   },
 };

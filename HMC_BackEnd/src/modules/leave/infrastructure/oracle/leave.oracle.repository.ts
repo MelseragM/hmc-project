@@ -103,11 +103,17 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
    * GET /leaves — the user's leave history from ABSENCE_V, optionally filtered
    * by ABSENCE_TYPE (English value). Both language columns are mapped; the
    * ResponseInterceptor collapses the `*Ar` twins per the request's lang.
+   *
+   * Confirmed live columns (data dictionary): USER_NAME, ABSENCE_TYPE,
+   * ABSENCE_TYPE_AR, REASON (the ENGLISH reason — there is no ABSENCE_REASON,
+   * that spelling raised ORA-00904), ABSENCE_REASON_AR, ACTUAL_START_DATE,
+   * ACTUAL_END_DATE (both VARCHAR2(10) display strings, not DATEs),
+   * ABSENCE_DAYS NUMBER(9,4), NOTIFIED_DATE.
    */
   async list(query: LeaveListQuery): Promise<LeaveRecord[]> {
     const binds: { u: string; t?: string } = { u: query.username };
     let sql =
-      `SELECT ABSENCE_TYPE, ABSENCE_TYPE_AR, ABSENCE_REASON, ABSENCE_REASON_AR,
+      `SELECT ABSENCE_TYPE, ABSENCE_TYPE_AR, REASON, ABSENCE_REASON_AR,
               ACTUAL_START_DATE, ACTUAL_END_DATE, ABSENCE_DAYS
          FROM ${ORACLE_OBJECTS.ABSENCE_V}
         WHERE USER_NAME = :u`;
@@ -115,21 +121,26 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
       sql += ' AND ABSENCE_TYPE = :t';
       binds.t = query.leaveType;
     }
-    sql += ' ORDER BY ACTUAL_START_DATE DESC';
     const rows = await this.query(sql, binds);
-    return rows.map((row) => {
+    const records = rows.map((row) => {
       const days = col(row, 'ABSENCE_DAYS');
       return pruneUndefined({
         absenceType: str(row, 'ABSENCE_TYPE'),
         absenceTypeAr: strAr(row, 'ABSENCE_TYPE_AR'),
-        absenceReason: str(row, 'ABSENCE_REASON'),
+        absenceReason: str(row, 'REASON'),
         absenceReasonAr: strAr(row, 'ABSENCE_REASON_AR'),
         actualStartDate: dateStr(row, 'ACTUAL_START_DATE'),
         actualEndDate: dateStr(row, 'ACTUAL_END_DATE'),
         absenceDays:
           days == null ? undefined : Number.isFinite(Number(days)) ? Number(days) : String(days),
-      });
+      }) as LeaveRecord;
     });
+    // Newest first. ACTUAL_START_DATE is a VARCHAR2 display string, so an SQL
+    // ORDER BY would sort alphabetically (and TO_DATE could ORA-01861 on an
+    // unexpected format) — sort here via the tolerant date parser instead;
+    // unparseable dates sink to the end.
+    const time = (value?: string) => parseOracleDate(value ?? null)?.getTime() ?? 0;
+    return records.sort((a, b) => time(b.actualStartDate) - time(a.actualStartDate));
   }
 
   async apply(cmd: LeaveApplyCommand): Promise<SubmitResult> {

@@ -214,8 +214,21 @@ export class LeaveAmendRequestDto {
   @RequiredString('56944958')
   p_leave_to_amend!: string;
 
-  @RequiredString('20-Jun-2026')
+  /** New end date — `yyyy-MM-dd` or `dd-Mon-yyyy` (DATE formals bind natively). */
+  @RequiredString('2026-06-20')
   p_new_end_date!: string;
+
+  /**
+   * Accepted for spec-payload compatibility but NOT honored: the authenticated
+   * JWT username is always enforced server-side as `p_user_name`.
+   */
+  @ApiPropertyOptional({
+    example: 'AIBRAHIM39',
+    description: 'Optional; ignored — the authenticated username is enforced server-side.',
+  })
+  @IsOptional()
+  @IsString()
+  p_user_name?: string;
 
   [key: string]: unknown;
 }

@@ -185,7 +185,18 @@ const MODULES = [
         body: { absenceType: 'Casual Leave', startDate: '12-Jun-2025', endDate: '14-Jun-2025' },
         success: leaveEx.LEAVE_CALCULATE_EXAMPLE, errors: [400, 401, 500] },
       { name: 'Leave amend', method: 'POST', p: 'leave/amend', auth: 'bearer', kind: 'action',
-        body: { p_leave_type: 'Annual Leave', p_leave_to_amend: '62', p_new_end_date: '20-Jun-2026', p_comments: 'Extending by two days.' },
+        // p_user_name is accepted but the authenticated username is enforced
+        // server-side. Dates accept yyyy-MM-dd or dd-Mon-yyyy. Unused
+        // attachment slots may be sent as null (equivalent to omitting them).
+        body: {
+          p_leave_type: 'Annual Leave', p_user_name: 'AIBRAHIM39',
+          p_leave_to_amend: '62', p_new_end_date: '2026-06-20',
+          p_comments: 'Extending by two days.',
+          p_file_name1: null, p_attachment1: null, p_file_name2: null, p_attachment2: null,
+          p_file_name3: null, p_attachment3: null, p_file_name4: null, p_attachment4: null,
+          p_file_name5: null, p_attachment5: null, p_file_name6: null, p_attachment6: null,
+          p_file_name7: null, p_attachment7: null, p_file_name8: null, p_attachment8: null,
+          p_file_name9: null, p_attachment9: null, p_file_name10: null, p_attachment10: null },
         success: actionSuccess, errors: [400, 401, 409, 500] },
       { name: 'Leave cancel', method: 'POST', p: 'leave/cancel', auth: 'bearer', kind: 'action',
         body: { p_leave_type: 'Annual Leave', p_leave_to_cancel: '62', p_reason_for_cancel: 'Plans changed', p_remarks: 'Will re-apply later.' },
