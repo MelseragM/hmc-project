@@ -71,14 +71,15 @@ export const EMPLOYEE_SUPERVISOR_UPDATE_BODY = {
     properties: {
       p_new_supervisor: {
         type: 'string',
-        example: '037915',
-        description: 'Employee number of the proposed new supervisor.',
+        example: '112',
+        description:
+          'Oracle PERSON_ID of the proposed new supervisor (from GET /employee/supervisor/views → PERSON_ID). NOT the employee number — the "HMC Change Supervisor" flexfield rejects it.',
       },
       p_reason: { type: 'string', example: 'Team restructure', description: 'Reason for the change.' },
       ...attachmentProperties(),
     },
     example: {
-      p_new_supervisor: '037915',
+      p_new_supervisor: '112',
       p_reason: 'Team restructure',
       ...ATTACHMENT_EXAMPLE,
     },

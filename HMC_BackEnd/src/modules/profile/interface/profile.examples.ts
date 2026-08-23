@@ -90,18 +90,15 @@ export const PROFILE_UPDATE_PERSONAL_BODY = {
       p_type_of_sponsership: { type: 'string', example: '' },
       ...attachmentProperties(),
     },
+    // Pinned to the payload verified live on staging 2026-08-23 (successflag S).
     example: {
       p_effective_date: '01-Jan-2026',
       p_first_name: 'Amir',
       p_middle_name: 'Sami Samir',
       p_last_name: 'Ibrahim',
       p_marital_status: 'Married',
-      p_name_in_arabic: 'امير سامي سمير ابراهيم',
-      p_title: 'Mr.',
-      p_place_of_issue: 'Doha',
-      p_country_of_issue: 'QA',
-      p_visa_type: 'Work',
-      ...ATTACHMENT_EXAMPLE,
+      p_file_name1: 'marriage-cert.pdf',
+      p_attachment1: 'dGVzdCBhdHRhY2htZW50',
     },
   },
 };

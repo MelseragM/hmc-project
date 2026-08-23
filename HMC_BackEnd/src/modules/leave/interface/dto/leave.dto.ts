@@ -255,13 +255,16 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // A leave-record id from the return LOV (op 55, RFL_LEAVE_DET_LOV) — NOT a
-  // small ordinal. Call GET /leave/lov/return first; sending an id absent from
-  // that value set raises ORA-20001 (FLEX-VALUE DOES NOT EXIST).
-  @RequiredString('56944958')
+  // The FULL value string from the return LOV (op 55, GET /leave/lov/return →
+  // used_value), e.g. "Casual Leave|Leave Start Date : 19-APR-2026 and Leave
+  // End Date : 19-APR-2026". A value absent from that set raises ORA-20001.
+  // KNOWN STAGING ISSUE (2026-08-23): the procedure currently fails with
+  // ORA-06502 "character string buffer too small" at line 196 even for its
+  // own LOV values — the internal buffer is smaller than the LOV strings.
+  @RequiredString('Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026')
   p_leave_details!: string;
 
-  @RequiredString('15-Jun-2026')
+  @RequiredString('20-Apr-2026')
   p_return_date!: string;
 
   [key: string]: unknown;
