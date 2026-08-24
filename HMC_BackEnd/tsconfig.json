@@ -9,8 +9,9 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
+    // NOT incremental: nest-cli deleteOutDir wipes dist but the root-level
+    // .tsbuildinfo survives, so an incremental rebuild skips "unchanged" files
+    // and ships an incomplete dist (bit us 2026-08-24: missing env.validation.js).
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
@@ -21,10 +22,10 @@
     "resolveJsonModule": true,
     "types": ["node", "jest"],
     "paths": {
-      "@core/*": ["src/core/*"],
-      "@shared/*": ["src/shared/*"],
-      "@lookups/*": ["src/lookups/*"],
-      "@modules/*": ["src/modules/*"]
+      "@core/*": ["./src/core/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@lookups/*": ["./src/lookups/*"],
+      "@modules/*": ["./src/modules/*"]
     }
   },
   "exclude": ["node_modules", "dist"]

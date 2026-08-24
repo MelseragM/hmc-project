@@ -97,6 +97,11 @@ export interface UsersDbConfig {
   /** Accept the server cert without CA validation (self-signed instances). */
   trustServerCertificate: boolean;
   disabled: boolean;
+  /**
+   * Enables POST /diagnostics/users-db/sql (ad-hoc SELECT console). Ignored in
+   * production — the endpoint is always 403 there regardless of this flag.
+   */
+  sqlConsoleEnabled: boolean;
 }
 
 /**
@@ -270,6 +275,7 @@ export default (): RootConfig => ({
     encrypt: toBool(process.env.USERS_DB_ENCRYPT ?? 'true'),
     trustServerCertificate: toBool(process.env.USERS_DB_TRUST_SERVER_CERT ?? 'false'),
     disabled: toBool(process.env.USERS_DB_DISABLED),
+    sqlConsoleEnabled: toBool(process.env.USERS_DB_SQL_ENABLED),
   },
   sms: {
     baseUrl: process.env.SMS_API_BASE_URL ?? '',
