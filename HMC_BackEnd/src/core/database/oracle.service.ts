@@ -139,6 +139,19 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     return this.pool;
   }
 
+  /**
+   * Acquire a raw pooled connection for internal tooling that must run
+   * arbitrary statements outside the query/call helpers (the developer
+   * console). The caller owns closing it. Not used by feature modules —
+   * repositories always go through `query`/`call`/`callCursor` so every
+   * application statement stays logged and shaped.
+   */
+  async acquire(callTimeoutMs?: number): Promise<oracledb.Connection> {
+    const conn = await this.getPool().getConnection();
+    conn.callTimeout = callTimeoutMs ?? this.cfg.callTimeout;
+    return conn;
+  }
+
   /** Parameterized SELECT — returns mapped rows (object format). */
   async query<T = Record<string, any>>(
     sql: string,

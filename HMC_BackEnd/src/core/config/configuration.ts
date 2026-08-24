@@ -42,6 +42,24 @@ export interface OracleConfig {
   libDir?: string;
 }
 
+/**
+ * Internal developer console (SQL worksheet + API tester). NOT part of the
+ * public API: hidden from Swagger, disabled unless explicitly enabled, and
+ * refused outright when NODE_ENV=production. Read-only by default.
+ */
+export interface DevConsoleConfig {
+  /** Master switch (DEV_CONSOLE_ENABLED). Off unless explicitly turned on. */
+  enabled: boolean;
+  /** Shared secret required in the `x-console-token` header / `?token=`. Empty = no token check. */
+  token: string;
+  /** Allow DML/DDL/PLSQL that changes data. Off = SELECT/WITH/EXPLAIN + read-only PL/SQL only. */
+  allowWrite: boolean;
+  /** Hard cap on rows returned by one statement. */
+  maxRows: number;
+  /** Per-statement Oracle call timeout (ms). */
+  timeoutMs: number;
+}
+
 export interface AuthConfig {
   jwtSecret: string;
   jwtIssuer: string;
@@ -189,6 +207,7 @@ export interface EntraConfig {
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
+  devConsole: DevConsoleConfig;
   usersDb: UsersDbConfig;
   sms: SmsConfig;
   auth: AuthConfig;
@@ -256,6 +275,13 @@ export default (): RootConfig => ({
     disabled: toBool(process.env.ORACLE_DISABLED),
     thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
+  },
+  devConsole: {
+    enabled: toBool(process.env.DEV_CONSOLE_ENABLED),
+    token: process.env.DEV_CONSOLE_TOKEN ?? '',
+    allowWrite: toBool(process.env.DEV_CONSOLE_ALLOW_WRITE),
+    maxRows: Number(process.env.DEV_CONSOLE_MAX_ROWS ?? 500),
+    timeoutMs: Number(process.env.DEV_CONSOLE_TIMEOUT_MS ?? 60000),
   },
   usersDb: {
     host: process.env.USERS_DB_HOST ?? '',

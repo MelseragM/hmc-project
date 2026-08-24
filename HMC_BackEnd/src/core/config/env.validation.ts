@@ -115,6 +115,14 @@ export const envValidationSchema = Joi.object({
   ENTRA_LOOKUP_ATTRIBUTE: Joi.string().default('userPrincipalName'),
   ENTRA_TIMEOUT_MS: Joi.number().default(10000),
 
+  // Internal dev console (SQL worksheet + API tester) — hidden from Swagger,
+  // off by default, and hard-disabled when NODE_ENV=production.
+  DEV_CONSOLE_ENABLED: Joi.boolean().default(false),
+  DEV_CONSOLE_TOKEN: Joi.string().allow('').default(''),
+  DEV_CONSOLE_ALLOW_WRITE: Joi.boolean().default(false),
+  DEV_CONSOLE_MAX_ROWS: Joi.number().min(1).max(10000).default(500),
+  DEV_CONSOLE_TIMEOUT_MS: Joi.number().min(1000).default(60000),
+
   // Misc
   REQUEST_TIMEOUT_MS: Joi.number().default(30000),
   LOV_CACHE_TTL_MS: Joi.number().min(0).default(300000),
