@@ -134,11 +134,11 @@ export class DevConsoleService {
   }
 
   async execute(input: {
-    sql: string;
+    sql?: string;
     binds?: Record<string, unknown>;
     maxRows?: number;
   }): Promise<SqlExecResult> {
-    const sql = this.prepare(input.sql);
+    const sql = this.prepare(input.sql ?? '');
     const kind = this.classify(sql);
     const maxRows = Math.min(input.maxRows ?? this.cfg.maxRows, this.cfg.maxRows);
 
