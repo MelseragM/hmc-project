@@ -44,15 +44,23 @@ export interface OracleConfig {
 
 /**
  * Internal developer console (SQL worksheet + API tester). NOT part of the
- * public API: hidden from Swagger, disabled unless explicitly enabled, and
- * refused outright when NODE_ENV=production. Read-only by default.
+ * public API: hidden from Swagger (`@ApiExcludeController`).
+ *
+ * Works with ZERO configuration: every setting below has a working default, so
+ * the console is available on any deployment as soon as the build ships. It
+ * starts READ-ONLY (SELECT/WITH/EXPLAIN, rolled back); write/PLSQL mode is a
+ * deliberate switch in the UI itself (per process, reset on restart) rather
+ * than an env variable. All env vars are optional hardening:
+ *   DEV_CONSOLE_ENABLED=false → kill switch
+ *   DEV_CONSOLE_TOKEN=<secret> → require `x-console-token` / `?token=`
+ *   DEV_CONSOLE_ALLOW_WRITE=true → start already in write mode
  */
 export interface DevConsoleConfig {
-  /** Master switch (DEV_CONSOLE_ENABLED). Off unless explicitly turned on. */
+  /** Master switch (DEV_CONSOLE_ENABLED). Defaults to ON — set `false` to remove the routes. */
   enabled: boolean;
   /** Shared secret required in the `x-console-token` header / `?token=`. Empty = no token check. */
   token: string;
-  /** Allow DML/DDL/PLSQL that changes data. Off = SELECT/WITH/EXPLAIN + read-only PL/SQL only. */
+  /** Initial write mode. Off = SELECT/WITH/EXPLAIN only; the UI can switch it at runtime. */
   allowWrite: boolean;
   /** Hard cap on rows returned by one statement. */
   maxRows: number;
@@ -277,7 +285,8 @@ export default (): RootConfig => ({
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
   },
   devConsole: {
-    enabled: toBool(process.env.DEV_CONSOLE_ENABLED),
+    // Default ON so the console needs no environment setup anywhere.
+    enabled: toBool(process.env.DEV_CONSOLE_ENABLED ?? 'true'),
     token: process.env.DEV_CONSOLE_TOKEN ?? '',
     allowWrite: toBool(process.env.DEV_CONSOLE_ALLOW_WRITE),
     maxRows: Number(process.env.DEV_CONSOLE_MAX_ROWS ?? 500),

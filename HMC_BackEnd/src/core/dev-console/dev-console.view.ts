@@ -89,7 +89,7 @@ export const DEV_CONSOLE_HTML = String.raw`<!doctype html>
   </div>
   <span class="spacer"></span>
   <span class="badge db" id="b-db">db…</span>
-  <span class="badge" id="b-mode">mode…</span>
+  <span class="badge" id="b-mode" title="Click to switch read-only / write mode (this process only)" style="cursor:pointer">mode…</span>
   <span class="badge" id="b-rows"></span>
 </header>
 
@@ -214,14 +214,24 @@ export const DEV_CONSOLE_HTML = String.raw`<!doctype html>
     if (t) t.click();
   }
 
-  // ── settings badges ──
-  api('/settings').then(function(r){
-    var s = r.data || {};
+  // ── settings badges (write mode is a runtime switch, no env needed) ──
+  var writeMode = false;
+  function applySettings(s){
+    s = s || {};
+    writeMode = !!s.allowWrite;
     $('b-db').textContent = (s.oracle && s.oracle.disabled) ? 'oracle disabled' : ((s.oracle&&s.oracle.user)+' @ '+(s.oracle&&s.oracle.dsn));
-    $('b-mode').textContent = s.allowWrite ? 'READ / WRITE' : 'READ-ONLY';
-    $('b-mode').className = 'badge ' + (s.allowWrite ? 'rw' : 'ro');
+    $('b-mode').textContent = writeMode ? 'READ / WRITE ⚠' : 'READ-ONLY 🔒';
+    $('b-mode').className = 'badge ' + (writeMode ? 'rw' : 'ro');
     $('b-rows').textContent = 'max ' + s.maxRows + ' rows · ' + Math.round((s.timeoutMs||0)/1000) + 's';
-  });
+  }
+  api('/settings').then(function(r){ applySettings(r.data); });
+  $('b-mode').onclick = function(){
+    var next = !writeMode;
+    if (next && !confirm('Enable WRITE mode?\n\nDML / DDL / PL-SQL blocks will execute and COMMIT against '+
+        ($('b-db').textContent)+'.\n\nThis lasts until the server restarts.')) return;
+    api('/mode', { method:'POST', body: JSON.stringify({ enabled: next }) })
+      .then(function(r){ applySettings(r.data); });
+  };
 
   // ── navigator ──
   var searchTimer;

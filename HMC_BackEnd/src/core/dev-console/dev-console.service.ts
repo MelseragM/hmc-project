@@ -71,6 +71,13 @@ export class DevConsoleService {
   private readonly cfg: DevConsoleConfig;
   private readonly oracleCfg: OracleConfig;
   private readonly app: AppConfig;
+  /**
+   * Write mode is runtime state, not configuration: the console ships
+   * read-only and the operator flips this from the UI when they actually need
+   * to run a procedure or a DML. In memory only — every restart returns to the
+   * safe default, so a forgotten switch cannot persist.
+   */
+  private writeMode: boolean;
 
   constructor(
     config: ConfigService,
@@ -80,11 +87,13 @@ export class DevConsoleService {
     this.cfg = config.getOrThrow<DevConsoleConfig>('devConsole');
     this.oracleCfg = config.getOrThrow<OracleConfig>('oracle');
     this.app = config.getOrThrow<AppConfig>('app');
+    this.writeMode = this.cfg.allowWrite;
   }
 
   settings() {
     return {
-      allowWrite: this.cfg.allowWrite,
+      allowWrite: this.writeMode,
+      writeModeIsRuntime: true,
       maxRows: this.cfg.maxRows,
       timeoutMs: this.cfg.timeoutMs,
       oracle: {
@@ -94,6 +103,20 @@ export class DevConsoleService {
       },
       apiBaseUrl: `/${this.app.apiPrefix}`,
     };
+  }
+
+  /** Flip write mode for this process. Logged loudly — it lets statements commit. */
+  setWriteMode(on: boolean) {
+    this.writeMode = on;
+    if (on) {
+      this.logger.warn(
+        'DEV CONSOLE: WRITE MODE ENABLED — DML/DDL/PL-SQL will now execute and commit. ' +
+          'Resets to read-only on restart.',
+      );
+    } else {
+      this.logger.log('DEV CONSOLE: back to read-only mode.');
+    }
+    return this.settings();
   }
 
   // ── SQL execution ───────────────────────────────────────────
@@ -122,10 +145,10 @@ export class DevConsoleService {
     if (FORBIDDEN.test(sql)) {
       throw new BadRequestException('This statement class is blocked by the console.');
     }
-    if (!this.cfg.allowWrite && !READ_ONLY_KINDS.includes(kind)) {
+    if (!this.writeMode && !READ_ONLY_KINDS.includes(kind)) {
       throw new BadRequestException(
-        `Read-only console: ${kind.toUpperCase()} statements need DEV_CONSOLE_ALLOW_WRITE=true. ` +
-          'SELECT / WITH / EXPLAIN PLAN are always allowed.',
+        `Read-only console: ${kind.toUpperCase()} statements need write mode. ` +
+          'Click the READ-ONLY badge in the header to switch. SELECT / WITH / EXPLAIN PLAN always run.',
       );
     }
     if (this.oracleCfg.disabled) {
@@ -138,9 +161,9 @@ export class DevConsoleService {
       conn = await this.ora.acquire(this.cfg.timeoutMs);
       const result = await conn.execute(sql, (input.binds ?? {}) as oracledb.BindParameters, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        // Read-only statements never commit; writes commit only when the
-        // console was explicitly started with DEV_CONSOLE_ALLOW_WRITE=true.
-        autoCommit: this.cfg.allowWrite && !READ_ONLY_KINDS.includes(kind),
+        // Read-only statements never commit; writes commit only while the
+        // operator has write mode switched on.
+        autoCommit: this.writeMode && !READ_ONLY_KINDS.includes(kind),
         maxRows: maxRows + 1,
       });
 

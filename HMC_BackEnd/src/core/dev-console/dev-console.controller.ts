@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Header, HttpCode, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
 import { DevConsoleGuard } from './dev-console.guard';
@@ -39,6 +39,11 @@ export class ApiCallDto {
   @IsOptional()
   @IsObject()
   headers?: Record<string, string>;
+}
+
+export class WriteModeDto {
+  @IsBoolean()
+  enabled!: boolean;
 }
 
 export class SourceQueryDto {
@@ -103,6 +108,17 @@ export class DevConsoleController {
   @SkipEnvelope()
   settings() {
     return this.service.settings();
+  }
+
+  /**
+   * Switch write mode on/off for this process (in-memory, reset on restart).
+   * Keeps the console usable end-to-end without touching the environment.
+   */
+  @Post('mode')
+  @HttpCode(200)
+  @SkipEnvelope()
+  mode(@Body() dto: WriteModeDto) {
+    return this.service.setWriteMode(dto.enabled);
   }
 
   /** Run one statement. SQL errors come back as data (never a thrown 5xx). */
