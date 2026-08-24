@@ -19,6 +19,7 @@ import { AuditInterceptor } from './audit/audit.interceptor';
 import { FunctionAccessGuard } from './auth/function-access.guard';
 import { ApiLogsModule } from './logging/api-logs.module';
 import { ApiLogInterceptor } from './logging/api-log.interceptor';
+import { DevConsoleModule } from './dev-console/dev-console.module';
 
 /**
  * Framework-level cross-cutting concerns wired once for the whole app:
@@ -46,6 +47,7 @@ import { ApiLogInterceptor } from './logging/api-log.interceptor';
     AuthModule,
     AuditModule,
     ApiLogsModule,
+    DevConsoleModule,
   ],
   controllers: [HealthController],
   providers: [

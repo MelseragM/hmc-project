@@ -42,6 +42,32 @@ export interface OracleConfig {
   libDir?: string;
 }
 
+/**
+ * Internal developer console (SQL worksheet + API tester). NOT part of the
+ * public API: hidden from Swagger (`@ApiExcludeController`).
+ *
+ * Works with ZERO configuration: every setting below has a working default, so
+ * the console is available on any deployment as soon as the build ships. It
+ * starts READ-ONLY (SELECT/WITH/EXPLAIN, rolled back); write/PLSQL mode is a
+ * deliberate switch in the UI itself (per process, reset on restart) rather
+ * than an env variable. All env vars are optional hardening:
+ *   DEV_CONSOLE_ENABLED=false → kill switch
+ *   DEV_CONSOLE_TOKEN=<secret> → require `x-console-token` / `?token=`
+ *   DEV_CONSOLE_ALLOW_WRITE=true → start already in write mode
+ */
+export interface DevConsoleConfig {
+  /** Master switch (DEV_CONSOLE_ENABLED). Defaults to ON — set `false` to remove the routes. */
+  enabled: boolean;
+  /** Shared secret required in the `x-console-token` header / `?token=`. Empty = no token check. */
+  token: string;
+  /** Initial write mode. Off = SELECT/WITH/EXPLAIN only; the UI can switch it at runtime. */
+  allowWrite: boolean;
+  /** Hard cap on rows returned by one statement. */
+  maxRows: number;
+  /** Per-statement Oracle call timeout (ms). */
+  timeoutMs: number;
+}
+
 export interface AuthConfig {
   jwtSecret: string;
   jwtIssuer: string;
@@ -194,6 +220,7 @@ export interface EntraConfig {
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
+  devConsole: DevConsoleConfig;
   usersDb: UsersDbConfig;
   sms: SmsConfig;
   auth: AuthConfig;
@@ -261,6 +288,14 @@ export default (): RootConfig => ({
     disabled: toBool(process.env.ORACLE_DISABLED),
     thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
+  },
+  devConsole: {
+    // Default ON so the console needs no environment setup anywhere.
+    enabled: toBool(process.env.DEV_CONSOLE_ENABLED ?? 'true'),
+    token: process.env.DEV_CONSOLE_TOKEN ?? '',
+    allowWrite: toBool(process.env.DEV_CONSOLE_ALLOW_WRITE),
+    maxRows: Number(process.env.DEV_CONSOLE_MAX_ROWS ?? 500),
+    timeoutMs: Number(process.env.DEV_CONSOLE_TIMEOUT_MS ?? 60000),
   },
   usersDb: {
     host: process.env.USERS_DB_HOST ?? '',
