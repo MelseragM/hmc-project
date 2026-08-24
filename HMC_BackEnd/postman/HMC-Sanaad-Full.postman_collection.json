@@ -3515,18 +3515,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"56944958\",\n  \"p_new_end_date\": \"2026-06-20\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 57 — Leave amend (`XXHMC_SND_HR_LEAV_AMEND_PR`). `p_leave_to_amend` must come from the op 62 amend LOV.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Verified 2026-08-23:** the amend LOV is EMPTY for the dev user (no amendable leaves), and submitting any id raises ORA-01403 inside the procedure (surfaced as 404). A success example needs a user with an amendable leave.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 57 — Leave amend (`XXHMC_SND_HR_LEAV_AMEND_PR`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**FORMAT (confirmed by DB team + verified live 2026-08-24, successflag S):** `p_leave_to_amend` is a COMPOSITE string `Leave Type|DD-MON-YYYY|DD-MON-YYYY` (type|start|end) identifying the existing leave — e.g. `Annual Leave|12-MAR-2026|12-MAR-2026`. A numeric id raises ORA-01403 (404). Business rules still apply (e.g. Casual Leave max 1 day for HMC-Law employees). The amend LOV (op 62) lists the user's amendable leaves — pass `person_id` (view is person-scoped).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code; needs an amendable leave from op 62 LOV (NOT a captured response)",
+              "name": "Success (200, successflag=S) — composite format",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3553,7 +3553,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"<value from GET /leave/lov/amend>\",\n  \"p_new_end_date\": \"2026-06-20\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3574,7 +3574,55 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Staging error (404) — ORA-01403 (id not in the user's amend value set)",
+              "name": "Business Error (200, successflag=N) — extending Casual Leave beyond 1 day (HMC-Law rule)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/amend?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "amend"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_leave_type\": \"Casual Leave\",\n  \"p_leave_to_amend\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_new_end_date\": \"2026-04-20\",\n  \"p_comments\": \"Extending by one day.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Leave Days cannot be applied more than 1 days for HMC Law employees\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Staging error (404) — numeric id not found (ORA-01403)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3673,18 +3721,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"56944958\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 58 — Leave cancel (`XXHMC_SND_HR_LEAV_CANCEL_PR`). `p_leave_to_cancel` must come from the op 61 cancel LOV.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Verified 2026-08-23:** the cancel LOV is EMPTY for the dev user, and submitting any id raises ORA-01403 (404). A success example needs a user with a cancelable leave.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 58 — Leave cancel (`XXHMC_SND_HR_LEAV_CANCEL_PR`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**FORMAT (verified live 2026-08-24, successflag S):** `p_leave_to_cancel` is a COMPOSITE string `Leave Type|DD-MON-YYYY|DD-MON-YYYY` (type|start|end) — e.g. `Annual Leave|12-MAR-2026|12-MAR-2026`. A numeric id raises ORA-01403 (404).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code; needs a cancelable leave from op 61 LOV (NOT a captured response)",
+              "name": "Success (200, successflag=S) — composite format",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3711,7 +3759,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"<value from GET /leave/lov/cancel>\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
+                  "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3732,7 +3780,7 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Staging error (404) — ORA-01403 (id not in the user's cancel value set)",
+              "name": "Staging error (404) — numeric id not found (ORA-01403)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3831,18 +3879,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_details\": \"Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
+              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 56 — Return from leave (`XXHMC_SND_RET_FRM_LEAV_PR`). `p_leave_details` = the FULL value string from the op 55 return LOV.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**KNOWN STAGING ISSUE (2026-08-23):** even with the exact value from the user's own return LOV, the procedure fails with `ORA-06502: character string buffer too small` at line 196 — the internal buffer is smaller than the LOV's own strings. Needs the DB team.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 56 — Return from leave (`XXHMC_SND_RET_FRM_LEAV_PR`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**FORMAT (verified live 2026-08-24):** `p_leave_details` is the SHORT composite `Leave Type|DD-MON-YYYY|DD-MON-YYYY` — this passes the lookup. Do NOT send the op 55 LOV's long display string (\"… Leave Start Date : …\") — it overflows the procedure's buffer (`ORA-06502` line 196; LOV display format vs procedure input mismatch reported to the DB team). Success additionally requires the Policy Awareness questionnaire (same prerequisite as op 10).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code, pending staging DB fix (NOT a captured response)",
+              "name": "Expected Success (200) — needs a user who submitted the Policy Awareness questionnaire (NOT a captured response)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -3869,7 +3917,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_leave_details\": \"Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
+                  "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3890,7 +3938,55 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Staging DB error (500) — ORA-06502 buffer too small (line 196)",
+              "name": "Business Error (200, successflag=N) — Policy Awareness questionnaire required (format OK)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/return?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "return"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"To avail this function, please submit the Policy Awareness questionnaire.\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Staging DB error (500) — ORA-06502 when the LONG LOV display string is sent",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -4672,7 +4768,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/leave/lov/amend?username=AIBRAHIM39&lang=en",
+              "raw": "{{baseUrl}}/leave/lov/amend?person_id=26023&lang=en",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -4683,8 +4779,8 @@
               ],
               "query": [
                 {
-                  "key": "username",
-                  "value": "AIBRAHIM39"
+                  "key": "person_id",
+                  "value": "26023"
                 },
                 {
                   "key": "lang",
@@ -4692,11 +4788,11 @@
                 }
               ]
             },
-            "description": "**Purpose:** Leave amend LOV\n\n**Auth:** Bearer {{token}} required\n**Query parameters:** username, lang\n\n**Response:** Sanaad read envelope wrapping `{ items: [...] }`."
+            "description": "**Purpose:** op 62 — Leave amend LOV (`XXHMC_SND_LEAVE_AMEND_V`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**IMPORTANT (DB team 2026-08-24):** the view is scoped by **PERSON_ID** (`WHERE person_id = 26023`) — pass `person_id`. `username`/`enum` remain accepted (legacy) but match nothing on this view, which is why they return empty. NOTE: `person_id` support requires the backend build of 2026-08-24+ (older builds reject the parameter with 400). Use the rows to build the composite `p_leave_to_amend` for op 57.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Success (200) — empty for this user",
+              "name": "Success (200) — empty when filtered by username (view is person-scoped)",
               "originalRequest": {
                 "method": "GET",
                 "header": [],
@@ -5710,7 +5806,7 @@
                 }
               }
             },
-            "description": "**Purpose:** op 28 — Add/Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`, one call per array item; stops at the first failed item).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId?, objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400). Omit `phoneId` to create; send it to update.\n\n**Response:** action envelope `{ status, successflag (S|N), message, httpStatusCode }` — business failures come back as HTTP 200 with `successflag: \"N\"`.\n\n**KNOWN STAGING ISSUE (2026-08-23):** the procedure rejects EVERY phone type with `successflag N — \"Phone type doesnot exist\"`. Exhaustively swept: all 8 LOV meanings, all LOV codes (M/H1/W1/L/MPL/OUTQATAR/XXHMC_EMG_*), generic HR values (Mobile/Home/Work), and even an update of the user's own existing phone (phoneId 310129) with its exact stored type. The legacy spec's own recorded sample response shows the SAME error, so the lookup the procedure validates against is broken/empty on staging. Needs the DB team — the request format itself is correct per DTO/Swagger.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 28 — Add/Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`, one call per array item; stops at the first failed item).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId?, objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400). Omit `phoneId` to create; send it to update.\n\n**Response:** action envelope `{ status, successflag (S|N), message, httpStatusCode }` — business failures come back as HTTP 200 with `successflag: \"N\"`.\n\n**KNOWN STAGING ISSUE (re-verified 2026-08-24):** the procedure still rejects EVERY phone type with `successflag N — \"Phone type doesnot exist\"`. The DB team shared the intended 11-value list (incl. `Landline` and 3 sickness-address types the op 27 LOV does not expose) — retested `Qatar Mobile Number` and `Landline` from that list and both are STILL rejected, so the procedure's internal lookup remains broken/empty on staging. Request format is correct per DTO/Swagger.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
@@ -7149,11 +7245,11 @@
                 }
               }
             },
-            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**Verified (2026-08-23):** attachment is mandatory (`successflag N — \"Attachement is mandatory\"` without one). UPDATE (PM): the earlier ORA-00027 kill-session defect at package line 3506 was FIXED by the DB team — the procedure now returns its real check (\"Dependent doesnot exits\" + ORA-01403, sanitized on the wire) for an id that is not the caller's. A success example still needs a REAL dependent id of the caller — no API lists dependent ids (profile only shows dependents that have phones/addresses).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**Verified (2026-08-24):** attachment is mandatory. The DB team provided real dependent ids for AIBRAHIM39 (329302/329303/42465/1607679), BUT the `ORA-00027` kill-session defect at package line 3506 REGRESSED — it intermittently returns (reproduced with real id 329302). When it does not crash, the procedure validates ownership properly (\"Dependent doesnot exits…\" for foreign ids). DB team re-informed.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — needs a real dependent id of the caller (NOT a captured response)",
+              "name": "Expected Success (200) — pending the intermittent ORA-00027 fix (NOT a captured response)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7180,7 +7276,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"<real dependent id of the caller>\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_first_name\": \"Jerome\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7199,6 +7295,54 @@
               ],
               "cookie": [],
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Staging DB error (200, successflag=N sanitized) — intermittent ORA-00027 regressed with real id",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/update?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "update"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_first_name\": \"Jerome\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Business Error (200, successflag=N) — dependent id not the caller's (ORA-01403 sanitized)",
@@ -7396,18 +7540,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_relationship_end_date\": \"20260823\"\n}",
+              "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 31 — Delete dependent (`XXHMC_SND_REMOVE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (DeleteDependentRequestDto — p_* keys):** required `p_dependent_id`; optional `p_relationship_end_date` (yyyymmdd; `p_relation_ship_end_date` also accepted), `p_contact_type`, `p_relationship`, attachments.\n\n**Response:** action envelope; unknown dependent id → HTTP 200 with `successflag N — \"Dependent does not exist\"`.\n\n**Note:** the success path was intentionally NOT executed — it would submit a real deletion request for a real dependent on staging.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 31 — Delete dependent (`XXHMC_SND_REMOVE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Verified rules (2026-08-24, with the DB team's real ids 329302/329303/42465/1607679 for AIBRAHIM39):** `p_contact_type` (code, e.g. `C`) AND `p_relationship` (e.g. `Child`) must BOTH be sent — omitting them makes the procedure try to update PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE to NULL (`ORA-01407`, sanitized on the wire). At least one attachment is mandatory. Unknown id → `successflag N — \"Dependent does not exist\"`.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code; needs a real dependent id of the caller (NOT a captured response)",
+              "name": "Business Error (200, successflag=N) — full payload (real id + contact type + relationship + attachment)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7434,7 +7578,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_relationship_end_date\": \"20260823\"\n}",
+                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7452,7 +7596,103 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"The requested operation cannot be completed.\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — attachment is mandatory (contact-type check passed)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/delete?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Attachement is mandatory\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — ORA-01407 when p_contact_type/p_relationship are omitted (sanitized)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/delete?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Business Error (200, successflag=N) — dependent does not exist",
@@ -9258,7 +9498,7 @@
                 }
               }
             },
-            "description": "**Purpose:** op 67 — Submit annual ticket (`XXHMC_SND_TICKET_REQ_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (AnnualTicketApplyRequestDto — p_* keys):** required `p_request_for`, `p_employee`, `p_request_type`, `p_contractual_year`, `p_traveling_dest`, `p_travel_class`; optional `p_passenger1..4`, `p_comments`, attachments. The old collection body (`p_ticket_class`, `p_travel_year`) was invalid (400).\n\n**IMPORTANT (verified 2026-08-23):** `p_employee` must be the Oracle **PERSON_ID** (e.g. `26023` for AIBRAHIM39) — NOT the employee number: the number fails the `HMC_HR_PASSAGE_TICKET_EMPLOYEE_NAME` flexfield validation and a name string raises ORA-01722. `p_contractual_year` must exist in the `HMC_HR_CONTRACTUAL_YEAR_SIT` value set (`01-SEP-2025 to 31-AUG-2026` passes; calendar-year strings do not). With correct values the procedure reaches the real business rule: \"No ticket balance available for Mr. Amir Sami Samir Ibrahim...\" — the dev user has no ticket entitlement, so a `successflag S` needs an employee who actually has a balance.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 67 — Submit annual ticket (`XXHMC_SND_TICKET_REQ_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (AnnualTicketApplyRequestDto — p_* keys):** required `p_request_for`, `p_employee`, `p_request_type`, `p_contractual_year`, `p_traveling_dest`, `p_travel_class`; optional `p_passenger1..4`, `p_comments`, attachments. The old collection body (`p_ticket_class`, `p_travel_year`) was invalid (400).\n\n**IMPORTANT (CONFIRMED by the DB team 2026-08-24):** `p_employee` must be the Oracle **PERSON_ID** (e.g. `26023` for AIBRAHIM39) — NOT the employee number (they rejected 053613/53613/037400 in the flexfield). `p_contractual_year` must be the full period text (`01-SEP-2025 to 31-AUG-2026`). Re-tested 2026-08-24: format passes; the dev user still has no ticket entitlement (\"No ticket balance available…\") — a `successflag S` needs an employee with a balance (requested from the DB team).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {

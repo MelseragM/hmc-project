@@ -13,6 +13,7 @@ import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.deco
 import { LeaveService } from '../application/leave.service';
 import {
   ApplyLeaveRequestDto,
+  LeaveAmendLovQueryDto,
   LeaveAmendRequestDto,
   LeaveBalanceQueryDto,
   LeaveCalcRequestDto,
@@ -234,11 +235,13 @@ export class LeaveController {
   @ApiOperation({ summary: 'op 62 — Leave amend LOV', operationId: 'leave_amendLov' })
   @ApiOkResponse({ type: LovResponseDto })
   @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
-  async amendLov(@Query() q: LovScopedQueryDto): Promise<LovResponseDto> {
-    // LEAVE_AMEND_V has no user column — the legacy service scopes it by
-    // employee number (`enum=`), so accept either identifier.
-    const key = q.username ?? q.enum;
-    if (!key) throw new BadRequestException('username or enum query parameter is required.');
+  async amendLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
+    // LEAVE_AMEND_V is scoped by PERSON_ID (DB team, 2026-08-24:
+    // `WHERE person_id = 26023`) — the LOV reader's employee-scoping fallback
+    // filters that column, so pass person_id as the filter value; the legacy
+    // username/enum spellings remain accepted.
+    const key = q.person_id ?? q.username ?? q.enum;
+    if (!key) throw new BadRequestException('person_id, username or enum query parameter is required.');
     return { items: await this.service.amendLov(key, q.lang) };
   }
 }

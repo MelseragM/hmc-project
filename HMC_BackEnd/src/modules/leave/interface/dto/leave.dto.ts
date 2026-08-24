@@ -141,6 +141,29 @@ defineOptionalStringFields(ApplyLeaveRequestDto, [
   ...ATTACHMENT_FIELDS,
 ]);
 
+/**
+ * op 62 — GET /leave/lov/amend. LEAVE_AMEND_V is scoped by PERSON_ID (confirmed
+ * by the DB team: `SELECT * FROM XXHMC_SND_LEAVE_AMEND_V WHERE person_id = 26023`),
+ * so the caller should pass `person_id`; `username`/`enum` remain accepted for
+ * legacy payloads and are used as the filter value when person_id is absent.
+ */
+export class LeaveAmendLovQueryDto extends LangQueryDto {
+  @ApiPropertyOptional({ example: '26023', description: 'Oracle PERSON_ID (preferred — the view is person-scoped).' })
+  @IsOptional()
+  @IsString()
+  person_id?: string;
+
+  @ApiPropertyOptional({ example: 'AIBRAHIM39', description: 'Oracle username form (legacy).' })
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @ApiPropertyOptional({ example: '037400', description: 'Employee number (legacy).' })
+  @IsOptional()
+  @IsString()
+  enum?: string;
+}
+
 /** op 13 — GET /leave/lov/reasons `?lang=&leave_type=` (ABSENCE_REASON_V). */
 export class LeaveReasonsQueryDto extends LangQueryDto {
   @ApiPropertyOptional({
@@ -209,13 +232,15 @@ export class LeaveAmendRequestDto {
   @RequiredString('Annual Leave')
   p_leave_type!: string;
 
-  // A leave-record id from the amend LOV (op 62, LEAVE_AMEND_V) — NOT a small
-  // ordinal. Sending an id absent from that value set raises ORA-20001.
-  @RequiredString('56944958')
+  // COMPOSITE string 'Leave Type|DD-MON-YYYY|DD-MON-YYYY' (type|start|end) —
+  // confirmed by the DB team and verified live 2026-08-24 (successflag S with
+  // 'Annual Leave|12-MAR-2026|12-MAR-2026'). Values come from the op 62 amend
+  // LOV rows; a plain numeric id raises ORA-01403 inside the procedure.
+  @RequiredString('Annual Leave|12-MAR-2026|12-MAR-2026')
   p_leave_to_amend!: string;
 
   /** New end date — `yyyy-MM-dd` or `dd-Mon-yyyy` (DATE formals bind natively). */
-  @RequiredString('2026-06-20')
+  @RequiredString('2026-03-13')
   p_new_end_date!: string;
 
   /**
@@ -240,9 +265,11 @@ export class LeaveCancelRequestDto {
   @RequiredString('Annual Leave')
   p_leave_type!: string;
 
-  // A leave-record id from the cancel LOV (op 61, LEAVE_CANCEL_V) — NOT a small
-  // ordinal. Sending an id absent from that value set raises ORA-20001.
-  @RequiredString('56944958')
+  // COMPOSITE string 'Leave Type|DD-MON-YYYY|DD-MON-YYYY' (type|start|end) —
+  // verified live 2026-08-24 (successflag S with
+  // 'Annual Leave|12-MAR-2026|12-MAR-2026'). A plain numeric id raises
+  // ORA-01403 inside the procedure.
+  @RequiredString('Annual Leave|12-MAR-2026|12-MAR-2026')
   p_leave_to_cancel!: string;
 
   @RequiredString('Plans changed')
@@ -255,11 +282,14 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // The FULL value string from the return LOV (op 55, GET /leave/lov/return →
-  // used_value) — a short ordinal like '62' fails the flexfield. KNOWN STAGING
-  // ISSUE (2026-08-23): the procedure currently raises ORA-06502 "buffer too
-  // small" at line 196 even for its own LOV values (DB team informed).
-  @RequiredString('Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026')
+  // SHORT composite 'Leave Type|DD-MON-YYYY|DD-MON-YYYY' (type|start|end) —
+  // verified live 2026-08-24: this format passes the lookup (the op 55 LOV's
+  // LONG display string 'Casual Leave|Leave Start Date : … and Leave End
+  // Date : …' overflows an internal buffer → ORA-06502 at line 196; the LOV
+  // display format and the procedure input format need alignment, DB team
+  // informed). Success additionally requires the caller to have submitted the
+  // Policy Awareness questionnaire.
+  @RequiredString('Casual Leave|19-APR-2026|19-APR-2026')
   p_leave_details!: string;
 
   /** Return date — `yyyy-MM-dd` or `dd-Mon-yyyy` (DATE formals bind natively). */
