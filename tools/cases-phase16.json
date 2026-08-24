@@ -1,4 +1,0 @@
-[
-  { "module": "leave", "name": "Leave apply ONE day (business rule)", "method": "POST", "path": "/leave/apply?lang=en", "body": { "p_absence_type": "Casual Leave", "p_start_date": "2026-09-07", "p_end_date": "2026-09-07" } },
-  { "module": "payslip", "name": "Periods sanity", "method": "GET", "path": "/payslip/periods?username=AIBRAHIM39&lang=en" }
-]
