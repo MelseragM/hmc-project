@@ -1,5 +1,5 @@
 /**
- * Central registry of the 91 Oracle `XXHMC_SND_*` objects the backend calls
+ * Central registry of the 93 Oracle `XXHMC_SND_*` objects the backend calls
  * (the "data contract"). Repositories MUST reference names from here — never
  * hard-code table/view/procedure identifiers (OCP + SQL-injection allow-list).
  *
@@ -21,7 +21,9 @@ export const ORACLE_OBJECTS = {
   CHILD_DETS_VIEW: o('CHILD_DETS_VIEW'),
   CONTRACT_YEAR_V: o('CONTRACT_YEAR_V'),
   DELIVERY_LOC_V: o('DELIVERY_LOC_V'),
+  DEP_ADDRESS_V: o('DEP_ADDRESS_V'),
   DEP_PHONE_V: o('DEP_PHONE_V'),
+  EMP_CONTACT_V: o('EMP_CONTACT_V'),
   EMP_IN_ADDRESS_V: o('EMP_IN_ADDRESS_V'),
   EMP_OUT_ADDRESS_V: o('EMP_OUT_ADDRESS_V'),
   EMP_PHONE_V: o('EMP_PHONE_V'),
@@ -38,6 +40,7 @@ export const ORACLE_OBJECTS = {
   PERFORMANCE_V: o('PERFORMANCE_V'),
   PERSONAL_DETAILS_V: o('PERSONAL_DETAILS_V'),
   PND_DEPENDENT_ADDR_V: o('PND_DEPENDENT_ADDR_V'),
+  DEPENDENT_ADDR_V: o('DEPENDENT_ADDR_V'),
   PHONE_TYPE_V: o('PHONE_TYPE_V'),
   PNDNG_QID_V: o('PNDNG_QID_V'),
   QID_DET_V: o('QID_DET_V'),

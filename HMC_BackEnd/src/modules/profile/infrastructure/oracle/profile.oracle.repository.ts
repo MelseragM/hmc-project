@@ -3,6 +3,7 @@ import { OracleService } from '@core/database/oracle.service';
 import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
+import { str } from '@shared/utils/mapper.util';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
@@ -45,20 +46,29 @@ export class ProfileOracleRepository extends BaseOracleRepository implements Pro
     // These views are keyed by the caller's login, but the actual column name
     // differs per object (hard-coded `username` raised ORA-00904). Resolve it
     // from the data dictionary (USER_NAME → USERNAME) and bind the value.
-    const [
-      personalRows,
-      phoneRows,
-      addressRows,
-      insideAddressRows,
-      dependentPhoneRows,
-      dependentAddressRows,
-    ] = await Promise.all([
-      this.readByResolvedKey(ORACLE_OBJECTS.PERSONAL_DETAILS_V, username, USERNAME_KEY_CANDIDATES),
-      this.readByResolvedKey(ORACLE_OBJECTS.EMP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
-      this.readByResolvedKey(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
-      this.readByResolvedKey(ORACLE_OBJECTS.EMP_IN_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
-      this.readByResolvedKey(ORACLE_OBJECTS.DEP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
-      this.readByResolvedKey(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, username, USERNAME_KEY_CANDIDATES),
+    const [personalRows, phoneRows, addressRows, insideAddressRows, dependentRows] =
+      await Promise.all([
+        this.readByResolvedKey(ORACLE_OBJECTS.PERSONAL_DETAILS_V, username, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_IN_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
+        this.readByResolvedKey(ORACLE_OBJECTS.EMP_CONTACT_V, username, USERNAME_KEY_CANDIDATES),
+      ]);
+
+    // Dependent phones/addresses hang off the EMP_CONTACT_V dependents, not the
+    // caller's username: DEP_PHONE_V is keyed by the dependents' DEPENDENT_ID,
+    // DEP_ADDRESS_V by their ADDRESS_ID.
+    const [dependentPhoneRows, dependentAddressRows] = await Promise.all([
+      this.readByResolvedKeyIn(
+        ORACLE_OBJECTS.DEP_PHONE_V,
+        dependentRows.map((r) => str(r, 'dependent_id')),
+        ['dependent_id'],
+      ),
+      this.readByResolvedKeyIn(
+        ORACLE_OBJECTS.DEP_ADDRESS_V,
+        dependentRows.map((r) => str(r, 'address_id')),
+        ['address_id'],
+      ),
     ]);
 
     return ProfileMapper.toProfile(
@@ -69,6 +79,7 @@ export class ProfileOracleRepository extends BaseOracleRepository implements Pro
         insideAddressRows,
         dependentPhoneRows,
         dependentAddressRows,
+        dependentRows,
       },
       lang,
     );

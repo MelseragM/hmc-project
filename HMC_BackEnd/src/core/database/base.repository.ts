@@ -167,6 +167,53 @@ export abstract class BaseOracleRepository {
     }
   }
 
+  /**
+   * SELECT rows whose resolved key column is IN `values` (parameterized,
+   * chunked at Oracle's 1000-item IN-list limit). Returns [] without a round
+   * trip when `values` is empty, and degrades to [] on a schema mismatch —
+   * same contract as `readByResolvedKey`. Used for child rows keyed by IDs
+   * gathered from a parent view (e.g. dependent phones/addresses keyed by the
+   * DEPENDENT_ID / ADDRESS_ID values of the EMP_CONTACT_V dependents).
+   */
+  protected async readByResolvedKeyIn<T = Record<string, any>>(
+    object: string,
+    values: readonly (string | undefined)[],
+    candidates: readonly string[],
+  ): Promise<T[]> {
+    if (!this.schema) {
+      throw new Error(
+        `${this.constructor.name} must inject OracleSchemaService to use readByResolvedKeyIn.`,
+      );
+    }
+    const unique = [...new Set(values.filter((v): v is string => !!v))];
+    if (!unique.length) return [];
+    try {
+      const keyColumn = await this.schema.resolveKeyColumn(object, candidates);
+      const chunks: string[][] = [];
+      for (let i = 0; i < unique.length; i += 1000) chunks.push(unique.slice(i, i + 1000));
+      const rows = await Promise.all(
+        chunks.map((chunk) => {
+          const binds: oracledb.BindParameters = {};
+          const placeholders = chunk.map((value, i) => {
+            (binds as Record<string, unknown>)[`k${i}`] = value;
+            return `:k${i}`;
+          });
+          return this.query<T>(
+            `SELECT * FROM ${object} WHERE ${keyColumn} IN (${placeholders.join(', ')})`,
+            binds,
+          );
+        }),
+      );
+      return rows.flat();
+    } catch (err) {
+      if (err instanceof SchemaColumnNotFoundException) {
+        this.logSchemaMismatch(err);
+        return [];
+      }
+      throw err;
+    }
+  }
+
   /** Structured, internal-only WARNING for a caught schema mismatch (never a fatal error). */
   private logSchemaMismatch(err: SchemaColumnNotFoundException): void {
     const requestId = RequestContext.get()?.correlationId ?? '-';

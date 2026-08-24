@@ -1,15 +1,25 @@
 import { BaseOracleRepository } from './base.repository';
 import { OracleService } from './oracle.service';
+import { OracleSchemaService } from './oracle-schema.service';
+import { SchemaColumnNotFoundException } from './schema-column-not-found.error';
 
 /** Minimal concrete subclass so the protected `toSubmitResult` can be tested
  * directly, without going through a real Oracle call. */
 class TestRepository extends BaseOracleRepository {
-  constructor() {
-    super({} as OracleService);
+  constructor(ora?: Partial<OracleService>, schema?: Partial<OracleSchemaService>) {
+    super((ora ?? {}) as OracleService, schema as OracleSchemaService);
   }
 
   public expose(out: Record<string, any>) {
     return this.toSubmitResult(out);
+  }
+
+  public exposeReadIn(
+    object: string,
+    values: readonly (string | undefined)[],
+    candidates: readonly string[],
+  ) {
+    return this.readByResolvedKeyIn(object, values, candidates);
   }
 }
 
@@ -51,5 +61,64 @@ describe('BaseOracleRepository.toSubmitResult', () => {
     expect(result.status).toBe('success');
     expect(result.successflag).toBe('S');
     expect(result.errormessage).toBe('Success');
+  });
+});
+
+/**
+ * readByResolvedKeyIn fetches child rows keyed by IDs gathered from a parent
+ * view (profile: DEP_PHONE_V by the EMP_CONTACT_V dependents' DEPENDENT_ID,
+ * DEP_ADDRESS_V by their ADDRESS_ID).
+ */
+describe('BaseOracleRepository.readByResolvedKeyIn', () => {
+  const makeRepo = (rows: Record<string, any>[] = []) => {
+    const query = jest.fn().mockResolvedValue(rows);
+    const resolveKeyColumn = jest.fn().mockResolvedValue('DEPENDENT_ID');
+    const repo = new TestRepository({ query } as any, { resolveKeyColumn } as any);
+    return { repo, query, resolveKeyColumn };
+  };
+
+  it('binds each distinct id and filters with IN on the resolved column', async () => {
+    const { repo, query } = makeRepo([{ PHONE_ID: '1' }]);
+    const rows = await repo.exposeReadIn('XXHMC_SND_DEP_PHONE_V', ['11', '22', '11'], [
+      'dependent_id',
+    ]);
+    expect(rows).toEqual([{ PHONE_ID: '1' }]);
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM XXHMC_SND_DEP_PHONE_V WHERE DEPENDENT_ID IN (:k0, :k1)',
+      { k0: '11', k1: '22' },
+    );
+  });
+
+  it('skips the round trip entirely when no usable id exists', async () => {
+    const { repo, query, resolveKeyColumn } = makeRepo();
+    const rows = await repo.exposeReadIn('XXHMC_SND_DEP_PHONE_V', [undefined, ''], [
+      'dependent_id',
+    ]);
+    expect(rows).toEqual([]);
+    expect(resolveKeyColumn).not.toHaveBeenCalled();
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('degrades to an empty result on a schema mismatch (like readByResolvedKey)', async () => {
+    const query = jest.fn();
+    const resolveKeyColumn = jest
+      .fn()
+      .mockRejectedValue(
+        new SchemaColumnNotFoundException('XXHMC_SND_DEP_PHONE_V', ['dependent_id'], ['OTHER']),
+      );
+    const repo = new TestRepository({ query } as any, { resolveKeyColumn } as any);
+    await expect(
+      repo.exposeReadIn('XXHMC_SND_DEP_PHONE_V', ['11'], ['dependent_id']),
+    ).resolves.toEqual([]);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('chunks past the 1000-item Oracle IN-list limit', async () => {
+    const { repo, query } = makeRepo([]);
+    const ids = Array.from({ length: 1001 }, (_, i) => String(i));
+    await repo.exposeReadIn('XXHMC_SND_DEP_PHONE_V', ids, ['dependent_id']);
+    expect(query).toHaveBeenCalledTimes(2);
+    expect((query.mock.calls[1][0] as string)).toContain('IN (:k0)');
   });
 });
