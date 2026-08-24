@@ -5742,7 +5742,7 @@
           },
           "response": [
             {
-              "name": "Expected Success (200) — corrected payload, awaiting the next staging deploy (NOT a captured response)",
+              "name": "Expected Success (200) — payload rules verified; blocked only by the Policy Awareness questionnaire (NOT a captured response)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -5788,6 +5788,54 @@
               ],
               "cookie": [],
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — ORA-01403 GONE; only the Policy Awareness questionnaire remains",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/letters/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Bank letter with details with effective date\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Validate To avail this function, please submit the Policy Awareness questionnaire.\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Old failure (404) — ORA-01403 at line 201: p_country sent with a non-Saudi-passage letter",
@@ -6160,7 +6208,7 @@
           },
           "response": [
             {
-              "name": "Expected Success (200) — DB verified (p_success_flag=Y); awaiting the deploy of the collection fix (NOT a captured HTTP response)",
+              "name": "Success (200, successflag=S) — collections built by str_to_type",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -6208,6 +6256,54 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
+              "name": "Validation Error (400) — phoneId is required (this op only updates existing phones)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/contact/phone?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "contact",
+                    "phone"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"Landline\",\n      \"phoneNumber\": \"44412345\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 400,\n  \"errors\": {\n    \"details\": [\n      \"phones.0.phoneId should not be empty\",\n      \"phones.0.phoneId must be a string\"\n    ]\n  }\n}"
+            },
+            {
               "name": "Old failure (200, successflag=N) — scalar binding made Oracle see an empty collection",
               "originalRequest": {
                 "method": "POST",
@@ -6236,54 +6332,6 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"phones\": [\n    {\n      \"phoneId\": \"310129\",\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55723893\"\n    }\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Phone type doesnot exist\",\n  \"httpStatusCode\": 200\n}"
-            },
-            {
-              "name": "Old failure (200, successflag=N) — same cause; creating a phone is also unsupported by the procedure",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/contact/phone?lang=en",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "contact",
-                    "phone"
-                  ],
-                  "query": [
-                    {
-                      "key": "lang",
-                      "value": "en"
-                    }
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55512345\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7552,6 +7600,54 @@
           "response": [
             {
               "name": "Success (200, successflag=S) — full flexfield, relationship MEANING, sponsorship Employee",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/update?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "update"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_relation_ship\": \"Child\",\n  \"p_relation_ship_start_date\": \"20100923\",\n  \"p_title\": \"Mr\",\n  \"p_first_name\": \"Jerome\",\n  \"p_last_name\": \"Ibrahim\",\n  \"p_gendar\": \"Male\",\n  \"p_date_of_birth\": \"20100923\",\n  \"p_id_number\": \"28812345678\",\n  \"p_expiry_date\": \"20301231\",\n  \"p_date_of_issue_qid\": \"20200101\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_date_of_issue\": \"20200101\",\n  \"p_date_of_expire\": \"20301231\",\n  \"p_place_of_issue\": \"Doha\",\n  \"p_country_of_issue\": \"QA\",\n  \"p_visa_type\": \"Residence Permit\",\n  \"p_visa_number\": \"123456789\",\n  \"p_date_of_issue_visa\": \"20200101\",\n  \"p_date_of_expire_visa\": \"20301231\",\n  \"p_visa_validy\": \"Yes\",\n  \"p_type_of_sponsership\": \"Employee\",\n  \"p_name_of_sponsor\": \"Amir Sami Samir Ibrahim\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Success (200, successflag=S) — same payload, first verification",
               "originalRequest": {
                 "method": "POST",
                 "header": [
