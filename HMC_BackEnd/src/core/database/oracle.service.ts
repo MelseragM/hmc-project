@@ -178,6 +178,50 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Clear the EBS session labels this connection may still carry from a
+   * previous call, BEFORE running a submit procedure.
+   *
+   * Why: every `XXHMC_SND_*` submit procedure starts with a "log the user out
+   * of SSHR" block:
+   *
+   *     FOR r IN (SELECT s.sid, s.serial# FROM v$session s
+   *                WHERE client_identifier = p_user_name
+   *                  AND action IN ('PER/XX_HMC_SSHR_EMP_SELF_SERVICE', ...))
+   *     LOOP EXECUTE IMMEDIATE 'ALTER SYSTEM KILL SESSION ...'; END LOOP;
+   *
+   * A procedure that ran earlier on the same POOLED connection called
+   * `fnd_global.apps_initialize`, which stamps `client_identifier` = the
+   * username and `action` = one of those SSHR values onto our session. The
+   * next procedure's loop then matches OUR OWN session and Oracle raises
+   * `ORA-00027: cannot kill current session`, aborting real work (observed on
+   * SCHOOL_FEE_PR line 114, LEAV_OF_ABSEN_NEW_PR line 168 and
+   * ADD_DEPENDENT_PKG line 3506, seemingly at random — it depends on which
+   * pooled connection the request lands on).
+   *
+   * Verified on staging: `v$session` showed our own connection
+   * (`program = node@…`) with `client_identifier = AIBRAHIM39` and
+   * `action = PER/XX_HMC_SSHR_EMP_SELF_SERVICE`.
+   *
+   * Clearing the labels makes that loop skip us. It does not affect the
+   * procedures themselves: they re-initialize the EBS context (apps_initialize)
+   * after that block and read the user from their own `p_user_name` argument.
+   * Best-effort — a failure here must never fail the business call.
+   */
+  private async clearEbsSessionLabels(conn: oracledb.Connection): Promise<void> {
+    try {
+      await conn.execute(
+        `BEGIN
+           DBMS_APPLICATION_INFO.SET_ACTION(NULL);
+           DBMS_APPLICATION_INFO.SET_MODULE(NULL, NULL);
+           DBMS_SESSION.CLEAR_IDENTIFIER;
+         END;`,
+      );
+    } catch (err) {
+      this.logger.debug(`Could not clear EBS session labels: ${(err as Error).message}`);
+    }
+  }
+
   /** Execute an anonymous PL/SQL block; returns the OUT binds. */
   async call<T = Record<string, any>>(
     plsql: string,
@@ -187,6 +231,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     const call = this.logCallStart('call', plsql, binds);
     const conn = await this.getPool().getConnection();
     this.configureConnection(conn);
+    await this.clearEbsSessionLabels(conn);
     try {
       const result = await conn.execute(plsql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -220,6 +265,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     const call = this.logCallStart('callCursor', plsql, binds);
     const conn = await this.getPool().getConnection();
     this.configureConnection(conn);
+    await this.clearEbsSessionLabels(conn);
     try {
       const result = await conn.execute(plsql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -266,6 +312,7 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     const call = this.logCallStart('call', plsql, binds);
     const conn = await this.getPool().getConnection();
     this.configureConnection(conn);
+    await this.clearEbsSessionLabels(conn);
     try {
       const result = await conn.execute(plsql, binds, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,

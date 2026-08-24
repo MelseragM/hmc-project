@@ -37,13 +37,19 @@ export class SchoolLovQueryDto extends LovUserQueryDto {
 }
 
 /**
- * op 39 — SCHOOL_FEE_PR. Example values verified against the live LOVs
- * (2026-08-23): `p_request_type` comes from the op 53 LOV (e.g. `Cash` — NOT
- * "Tuition"), `p_term` from the op 38 LOV (`Term1` — no space), the school
- * name from the op 37 LOV, and the child name/DOB from GET
- * /school-fees/children. NOTE: the staging DATABASE currently rejects even
- * fully valid payloads from inside the procedure (ORA-01403 / intermittent
- * ORA-00027 at line 114) — pending the DB team.
+ * op 39 — SCHOOL_FEE_PR. Verified end-to-end on 2026-08-24 (successflag Y).
+ *
+ * `p_child_name` is NOT the child's name: the procedure resolves the child with
+ *   SELECT child_id INTO … FROM TABLE(xxhmc_snd_child_dets_view(<acd_st_dt>, <user>))
+ *    WHERE dob = p_child_name                                   (source line 197)
+ * so it must be the composite value the view returns in its `DOB` column —
+ * `Name||Gender||DD-MON-YY` — taken from GET /school-fees/children called with
+ * the SAME `acadyrstrtdt` as `p_acd_st_dt`. Sending the plain name raised
+ * ORA-01403 (surfaced as 404).
+ *
+ * `p_school_name` must match XXHMC_SND_SCHOOL_NAME_LOV.name for the caller
+ * (source line 205), `p_request_type` comes from the op 53 LOV (e.g. `Cash`),
+ * `p_term` from the op 38 LOV (`Term1`, no space).
  */
 export class SchoolFeeApplyRequestDto {
   @RequiredString('2025-2026')
@@ -55,7 +61,8 @@ export class SchoolFeeApplyRequestDto {
   @RequiredString('20260630')
   p_acd_end_dt!: string;
 
-  @RequiredString('Jerome Amir Sami Samir Ibrahim')
+  /** Composite `Name||Gender||DD-MON-YY` from GET /school-fees/children (`DOB` column). */
+  @RequiredString('Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10')
   p_child_name!: string;
 
   @RequiredString('20100923')

@@ -207,8 +207,22 @@ defineOptionalStringFields(
   },
 );
 
+/**
+ * op 31 — REMOVE_DEPENDENT_PR. Verified end-to-end on 2026-08-24
+ * (successflag Y) with dependent id 1607679.
+ *
+ * `p_relationship` must be the LOV **CODE**, not the meaning: the procedure
+ * forwards it straight to the HR API as the contact type —
+ *   hr_contact_rel_api.update_contact_relationship(p_contact_type => p_relation_ship …)
+ *                                                                  (source line 253)
+ * so `C` (Child) works while `Child` raises ORA-20001 "The Contact Type you
+ * have entered for this Contact Relationship does not exist". Omitting it
+ * entirely raises ORA-01407 (CONTACT_TYPE set to NULL). Codes come from the
+ * op 64 LOV, CONTACT group: C, S, P, BROTHER, SISTER.
+ * At least one attachment is mandatory.
+ */
 export class DeleteDependentRequestDto {
-  @RequiredString('4668195')
+  @RequiredString('1607679')
   p_dependent_id!: string;
 
   [key: string]: unknown;
@@ -224,7 +238,12 @@ defineOptionalStringFields(
     'p_relationship',
     ...ATTACHMENT_FIELDS,
   ],
-  { p_relationship_end_date: '20260823' },
+  {
+    p_relationship: 'C',
+    p_relationship_end_date: '20260824',
+    p_file_name1: 'end-proof.pdf',
+    p_attachment1: 'dGVzdCBhdHRhY2htZW50',
+  },
 );
 
 export class PassportApplyRequestDto {

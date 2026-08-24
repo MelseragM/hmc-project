@@ -7540,18 +7540,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+              "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_relationship\": \"C\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 31 — Delete dependent (`XXHMC_SND_REMOVE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Verified rules (2026-08-24, with the DB team's real ids 329302/329303/42465/1607679 for AIBRAHIM39):** `p_contact_type` (code, e.g. `C`) AND `p_relationship` (e.g. `Child`) must BOTH be sent — omitting them makes the procedure try to update PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE to NULL (`ORA-01407`, sanitized on the wire). At least one attachment is mandatory. Unknown id → `successflag N — \"Dependent does not exist\"`.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 31 — Delete dependent (`XXHMC_SND_REMOVE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**SOLVED 2026-08-24 (successflag S with dependent id 1607679): `p_relationship` must be the LOV CODE, not the meaning.** The procedure forwards it verbatim to the HR API as the contact type — `hr_contact_rel_api.update_contact_relationship(p_contact_type => p_relation_ship …)` (source line 253) — so `C` works while `Child` raises ORA-20001 \"The Contact Type you have entered for this Contact Relationship does not exist\", and omitting it raises ORA-01407 (CONTACT_TYPE → NULL). Codes come from the op 64 LOV, CONTACT group: `C` (Child), `S` (Spouse), `P` (Parent), `BROTHER`, `SISTER`. At least one attachment is mandatory. Unknown id → `successflag N — \"Dependent does not exist\"`.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Business Error (200, successflag=N) — full payload (real id + contact type + relationship + attachment)",
+              "name": "Success (200, successflag=S) — relationship sent as the CODE",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7578,7 +7578,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_relation_ship\": \"C\",\n  \"p_relationship\": \"C\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7596,10 +7596,10 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"The requested operation cannot be completed.\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Business Error (200, successflag=N) — attachment is mandatory (contact-type check passed)",
+              "name": "Business Error (200, successflag=N) — attachment is mandatory",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7647,7 +7647,55 @@
               "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Attachement is mandatory\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Business Error (200, successflag=N) — ORA-01407 when p_contact_type/p_relationship are omitted (sanitized)",
+              "name": "Business Error (200, successflag=N) — meaning (\"Child\") rejected as contact type",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/delete?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"1607679\",\n  \"p_contact_type\": \"C\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_end_date\": \"20260824\",\n  \"p_file_name1\": \"end-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"The requested operation cannot be completed.\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — ORA-01407 when the relationship is omitted (sanitized)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -8380,18 +8428,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\"\n}",
+              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 39 — School-fee request (`XXHMC_SND_SCHOOL_FEE_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (SchoolFeeApplyRequestDto — p_* keys):** required `p_academic_year` (op 50 LOV), `p_acd_st_dt`/`p_acd_end_dt` (yyyymmdd), `p_child_name` + `p_child_date_birth` (real values from GET /school-fees/children), `p_school_name` (op 37 LOV), `p_educational_stage` (op 40 LOV), `p_request_type` (op 53 LOV — for this user only `Cash`), `p_term` (op 38 LOV, e.g. `Term1`), `p_amount`; optional `p_passport_number`, `p_rp_number`, `p_receipt_number`, `p_spouse_working`, `p_comments`, attachments. The old collection body was missing 6 required fields (400).\n\n**KNOWN STAGING ISSUE (2026-08-23):** with real child/school/LOV data the procedure itself fails: `ORA-01403: no data found` at line 197 (surfaced as HTTP 404) and intermittently `ORA-00027` at line 114 (HTTP 500). Exhaustively probed — school by name AND by code, `test` values from the spec sample, full optional fields (passport/RP/receipt/spouse/comments), with and without attachment, both academic years — all hit line 197. The failing SELECT INTO is inside the procedure (reference data missing on staging); needs the DB team — request format matches DTO/Swagger/spec.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 39 — School-fee request (`XXHMC_SND_SCHOOL_FEE_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (SchoolFeeApplyRequestDto — p_* keys):** required `p_academic_year` (op 50 LOV), `p_acd_st_dt`/`p_acd_end_dt` (yyyymmdd), `p_child_name` + `p_child_date_birth` (real values from GET /school-fees/children), `p_school_name` (op 37 LOV), `p_educational_stage` (op 40 LOV), `p_request_type` (op 53 LOV — for this user only `Cash`), `p_term` (op 38 LOV, e.g. `Term1`), `p_amount`; optional `p_passport_number`, `p_rp_number`, `p_receipt_number`, `p_spouse_working`, `p_comments`, attachments. The old collection body was missing 6 required fields (400).\n\n**SOLVED 2026-08-24 (successflag S) — `p_child_name` is a COMPOSITE value, not a name.** Reading the procedure source (line 197) showed it resolves the child with `SELECT child_id … FROM TABLE(xxhmc_snd_child_dets_view(<acd_st_dt>, <user>)) WHERE dob = p_child_name`, so it must be the `DOB` column value returned by GET /school-fees/children — `Name||Gender||DD-MON-YY` — for the SAME date you send in `p_acd_st_dt`. The plain name raised ORA-01403 (404).\n\n**Two caveats:** (1) the submit can take longer than the 30 s HTTP timeout — a 504 does NOT mean it failed (the first verified success returned 504 to the client while Oracle committed `p_success_flag = Y`); check the worklist before retrying. (2) The procedure still trips over the shared `ORA-00027` kill-session defect at line 114 on some pooled connections — the backend now clears the EBS session labels before every submit to avoid it (build 2026-08-24+).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code, pending staging DB/env fix (NOT a captured response)",
+              "name": "Success (200, successflag=S) — Oracle committed (client saw 504: submit exceeded the 30s HTTP timeout)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -8418,7 +8466,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
+                  "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8439,7 +8487,103 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Staging DB error (404) — ORA-01403 raised inside XXHMC_SND_SCHOOL_FEE_PR",
+              "name": "Gateway Timeout (504) — the SAME call that Oracle committed with p_success_flag=Y (submit is slow)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-fees/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-fees",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"message\": \"The upstream service timed out. Please try again.\",\n  \"httpStatusCode\": 504\n}"
+            },
+            {
+              "name": "Staging DB error (500) — shared ORA-00027 kill-session defect (line 114) on some pooled connections",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-fees/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-fees",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jolie Amir Sami Samir Ibrahim||Female||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term2\",\n  \"p_amount\": \"1500\",\n  \"p_receipt_number\": \"124\",\n  \"p_spouse_working\": \"No\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
+            },
+            {
+              "name": "Business/DB error (404) — ORA-01403: plain child NAME instead of the composite DOB value",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -8485,54 +8629,6 @@
               ],
               "cookie": [],
               "body": "{\n  \"success\": false,\n  \"message\": \"The requested resource was not found.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 404\n}"
-            },
-            {
-              "name": "Staging DB error (500) — intermittent ORA-00027 inside the procedure",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/school-fees/apply?lang=en",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-fees",
-                    "apply"
-                  ],
-                  "query": [
-                    {
-                      "key": "lang",
-                      "value": "en"
-                    }
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "Internal Server Error",
-              "code": 500,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n  \"success\": false,\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 500\n}"
             },
             {
               "name": "Validation Error (400) — required p_* fields missing",

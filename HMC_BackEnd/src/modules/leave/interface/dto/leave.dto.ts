@@ -282,13 +282,14 @@ defineOptionalStringFields(LeaveCancelRequestDto, ['p_remarks', ...ATTACHMENT_FI
 
 /** op 56 — POST /leave/return (RET_FRM_LEAV_PR request template). */
 export class LeaveReturnRequestDto {
-  // SHORT composite 'Leave Type|DD-MON-YYYY|DD-MON-YYYY' (type|start|end) —
-  // verified live 2026-08-24: this format passes the lookup (the op 55 LOV's
-  // LONG display string 'Casual Leave|Leave Start Date : … and Leave End
-  // Date : …' overflows an internal buffer → ORA-06502 at line 196; the LOV
-  // display format and the procedure input format need alignment, DB team
-  // informed). Success additionally requires the caller to have submitted the
-  // Policy Awareness questionnaire.
+  // SHORT composite 'Leave Type|DD-MON-YYYY|DD-MON-YYYY' (type|start|end).
+  // Confirmed from the procedure source: line 60 declares
+  // `lc_segment5 VARCHAR2(60)` and line 196 assigns `lc_segment5 :=
+  // p_leave_details`, so the op 55 LOV's 75-character display string
+  // ('Casual Leave|Leave Start Date : … and Leave End Date : …') overflows it
+  // → ORA-06502. The short composite (36 chars) fits and resolves. Success
+  // additionally requires the caller to have submitted the Policy Awareness
+  // questionnaire.
   @RequiredString('Casual Leave|19-APR-2026|19-APR-2026')
   p_leave_details!: string;
 

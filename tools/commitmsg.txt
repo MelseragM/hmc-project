@@ -1,0 +1,33 @@
+SQL console cracks 3 blockers: school-fees + dependents-delete now succeed, ORA-00027 root cause fixed
+
+Used the new internal SQL console on staging to read the actual PL/SQL sources.
+
+1) school-fees/apply - SOLVED (successflag Y). Source line 197 resolves the
+   child with "WHERE dob = p_child_name" against xxhmc_snd_child_dets_view,
+   whose DOB column holds a COMPOSITE "Name||Gender||DD-MON-YY". Sending the
+   plain name was the ORA-01403. DTO/Swagger/Postman now carry the composite.
+   Caveat documented: the submit can exceed the 30s HTTP timeout while Oracle
+   commits (504 does not mean failure).
+
+2) dependents/delete - SOLVED (successflag Y, id 1607679). Source line 253
+   forwards our parameter to hr_contact_rel_api as the contact type, so
+   p_relationship must be the LOV CODE ("C"), not the meaning ("Child");
+   omitting it caused ORA-01407.
+
+3) ORA-00027 family - ROOT CAUSE FOUND AND WORKED AROUND. Every submit
+   procedure starts with a loop that kills v-dollar-session rows where
+   client_identifier = p_user_name AND action IN (SSHR actions). Proof: our own
+   pooled connection (program=node@...) carried client_identifier=AIBRAHIM39
+   and action=PER/XX_HMC_SSHR_EMP_SELF_SERVICE (stamped by a previous
+   fnd_global.apps_initialize), so the loop killed itself. OracleService now
+   clears the session identifier/action/module before every PL/SQL call, which
+   makes the loop skip us.
+
+4) leave/return ORA-06502 explained exactly: lc_segment5 is VARCHAR2(60)
+   (line 60) while the op 55 LOV returns a 75-char display string (line 196).
+
+Reports + Postman collection regenerated (99 examples; 72 APIs working).
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

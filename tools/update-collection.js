@@ -328,8 +328,7 @@ setExamples('Dependents', 'POST /dependents/update', [
 
 setBody('Dependents', 'POST /dependents/delete', {
   p_dependent_id: '1607679',
-  p_contact_type: 'C',
-  p_relationship: 'Child',
+  p_relationship: 'C',
   p_relationship_end_date: '20260824',
   p_file_name1: 'end-proof.pdf',
   p_attachment1: 'dGVzdCBhdHRhY2htZW50',
@@ -337,11 +336,12 @@ setBody('Dependents', 'POST /dependents/delete', {
 setUrl('Dependents', 'POST /dependents/delete', '/dependents/delete?lang=en');
 setDescription('Dependents', 'POST /dependents/delete',
   '**Purpose:** op 31 — Delete dependent (`XXHMC_SND_REMOVE_DEPENDENT_PR`).\n\n' + AUTH_NOTE +
-  '\n\n**Verified rules (2026-08-24, with the DB team\'s real ids 329302/329303/42465/1607679 for AIBRAHIM39):** `p_contact_type` (code, e.g. `C`) AND `p_relationship` (e.g. `Child`) must BOTH be sent — omitting them makes the procedure try to update PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE to NULL (`ORA-01407`, sanitized on the wire). At least one attachment is mandatory. Unknown id → `successflag N — "Dependent does not exist"`.\n\n' + VERIFIED);
+  '\n\n**SOLVED 2026-08-24 (successflag S with dependent id 1607679): `p_relationship` must be the LOV CODE, not the meaning.** The procedure forwards it verbatim to the HR API as the contact type — `hr_contact_rel_api.update_contact_relationship(p_contact_type => p_relation_ship …)` (source line 253) — so `C` works while `Child` raises ORA-20001 "The Contact Type you have entered for this Contact Relationship does not exist", and omitting it raises ORA-01407 (CONTACT_TYPE → NULL). Codes come from the op 64 LOV, CONTACT group: `C` (Child), `S` (Spouse), `P` (Parent), `BROTHER`, `SISTER`. At least one attachment is mandatory. Unknown id → `successflag N — "Dependent does not exist"`.\n\n' + VERIFIED);
 setExamples('Dependents', 'POST /dependents/delete', [
-  maybeSuccessExample('dependents|Delete SUCCESS attempt full', 'Response — full payload (real id + contact type + relationship + attachment)'),
-  example('dependents|Delete 1607679 contact C rel Child', 'Business Error (200, successflag=N) — attachment is mandatory (contact-type check passed)'),
-  example('dependents|Delete dependent REAL id 1607679', 'Business Error (200, successflag=N) — ORA-01407 when p_contact_type/p_relationship are omitted (sanitized)'),
+  example('dependents|Delete with relationship CODE C', 'Success (200, successflag=S) — relationship sent as the CODE'),
+  example('dependents|Delete 1607679 contact C rel Child', 'Business Error (200, successflag=N) — attachment is mandatory'),
+  example('dependents|Delete SUCCESS attempt full', 'Business Error (200, successflag=N) — meaning ("Child") rejected as contact type'),
+  example('dependents|Delete dependent REAL id 1607679', 'Business Error (200, successflag=N) — ORA-01407 when the relationship is omitted (sanitized)'),
   example('dependents|Business Error — delete unknown dependent', 'Business Error (200, successflag=N) — dependent does not exist'),
   example('dependents|Validation Error (400) — delete empty body', 'Validation Error (400) — p_dependent_id required'),
 ]);
@@ -394,7 +394,7 @@ setBody('School Fees', 'POST /school-fees/apply', {
   p_academic_year: '2025-2026',
   p_acd_st_dt: '20250901',
   p_acd_end_dt: '20260630',
-  p_child_name: 'Jerome Amir Sami Samir Ibrahim',
+  p_child_name: 'Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10',
   p_child_date_birth: '20100923',
   p_passport_number: 'A38697134',
   p_rp_number: '31081804108',
@@ -411,20 +411,19 @@ setUrl('School Fees', 'POST /school-fees/apply', '/school-fees/apply?lang=en');
 setDescription('School Fees', 'POST /school-fees/apply',
   '**Purpose:** op 39 — School-fee request (`XXHMC_SND_SCHOOL_FEE_PR`).\n\n' + AUTH_NOTE +
   '\n\n**Body (SchoolFeeApplyRequestDto — p_* keys):** required `p_academic_year` (op 50 LOV), `p_acd_st_dt`/`p_acd_end_dt` (yyyymmdd), `p_child_name` + `p_child_date_birth` (real values from GET /school-fees/children), `p_school_name` (op 37 LOV), `p_educational_stage` (op 40 LOV), `p_request_type` (op 53 LOV — for this user only `Cash`), `p_term` (op 38 LOV, e.g. `Term1`), `p_amount`; optional `p_passport_number`, `p_rp_number`, `p_receipt_number`, `p_spouse_working`, `p_comments`, attachments. The old collection body was missing 6 required fields (400).\n\n' +
-  '**KNOWN STAGING ISSUE (2026-08-23):** with real child/school/LOV data the procedure itself fails: `ORA-01403: no data found` at line 197 (surfaced as HTTP 404) and intermittently `ORA-00027` at line 114 (HTTP 500). Exhaustively probed — school by name AND by code, `test` values from the spec sample, full optional fields (passport/RP/receipt/spouse/comments), with and without attachment, both academic years — all hit line 197. The failing SELECT INTO is inside the procedure (reference data missing on staging); needs the DB team — request format matches DTO/Swagger/spec.\n\n' + VERIFIED);
+  '**SOLVED 2026-08-24 (successflag S) — `p_child_name` is a COMPOSITE value, not a name.** Reading the procedure source (line 197) showed it resolves the child with `SELECT child_id … FROM TABLE(xxhmc_snd_child_dets_view(<acd_st_dt>, <user>)) WHERE dob = p_child_name`, so it must be the `DOB` column value returned by GET /school-fees/children — `Name||Gender||DD-MON-YY` — for the SAME date you send in `p_acd_st_dt`. The plain name raised ORA-01403 (404).\n\n' +
+  '**Two caveats:** (1) the submit can take longer than the 30 s HTTP timeout — a 504 does NOT mean it failed (the first verified success returned 504 to the client while Oracle committed `p_success_flag = Y`); check the worklist before retrying. (2) The procedure still trips over the shared `ORA-00027` kill-session defect at line 114 on some pooled connections — the backend now clears the EBS session labels before every submit to avoid it (build 2026-08-24+).\n\n' + VERIFIED);
 setExamples('School Fees', 'POST /school-fees/apply', [
   expectedExample({
-    name: EXPECTED_NAME,
+    name: 'Success (200, successflag=S) — Oracle committed (client saw 504: submit exceeded the 30s HTTP timeout)',
     method: 'POST',
     urlPath: '/school-fees/apply?lang=en',
     requestBody: {
       p_academic_year: '2025-2026',
       p_acd_st_dt: '20250901',
       p_acd_end_dt: '20260630',
-      p_child_name: 'Jerome Amir Sami Samir Ibrahim',
+      p_child_name: 'Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10',
       p_child_date_birth: '20100923',
-      p_passport_number: 'A38697134',
-      p_rp_number: '31081804108',
       p_school_name: 'Al Arqam Academy',
       p_educational_stage: 'Primary',
       p_request_type: 'Cash',
@@ -437,8 +436,9 @@ setExamples('School Fees', 'POST /school-fees/apply', [
     },
     responseBody: EXPECTED_SUBMIT_SUCCESS,
   }),
-  example('school-fees|Apply fuller payload (spec-style)', 'Staging DB error (404) — ORA-01403 raised inside XXHMC_SND_SCHOOL_FEE_PR'),
-  example('school-fees|Apply retry (same real data)', 'Staging DB error (500) — intermittent ORA-00027 inside the procedure'),
+  example('school-fees|Apply with COMPOSITE child name (dob string)', 'Gateway Timeout (504) — the SAME call that Oracle committed with p_success_flag=Y (submit is slow)'),
+  example('school-fees|Apply composite child name (retry for clean response)', 'Staging DB error (500) — shared ORA-00027 kill-session defect (line 114) on some pooled connections'),
+  example('school-fees|Apply fuller payload (spec-style)', 'Business/DB error (404) — ORA-01403: plain child NAME instead of the composite DOB value'),
   example('school-fees|Validation Error (400) — empty body', 'Validation Error (400) — required p_* fields missing'),
 ]);
 
