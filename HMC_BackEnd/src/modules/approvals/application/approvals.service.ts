@@ -28,8 +28,18 @@ export interface RequestInfoDto {
 export class ApprovalsService {
   constructor(@Inject(APPROVALS_REPOSITORY) private readonly repo: ApprovalsRepository) {}
 
-  summary(username: string, lang: Lang): Promise<ApprovalsSummary> {
-    return this.repo.getSummary(username, lang);
+  /**
+   * `identifier` is whatever the client sent (`enum`) — login or employee
+   * number. `user` adds the authenticated identity, so the views that store the
+   * other form still match without the client having to know which is which.
+   */
+  summary(identifier: string, lang: Lang, user?: AuthenticatedUser): Promise<ApprovalsSummary> {
+    return this.repo.getSummary(ApprovalsService.keysOf(identifier, user), lang);
+  }
+
+  /** Caller identifiers in every form the approvals views may store. */
+  private static keysOf(identifier: string, user?: AuthenticatedUser): string[] {
+    return [...new Set([identifier, user?.username, user?.employeeNumber].filter(Boolean))] as string[];
   }
 
   details(approvalId: string, lang: Lang): Promise<ApprovalRow[]> {
@@ -54,8 +64,8 @@ export class ApprovalsService {
     return this.repo.requestInfo({ username: user.username, lang, approvalId, ...dto });
   }
 
-  myRequests(username: string, lang: Lang): Promise<MyRequests> {
-    return this.repo.getMyRequests(username, lang);
+  myRequests(identifier: string, lang: Lang, user?: AuthenticatedUser): Promise<MyRequests> {
+    return this.repo.getMyRequests(ApprovalsService.keysOf(identifier, user), lang);
   }
 }
 

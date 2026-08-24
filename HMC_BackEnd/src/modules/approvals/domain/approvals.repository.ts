@@ -65,11 +65,16 @@ export interface RequestInfoCommand {
  * USER_NAME, and the views carry no employee-number column.
  */
 export interface ApprovalsRepository {
-  getSummary(username: string, lang: Lang): Promise<ApprovalsSummary>;
+  /**
+   * `keys` are the caller's identifiers in BOTH forms (login + employee
+   * number): APPROVE_SUMRY_V / MY_REQEST_SUMMARY_V store the employee number
+   * while PNDNG_QID_V stores the login, and one response reads both.
+   */
+  getSummary(keys: readonly string[], lang: Lang): Promise<ApprovalsSummary>;
   getDetails(approvalId: string, lang: Lang): Promise<ApprovalRow[]>;
   decide(cmd: DecisionCommand): Promise<SubmitResult>;
   requestInfo(cmd: RequestInfoCommand): Promise<SubmitResult>;
-  getMyRequests(username: string, lang: Lang): Promise<MyRequests>;
+  getMyRequests(keys: readonly string[], lang: Lang): Promise<MyRequests>;
 }
 export const APPROVALS_REPOSITORY = Symbol('APPROVALS_REPOSITORY');
 

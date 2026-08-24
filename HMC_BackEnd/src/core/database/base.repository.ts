@@ -148,16 +148,40 @@ export abstract class BaseOracleRepository {
     value: string,
     candidates: readonly string[],
   ): Promise<T[]> {
+    return this.readByResolvedKeyAny<T>(object, [value], candidates);
+  }
+
+  /**
+   * Same as `readByResolvedKey` but matches ANY of several identifier forms:
+   * `WHERE <key> IN (:k0, :k1)`.
+   *
+   * Needed because the same logical person is stored differently across the
+   * approvals views — `APPROVE_SUMRY_V`/`MY_REQEST_SUMMARY_V` hold the employee
+   * NUMBER (`037400`) while `PNDNG_QID_V` holds the login (`AIBRAHIM39`), and a
+   * single response is built from both. Passing the caller's username AND
+   * employee number makes each view match on whichever form it happens to use,
+   * instead of forcing the mobile client to guess per endpoint.
+   */
+  protected async readByResolvedKeyAny<T = Record<string, any>>(
+    object: string,
+    values: readonly (string | undefined)[],
+    candidates: readonly string[],
+  ): Promise<T[]> {
     if (!this.schema) {
       throw new Error(
         `${this.constructor.name} must inject OracleSchemaService to use readByResolvedKey.`,
       );
     }
+    const distinct = [...new Set(values.filter((v): v is string => !!v && v.trim() !== ''))];
+    if (!distinct.length) return [];
     try {
       const keyColumn = await this.schema.resolveKeyColumn(object, candidates);
-      return await this.query<T>(`SELECT * FROM ${object} WHERE ${keyColumn} = :key`, {
-        key: value,
-      });
+      const binds = Object.fromEntries(distinct.map((v, i) => [`k${i}`, v]));
+      const placeholders = distinct.map((_, i) => `:k${i}`).join(', ');
+      return await this.query<T>(
+        `SELECT * FROM ${object} WHERE ${keyColumn} IN (${placeholders})`,
+        binds,
+      );
     } catch (err) {
       if (err instanceof SchemaColumnNotFoundException) {
         this.logSchemaMismatch(err);
