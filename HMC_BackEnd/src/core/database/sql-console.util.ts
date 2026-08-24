@@ -71,7 +71,9 @@ export function assertReadOnlySelect(text: string): string {
   const original = text.trim();
   if (!original) throw new BadRequestException('sql must not be empty.');
 
-  const sanitized = sanitizeSqlForInspection(original).trim().replace(/;+\s*$/, '');
+  const sanitized = sanitizeSqlForInspection(original)
+    .trim()
+    .replace(/;+\s*$/, '');
   if (sanitized.includes(';')) {
     throw new BadRequestException('Only a single statement is allowed.');
   }

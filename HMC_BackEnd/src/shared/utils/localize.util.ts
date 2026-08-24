@@ -15,7 +15,14 @@ import { safeDecodeUri } from './url-decode.util';
  * A key is only treated as an Arabic twin when the matching base key exists in
  * the same object (case-insensitive), so words that merely end in "ar"
  * (`calendar`, `YEAR`) are never collapsed.
+ *
+ * Exception: base keys in PRESERVED_TWIN_BASES are never collapsed — the
+ * response carries BOTH the base and the `*Ar` twin regardless of `lang`
+ * (client request: address types in /profile must always ship both).
  */
+
+/** Base keys (lowercased) whose Arabic twins are kept as-is for every lang. */
+const PRESERVED_TWIN_BASES = new Set(['addresstype', 'address_type']);
 export function localizeArTwins<T>(value: T, lang: Lang): T {
   if (Array.isArray(value)) return value.map((v) => localizeArTwins(v, lang)) as unknown as T;
   if (!isPlainObject(value)) return value;
@@ -25,7 +32,9 @@ export function localizeArTwins<T>(value: T, lang: Lang): T {
   const arKeyByBase = new Map<string, string>();
   for (const key of keys) {
     const base = baseKeyFor(key, keys);
-    if (base !== undefined) arKeyByBase.set(base, key);
+    if (base !== undefined && !PRESERVED_TWIN_BASES.has(base.toLowerCase())) {
+      arKeyByBase.set(base, key);
+    }
   }
   const arKeys = new Set(arKeyByBase.values());
 

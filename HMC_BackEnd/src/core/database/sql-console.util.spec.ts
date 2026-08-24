@@ -3,7 +3,8 @@ import { assertReadOnlySelect } from './sql-console.util';
 
 describe('assertReadOnlySelect', () => {
   const ok = (sql: string) => expect(assertReadOnlySelect(sql)).toBe(sql.trim());
-  const rejected = (sql: string) => expect(() => assertReadOnlySelect(sql)).toThrow(BadRequestException);
+  const rejected = (sql: string) =>
+    expect(() => assertReadOnlySelect(sql)).toThrow(BadRequestException);
 
   it('accepts a plain SELECT', () => {
     ok('SELECT TOP 10 * FROM HMC_Sanad_DeviceRegn_tbl WHERE LoginID = @login');
@@ -34,15 +35,15 @@ describe('assertReadOnlySelect', () => {
   it('rejects non-SELECT statements', () => {
     rejected('UPDATE t SET a = 1');
     rejected('DELETE FROM t');
-    rejected("INSERT INTO t VALUES (1)");
+    rejected('INSERT INTO t VALUES (1)');
     rejected('TRUNCATE TABLE t');
     rejected('DROP TABLE t');
-    rejected("EXEC sp_who");
+    rejected('EXEC sp_who');
   });
 
   it('rejects multiple statements', () => {
     rejected('SELECT 1; SELECT 2');
-    rejected("SELECT 1; DELETE FROM t");
+    rejected('SELECT 1; DELETE FROM t');
   });
 
   it('rejects DML hidden after a line comment newline', () => {

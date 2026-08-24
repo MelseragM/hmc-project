@@ -47,6 +47,14 @@ describe('localizeArTwins', () => {
     expect(localizeArTwins(value, 'ar')).toEqual(value);
   });
 
+  it('keeps BOTH addressType and addressTypeAr for every lang (preserved twin)', () => {
+    const address = { addressType: 'Primary Home Country Address', addressTypeAr: 'عنوان قطر' };
+    expect(localizeArTwins(address, 'en')).toEqual(address);
+    expect(localizeArTwins(address, 'ar')).toEqual(address);
+    const rawRow = { ADDRESS_TYPE: 'Qatar Address', ADDRESS_TYPE_AR: 'عنوان قطر' };
+    expect(localizeArTwins(rawRow, 'ar')).toEqual(rawRow);
+  });
+
   it('leaves Ar-suffixed keys without a base twin untouched', () => {
     expect(localizeArTwins({ FULL_NAME_AR: 'الاسم' }, 'ar')).toEqual({ FULL_NAME_AR: 'الاسم' });
   });
