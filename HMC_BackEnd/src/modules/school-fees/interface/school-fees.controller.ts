@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { SAMPLE_ATTACHMENT, VerifiedBody } from '@shared/dto/verified-body';
 import { SchoolFeeService } from '../application/school-fees.service';
 import {
   SchoolChildrenQueryDto,
@@ -25,6 +26,25 @@ export class SchoolFeesController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 39 — School-fee request', operationId: 'schoolFees_apply' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // Exactly the payload that returned successflag S on 2026-08-24. Note
+  // p_child_name: it is the composite DOB value from GET /school-fees/children
+  // (Name||Gender||DD-MON-YY), not a name — see the DTO doc.
+  @VerifiedBody(SchoolFeeApplyRequestDto, {
+    p_academic_year: '2025-2026',
+    p_acd_st_dt: '20250901',
+    p_acd_end_dt: '20260630',
+    p_child_name: 'Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10',
+    p_child_date_birth: '20100923',
+    p_school_name: 'Al Arqam Academy',
+    p_educational_stage: 'Primary',
+    p_request_type: 'Cash',
+    p_term: 'Term1',
+    p_amount: '1000',
+    p_receipt_number: '123',
+    p_spouse_working: 'No',
+    p_file_name1: 'receipt.pdf',
+    p_attachment1: SAMPLE_ATTACHMENT,
+  })
   apply(
     @Body() body: SchoolFeeApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,

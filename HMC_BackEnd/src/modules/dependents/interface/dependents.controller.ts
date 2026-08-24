@@ -7,6 +7,7 @@ import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { SAMPLE_ATTACHMENT, VerifiedBody } from '@shared/dto/verified-body';
 import { DependentService, PassportService } from '../application/dependents.service';
 import {
   AddDependentRequestDto,
@@ -30,6 +31,39 @@ export class DependentsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 65 — Add dependent', operationId: 'dependents_add' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // successflag S on 2026-08-23 with this exact flexfield combination
+  // (p_relationship from the op 64 CONTACT group, visa type from
+  // HMC_HR_VISA_TYPE_VS, unique QID, >= 1 attachment).
+  @VerifiedBody(
+    AddDependentRequestDto,
+    {
+      p_title: 'Mr',
+      p_first_name: 'Testchild',
+      p_last_name: 'Ibrahim',
+      p_relationship: 'Child',
+      p_gender: 'Male',
+      p_date_of_birth: '20150101',
+      p_national_identifier: '29912345678',
+      p_id_number: '29912345678',
+      p_id_expiry_date: '20301231',
+      p_id_issue_date: '20200101',
+      p_passport_number: 'B12345678',
+      p_pp_issue_date: '20200101',
+      p_pp_expiry_date: '20301231',
+      p_place_of_issue: 'Doha',
+      p_country_of_issue: 'QA',
+      p_visa_type: 'Residence Permit',
+      p_visa_number: '987654321',
+      p_visa_issue_date: '20200101',
+      p_visa_expiry_date: '20301231',
+      p_visa_validity: 'Yes',
+      p_type_of_sponsorship: 'Employee',
+      p_effective_date: '20260824',
+      p_file_name1: 'birth-certificate.pdf',
+      p_attachment1: SAMPLE_ATTACHMENT,
+    },
+    'Verified against staging (successflag S). Use a UNIQUE p_id_number — a duplicate QID is rejected with "This QID already exists."',
+  )
   add(
     @Body() body: AddDependentRequestDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -43,6 +77,37 @@ export class DependentsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 24 — Update dependent', operationId: 'dependents_update' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // successflag S on 2026-08-24. The procedure re-validates the whole
+  // flexfield, so this full body is the minimum that works; note
+  // p_relation_ship is the MEANING here (delete wants the CODE).
+  @VerifiedBody(UpdateDependentRequestDto, {
+    p_dependent_id: '329302',
+    p_relation_ship: 'Child',
+    p_relation_ship_start_date: '20100923',
+    p_title: 'Mr',
+    p_first_name: 'Jerome',
+    p_last_name: 'Ibrahim',
+    p_gendar: 'Male',
+    p_date_of_birth: '20100923',
+    p_id_number: '28812345678',
+    p_expiry_date: '20301231',
+    p_date_of_issue_qid: '20200101',
+    p_passport_number: 'A38697134',
+    p_date_of_issue: '20200101',
+    p_date_of_expire: '20301231',
+    p_place_of_issue: 'Doha',
+    p_country_of_issue: 'QA',
+    p_visa_type: 'Residence Permit',
+    p_visa_number: '123456789',
+    p_date_of_issue_visa: '20200101',
+    p_date_of_expire_visa: '20301231',
+    p_visa_validy: 'Yes',
+    p_type_of_sponsership: 'Employee',
+    p_name_of_sponsor: 'Amir Sami Samir Ibrahim',
+    p_effective_date: '20260824',
+    p_file_name1: 'update-proof.pdf',
+    p_attachment1: SAMPLE_ATTACHMENT,
+  })
   update(
     @Body() body: UpdateDependentRequestDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -56,6 +121,19 @@ export class DependentsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 31 — Delete dependent', operationId: 'dependents_delete' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // successflag S on 2026-08-24. p_relationship is the LOV CODE here ('C'),
+  // which the procedure forwards to the HR API as the contact type.
+  @VerifiedBody(
+    DeleteDependentRequestDto,
+    {
+      p_dependent_id: '1607679',
+      p_relationship: 'C',
+      p_relationship_end_date: '20260824',
+      p_file_name1: 'end-proof.pdf',
+      p_attachment1: SAMPLE_ATTACHMENT,
+    },
+    'Verified against staging (successflag S). Replace p_dependent_id — running as-is ends a real contact relationship.',
+  )
   delete(
     @Body() dto: DeleteDependentRequestDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -83,6 +161,16 @@ export class DependentsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 34 — Passport detail request', operationId: 'dependents_passportApply' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // successflag S on staging. Passport type comes from GET
+  // /dependents/passport/types; the country is the ISO code here.
+  @VerifiedBody(PassportApplyRequestDto, {
+    p_passport_number: 'A498989',
+    p_date_of_issue: '20260121',
+    p_date_of_expiry: '20360121',
+    p_type_of_passport: 'Normal',
+    p_place_of_issue: 'Doha',
+    p_country_of_issue: 'QA',
+  })
   passportApply(
     @Body() body: PassportApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,

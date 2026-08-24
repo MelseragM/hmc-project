@@ -168,24 +168,28 @@ setExamples('Contact', 'GET /contact/lov/country', [
   example('contact|Validation Error (400) — country bad lang', 'Validation Error (400) — lang must be en|ar'),
 ]);
 
-setBody('Contact', 'POST /contact/phone', { phones: [{ phoneType: 'Qatar Mobile Number', phoneNumber: '55512345' }] });
+setBody('Contact', 'POST /contact/phone', {
+  phones: [{ phoneId: '310129', phoneType: 'Qatar Mobile Number', phoneNumber: '55723893' }],
+});
 setUrl('Contact', 'POST /contact/phone', '/contact/phone?lang=en');
 setDescription('Contact', 'POST /contact/phone',
-  '**Purpose:** op 28 — Add/Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`, one call per array item; stops at the first failed item).\n\n' + AUTH_NOTE +
-  '\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId?, objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400). Omit `phoneId` to create; send it to update.\n\n' +
+  '**Purpose:** op 28 — Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`). The whole array goes to Oracle in ONE call as four index-aligned PL/SQL collections.\n\n' + AUTH_NOTE +
+  '\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId (required), objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400).\n\n' +
   '**Response:** action envelope `{ status, successflag (S|N), message, httpStatusCode }` — business failures come back as HTTP 200 with `successflag: "N"`.\n\n' +
-  '**KNOWN STAGING ISSUE (re-verified 2026-08-24):** the procedure still rejects EVERY phone type with `successflag N — "Phone type doesnot exist"`. The DB team shared the intended 11-value list (incl. `Landline` and 3 sickness-address types the op 27 LOV does not expose) — retested `Qatar Mobile Number` and `Landline` from that list and both are STILL rejected, so the procedure\'s internal lookup remains broken/empty on staging. Request format is correct per DTO/Swagger.\n\n' + VERIFIED);
+  '**SOLVED 2026-08-24 — the phone type was never the problem.** The package spec declares `TYPE ETSND_VARCHAR IS TABLE OF NVARCHAR2(4000) INDEX BY PLS_INTEGER` and all four value parameters are COLLECTIONS of it. The backend was binding scalars, so Oracle received an EMPTY array and the package answered `"Phone type doesnot exist"` for every value. It now sends the whole batch through the package\'s own `str_to_type()` (comma-separated → collection) and Oracle returns `p_success_flag = Y` — verified directly against the database.\n\n' +
+  '**IMPORTANT for clients:** `phoneId` is now **required** per item. Despite its name `ADD_OR_UPDATE_PHONE` only UPDATES existing rows (id `0` → "Phone ID doesnot exist", an empty element → ORA-01403, and `str_to_type` drops empty tokens so a new-phone slot cannot be expressed). Read the ids from `GET /profile` → `phones[].phoneId`. Creating a phone needs a different Oracle entry point — raised with the DB team.\n\n' + VERIFIED);
 setExamples('Contact', 'POST /contact/phone', [
   expectedExample({
-    name: EXPECTED_NAME,
+    name: 'Expected Success (200) — DB verified (p_success_flag=Y); awaiting the deploy of the collection fix (NOT a captured HTTP response)',
     method: 'POST',
     urlPath: '/contact/phone?lang=en',
-    requestBody: { phones: [{ phoneType: 'Qatar Mobile Number', phoneNumber: '55512345' }] },
+    requestBody: {
+      phones: [{ phoneId: '310129', phoneType: 'Qatar Mobile Number', phoneNumber: '55723893' }],
+    },
     responseBody: EXPECTED_SUBMIT_SUCCESS,
   }),
-  example('contact|Phone update-in-place (real phoneId, same values)', 'Business Error (200, successflag=N) — even own phone\'s stored type rejected (staging DB issue)'),
-  example('contact|Success (200) — create phone', 'Business Error (200, successflag=N) — create with LOV meaning rejected'),
-  example('contact|Phone create with LOV code M', 'Business Error (200, successflag=N) — create with LOV code rejected'),
+  example('contact|Phone update-in-place (real phoneId, same values)', 'Old failure (200, successflag=N) — scalar binding made Oracle see an empty collection'),
+  example('contact|Success (200) — create phone', 'Old failure (200, successflag=N) — same cause; creating a phone is also unsupported by the procedure'),
   example('contact|Validation Error (400) — empty body', 'Validation Error (400) — phones required'),
   example('contact|Validation Error (400) — unknown property', 'Validation Error (400) — unknown key rejected'),
 ]);
@@ -295,9 +299,30 @@ setExamples('Dependents', 'POST /dependents', [
 ]);
 
 setBody('Dependents', 'POST /dependents/update', {
-  p_dependent_id: '4668195',
-  p_first_name: 'John',
-  p_effective_date: '20260823',
+  p_dependent_id: '329302',
+  p_relation_ship: 'Child',
+  p_relation_ship_start_date: '20100923',
+  p_title: 'Mr',
+  p_first_name: 'Jerome',
+  p_last_name: 'Ibrahim',
+  p_gendar: 'Male',
+  p_date_of_birth: '20100923',
+  p_id_number: '28812345678',
+  p_expiry_date: '20301231',
+  p_date_of_issue_qid: '20200101',
+  p_passport_number: 'A38697134',
+  p_date_of_issue: '20200101',
+  p_date_of_expire: '20301231',
+  p_place_of_issue: 'Doha',
+  p_country_of_issue: 'QA',
+  p_visa_type: 'Residence Permit',
+  p_visa_number: '123456789',
+  p_date_of_issue_visa: '20200101',
+  p_date_of_expire_visa: '20301231',
+  p_visa_validy: 'Yes',
+  p_type_of_sponsership: 'Employee',
+  p_name_of_sponsor: 'Amir Sami Samir Ibrahim',
+  p_effective_date: '20260824',
   p_file_name1: 'update-proof.pdf',
   p_attachment1: 'dGVzdCBhdHRhY2htZW50',
 });
@@ -305,22 +330,16 @@ setUrl('Dependents', 'POST /dependents/update', '/dependents/update?lang=en');
 setDescription('Dependents', 'POST /dependents/update',
   '**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n' + AUTH_NOTE +
   '\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n' +
-  '**Verified (2026-08-24):** attachment is mandatory. The DB team provided real dependent ids for AIBRAHIM39 (329302/329303/42465/1607679), BUT the `ORA-00027` kill-session defect at package line 3506 REGRESSED — it intermittently returns (reproduced with real id 329302). When it does not crash, the procedure validates ownership properly ("Dependent doesnot exits…" for foreign ids). DB team re-informed.\n\n' + VERIFIED);
+  '**SOLVED 2026-08-24 (successflag S with dependent 329302) — three rules, all discovered one error at a time:**\n' +
+  '1. `p_relation_ship` takes the **MEANING** here (`Child`) — the OPPOSITE of op 31 delete, which needs the CODE (`C`). Omitting it, or sending a code, makes the procedure set `PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE` to NULL → `ORA-01407`.\n' +
+  '2. `p_type_of_sponsership` must exist in the `HMC_HR_SPONSORSHIP_PERSON` value set: `Employee` works, relationship words like `Father` raise `ORA-20001 FLEX-VALUE DOES NOT EXIST`.\n' +
+  '3. The procedure re-validates the **whole** dependent flexfield, so a partial update is rejected: send passport number + issue/expiry, QID + expiry/issue, visa type/number/dates, `p_visa_validy` (Yes|No) and at least one attachment even when changing a single field.\n\n' +
+  '(The earlier intermittent `ORA-00027` at package line 3506 is gone — the backend now clears the EBS session labels before every call.)\n\n' + VERIFIED);
 setExamples('Dependents', 'POST /dependents/update', [
-  expectedExample({
-    name: 'Expected Success (200) — pending the intermittent ORA-00027 fix (NOT a captured response)',
-    method: 'POST',
-    urlPath: '/dependents/update?lang=en',
-    requestBody: {
-      p_dependent_id: '329302',
-      p_first_name: 'Jerome',
-      p_effective_date: '20260824',
-      p_file_name1: 'update-proof.pdf',
-      p_attachment1: '<base64-encoded file content>',
-    },
-    responseBody: EXPECTED_SUBMIT_SUCCESS,
-  }),
-  example('dependents|Update dependent REAL id 329302', 'Staging DB error (200, successflag=N sanitized) — intermittent ORA-00027 regressed with real id'),
+  example('dependents|PD5 update full + sponsorship Employee', 'Success (200, successflag=S) — full flexfield, relationship MEANING, sponsorship Employee'),
+  example('dependents|PD3 update relationship MEANING Child', 'Business Error (200, successflag=N) — flexfield required segment missing (Passport Number)'),
+  example('dependents|PD2 update with relationship CODE C', 'Business Error (200, successflag=N) — a CODE resolves to NULL → ORA-01407 (send the meaning)'),
+  example('dependents|Update dependent REAL id 329302', 'Business Error (200, successflag=N) — relationship omitted → ORA-01407 CONTACT_TYPE to NULL'),
   example('dependents|BLOCKER recheck - dependent update', 'Business Error (200, successflag=N) — dependent id not the caller\'s (ORA-01403 sanitized)'),
   example('dependents|Update dependent (pinned id)', 'Business Error (200, successflag=N) — attachment is mandatory'),
   example('dependents|Validation Error (400) — update empty body', 'Validation Error (400) — p_dependent_id required'),

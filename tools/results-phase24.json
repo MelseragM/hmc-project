@@ -1,0 +1,200 @@
+[
+  {
+    "module": "dependents",
+    "name": "PD dependents/update real id (ORA-00027 fix)",
+    "method": "POST",
+    "path": "/dependents/update?lang=en",
+    "body": {
+      "p_dependent_id": "329302",
+      "p_first_name": "Jerome",
+      "p_effective_date": "20260824",
+      "p_file_name1": "update-proof.pdf",
+      "p_attachment1": "dGVzdCBhdHRhY2htZW50"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 9599
+  },
+  {
+    "module": "leave",
+    "name": "PD leave/apply one day",
+    "method": "POST",
+    "path": "/leave/apply?lang=en",
+    "body": {
+      "p_absence_type": "Casual Leave",
+      "p_start_date": "2026-09-07",
+      "p_end_date": "2026-09-07"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "To avail this function, please submit the Policy Awareness questionnaire.",
+      "httpStatusCode": 200,
+      "result": {
+        "leaveDays": 0
+      }
+    },
+    "durationMs": 1373
+  },
+  {
+    "module": "letters",
+    "name": "PD letters English pair, no country",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "English",
+      "p_letter_name": "Bank letter with details with effective date",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Validate To avail this function, please submit the Policy Awareness questionnaire.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 9190
+  },
+  {
+    "module": "letters",
+    "name": "PD letters Arabic-only letter with Arabic",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "Arabic",
+      "p_letter_name": "Basic Salary Certificate",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Validate To avail this function, please submit the Policy Awareness questionnaire.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 145
+  },
+  {
+    "module": "school-fees",
+    "name": "PD school-fees composite name",
+    "method": "POST",
+    "path": "/school-fees/apply?lang=en",
+    "body": {
+      "p_academic_year": "2025-2026",
+      "p_acd_st_dt": "20250901",
+      "p_acd_end_dt": "20260630",
+      "p_child_name": "Jolie Amir Sami Samir Ibrahim||Female||23-SEP-10",
+      "p_child_date_birth": "20100923",
+      "p_school_name": "Al Arqam Academy",
+      "p_educational_stage": "Primary",
+      "p_request_type": "Cash",
+      "p_term": "Term3",
+      "p_amount": "900",
+      "p_file_name1": "receipt.pdf",
+      "p_attachment1": "dGVzdCBhdHRhY2htZW50"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 13876
+  },
+  {
+    "module": "leave",
+    "name": "PD amend LOV by person_id (new param)",
+    "method": "GET",
+    "path": "/leave/lov/amend?person_id=26023&lang=en",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": {
+        "items": [
+          {
+            "code": "Annual Leave|12-MAR-2026|12-MAR-2026",
+            "meaning": "Annual Leave|12-MAR-2026|12-MAR-2026",
+            "used_value": "Annual Leave|12-MAR-2026|12-MAR-2026"
+          },
+          {
+            "code": "Casual Leave|04-JUN-2015|04-JUN-2015",
+            "meaning": "Casual Leave|04-JUN-2015|04-JUN-2015",
+            "used_value": "Casual Leave|04-JUN-2015|04-JUN-2015"
+          },
+          {
+            "code": "Casual Leave|07-JAN-2014|07-JAN-2014",
+            "meaning": "Casual Leave|07-JAN-2014|07-JAN-2014",
+            "used_value": "Casual Leave|07-JAN-2014|07-JAN-2014"
+          },
+          {
+            "code": "Casual Leave|07-SEP-2014|07-SEP-2014",
+            "meaning": "Casual Leave|07-SEP-2014|07-SEP-2014",
+            "used_value": "Casual Leave|07-SEP-2014|07-SEP-2014"
+          },
+          {
+            "code": "Casual Leave|19-APR-2026|19-APR-2026",
+            "meaning": "Casual Leave|19-APR-2026|19-APR-2026",
+            "used_value": "Casual Leave|19-APR-2026|19-APR-2026"
+          },
+          {
+            "code": "Quarantine Days|04-NOV-2021|15-NOV-2021",
+            "meaning": "Quarantine Days|04-NOV-2021|15-NOV-2021",
+            "used_value": "Quarantine Days|04-NOV-2021|15-NOV-2021"
+          }
+        ]
+      },
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 822
+  },
+  {
+    "module": "contact",
+    "name": "PD phone type recheck",
+    "method": "POST",
+    "path": "/contact/phone?lang=en",
+    "body": {
+      "phones": [
+        {
+          "phoneType": "Qatar Mobile Number",
+          "phoneNumber": "55512345"
+        }
+      ]
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Phone type doesnot exist",
+      "httpStatusCode": 200
+    },
+    "durationMs": 278
+  }
+]

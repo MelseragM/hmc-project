@@ -76,7 +76,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:10:00\"\n}",
+              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -216,7 +216,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -359,7 +359,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -504,7 +504,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -613,7 +613,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\",\n  \"appname\": \"Sanaad\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -756,7 +756,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -859,7 +859,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1917,7 +1917,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
+              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3126,7 +3126,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3526,7 +3526,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3732,7 +3732,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3890,7 +3890,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\",\n  \"p_related_leave1\": null,\n  \"p_related_leave2\": null,\n  \"p_comments\": \"Returned early.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5087,18 +5087,6 @@
                 {
                   "key": "lang",
                   "value": "en"
-                },
-                {
-                  "key": "username",
-                  "value": "AIBRAHIM39",
-                  "disabled": true,
-                  "description": "Oracle username form (legacy)."
-                },
-                {
-                  "key": "enum",
-                  "value": "037400",
-                  "disabled": true,
-                  "description": "Employee number (legacy)."
                 }
               ]
             },
@@ -5743,18 +5731,66 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Bank letter with details with effective date\",\n  \"p_country\": \"Qatar\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
+              "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Bank letter with details with effective date\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 17 — Submit letter request (`XXHMC_SND_HR_EMPLYMNT_LTR_PR`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**KNOWN STAGING ISSUE (2026-08-23):** with values taken from the op 16 LOVs the procedure raises `ORA-01403: no data found` (line 201/180 depending on the letter type) — reference data missing on staging; intermittently also ORA-00001 on FND_SESSIONS. Request format is correct per DTO/Swagger.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 17 — Submit letter request (`XXHMC_SND_HR_EMPLYMNT_LTR_PR`).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**RULES DECODED FROM THE PROCEDURE (2026-08-24) — all three used to surface as a bare 404 (ORA-01403):**\n1. `p_letter_name` + `p_letter_language` must be a **valid pair** (line 180). Every letter exists in exactly ONE language — `GET /letters/lov` returns it per name (`Bank letter with details with effective date` = English, `Basic Salary Certificate` = Arabic). A mismatched pair can never resolve.\n2. **Do NOT send `p_country`** unless the letter is `Passage to Saudi Arabia`: the country lookup (line 201) is guarded by `AND 'Passage to Saudi Arabia' = <letter>`. It is now optional in the DTO — sending it with any other letter guaranteed the failure.\n3. `p_mobile_number` must be an **existing mobile of the employee** (`per_phones.phone_type = M`, line 219) — take it from `GET /letters/lov` → `mobileNo`; `p_letter_delivery_loc` must come from `deliveryLoc` (line 235).\n\n**Status:** the corrected body is below; awaiting the next staging deploy to capture the success response.\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code, pending staging DB fix (NOT a captured response)",
+              "name": "Expected Success (200) — corrected payload, awaiting the next staging deploy (NOT a captured response)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/letters/apply?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "letters",
+                    "apply"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Bank letter with details with effective date\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Old failure (404) — ORA-01403 at line 201: p_country sent with a non-Saudi-passage letter",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -5789,8 +5825,8 @@
                   }
                 }
               },
-              "status": "OK",
-              "code": 200,
+              "status": "Not Found",
+              "code": 404,
               "_postman_previewlanguage": "json",
               "header": [
                 {
@@ -5799,10 +5835,10 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"success\": false,\n  \"message\": \"The requested resource was not found.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 404\n}"
             },
             {
-              "name": "Staging DB error (404) — ORA-01403 inside the procedure",
+              "name": "Old failure (404) — ORA-01403 at line 180: English requested for an Arabic-only letter",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -5829,7 +5865,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Bank letter with details with effective date\",\n  \"p_country\": \"Qatar\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
+                  "raw": "{\n  \"p_letter_language\": \"English\",\n  \"p_letter_name\": \"Basic Salary Certificate\",\n  \"p_country\": \"Qatar\",\n  \"p_no_of_copies\": \"1\",\n  \"p_mobile_number\": \"55723893\",\n  \"p_letter_delivery_loc\": \"Al Wakra Hospital\",\n  \"p_purpose_comments\": \"test\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6113,18 +6149,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55512345\"\n    }\n  ]\n}",
+              "raw": "{\n  \"phones\": [\n    {\n      \"phoneId\": \"310129\",\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55723893\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 28 — Add/Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`, one call per array item; stops at the first failed item).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId?, objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400). Omit `phoneId` to create; send it to update.\n\n**Response:** action envelope `{ status, successflag (S|N), message, httpStatusCode }` — business failures come back as HTTP 200 with `successflag: \"N\"`.\n\n**KNOWN STAGING ISSUE (re-verified 2026-08-24):** the procedure still rejects EVERY phone type with `successflag N — \"Phone type doesnot exist\"`. The DB team shared the intended 11-value list (incl. `Landline` and 3 sickness-address types the op 27 LOV does not expose) — retested `Qatar Mobile Number` and `Landline` from that list and both are STILL rejected, so the procedure's internal lookup remains broken/empty on staging. Request format is correct per DTO/Swagger.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 28 — Update phone number(s) (`XXHMC_SND_PHONE_PKG.ADD_OR_UPDATE_PHONE`). The whole array goes to Oracle in ONE call as four index-aligned PL/SQL collections.\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdatePhoneRequestDto):** `phones` — required non-empty array of `{ phoneId (required), objectVersionNumber?, phoneType (required), phoneNumber (required) }`. Unknown keys are rejected (400).\n\n**Response:** action envelope `{ status, successflag (S|N), message, httpStatusCode }` — business failures come back as HTTP 200 with `successflag: \"N\"`.\n\n**SOLVED 2026-08-24 — the phone type was never the problem.** The package spec declares `TYPE ETSND_VARCHAR IS TABLE OF NVARCHAR2(4000) INDEX BY PLS_INTEGER` and all four value parameters are COLLECTIONS of it. The backend was binding scalars, so Oracle received an EMPTY array and the package answered `\"Phone type doesnot exist\"` for every value. It now sends the whole batch through the package's own `str_to_type()` (comma-separated → collection) and Oracle returns `p_success_flag = Y` — verified directly against the database.\n\n**IMPORTANT for clients:** `phoneId` is now **required** per item. Despite its name `ADD_OR_UPDATE_PHONE` only UPDATES existing rows (id `0` → \"Phone ID doesnot exist\", an empty element → ORA-01403, and `str_to_type` drops empty tokens so a new-phone slot cannot be expressed). Read the ids from `GET /profile` → `phones[].phoneId`. Creating a phone needs a different Oracle entry point — raised with the DB team.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code, pending staging DB/env fix (NOT a captured response)",
+              "name": "Expected Success (200) — DB verified (p_success_flag=Y); awaiting the deploy of the collection fix (NOT a captured HTTP response)",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -6151,7 +6187,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55512345\"\n    }\n  ]\n}",
+                  "raw": "{\n  \"phones\": [\n    {\n      \"phoneId\": \"310129\",\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55723893\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6172,7 +6208,7 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Business Error (200, successflag=N) — even own phone's stored type rejected (staging DB issue)",
+              "name": "Old failure (200, successflag=N) — scalar binding made Oracle see an empty collection",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -6220,7 +6256,7 @@
               "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Phone type doesnot exist\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Business Error (200, successflag=N) — create with LOV meaning rejected",
+              "name": "Old failure (200, successflag=N) — same cause; creating a phone is also unsupported by the procedure",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -6248,54 +6284,6 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"Qatar Mobile Number\",\n      \"phoneNumber\": \"55512345\"\n    }\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "_postman_previewlanguage": "json",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json; charset=utf-8"
-                }
-              ],
-              "cookie": [],
-              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"Phone type doesnot exist\",\n  \"httpStatusCode\": 200\n}"
-            },
-            {
-              "name": "Business Error (200, successflag=N) — create with LOV code rejected",
-              "originalRequest": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/contact/phone?lang=en",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "contact",
-                    "phone"
-                  ],
-                  "query": [
-                    {
-                      "key": "lang",
-                      "value": "en"
-                    }
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"phones\": [\n    {\n      \"phoneType\": \"M\",\n      \"phoneNumber\": \"55512345\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6458,7 +6446,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneId\": \"1574794\",\n  \"phoneType\": \"Qatar Mobile Number\",\n  \"phoneNumber\": \"+97455512345\"\n}",
+              "raw": "{\n  \"phoneId\": \"1574794\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6667,7 +6655,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_effective_date\": \"20260823\",\n  \"p_primary_flag\": \"N\",\n  \"p_country\": \"Qatar\",\n  \"p_address_type\": \"Temporary Offer Address\",\n  \"p_address_line1\": \"Building 45\",\n  \"p_town_or_city\": \"Doha\",\n  \"p_po_box\": \"12345\",\n  \"p_main_address\": \"Al Sadd Street\",\n  \"p_address_line2\": \"Street 12\",\n  \"p_address_line3\": \"Zone 60\",\n  \"p_region1\": \"Al Rayyan\",\n  \"p_region2\": \"\",\n  \"p_region3\": \"\"\n}",
+              "raw": "{\n  \"p_effective_date\": \"20260823\",\n  \"p_primary_flag\": \"N\",\n  \"p_country\": \"Qatar\",\n  \"p_address_type\": \"Temporary Offer Address\",\n  \"p_address_line1\": \"Building 45\",\n  \"p_town_or_city\": \"Doha\",\n  \"p_po_box\": \"12345\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7552,18 +7540,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_dependent_id\": \"4668195\",\n  \"p_first_name\": \"John\",\n  \"p_effective_date\": \"20260823\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+              "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_relation_ship\": \"Child\",\n  \"p_relation_ship_start_date\": \"20100923\",\n  \"p_title\": \"Mr\",\n  \"p_first_name\": \"Jerome\",\n  \"p_last_name\": \"Ibrahim\",\n  \"p_gendar\": \"Male\",\n  \"p_date_of_birth\": \"20100923\",\n  \"p_id_number\": \"28812345678\",\n  \"p_expiry_date\": \"20301231\",\n  \"p_date_of_issue_qid\": \"20200101\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_date_of_issue\": \"20200101\",\n  \"p_date_of_expire\": \"20301231\",\n  \"p_place_of_issue\": \"Doha\",\n  \"p_country_of_issue\": \"QA\",\n  \"p_visa_type\": \"Residence Permit\",\n  \"p_visa_number\": \"123456789\",\n  \"p_date_of_issue_visa\": \"20200101\",\n  \"p_date_of_expire_visa\": \"20301231\",\n  \"p_visa_validy\": \"Yes\",\n  \"p_type_of_sponsership\": \"Employee\",\n  \"p_name_of_sponsor\": \"Amir Sami Samir Ibrahim\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**Verified (2026-08-24):** attachment is mandatory. The DB team provided real dependent ids for AIBRAHIM39 (329302/329303/42465/1607679), BUT the `ORA-00027` kill-session defect at package line 3506 REGRESSED — it intermittently returns (reproduced with real id 329302). When it does not crash, the procedure validates ownership properly (\"Dependent doesnot exits…\" for foreign ids). DB team re-informed.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 24 — Update dependent (`XXHMC_SND_ADD_DEPENDENT_PKG.XXHMC_SND_UPDATE_DEPENDENT_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (UpdateDependentRequestDto — p_* keys):** required `p_dependent_id`; every other field optional (names, passport, visa, QID, address, phones, attachments). Legacy misspellings (`p_gendar`, `p_relation_ship`, `p_visa_validy`, `p_date_of_issuue_qid`, `p_type_of_sponsership`) are also accepted and mirrored. `p_dependent_name` (old collection body) is rejected with 400.\n\n**SOLVED 2026-08-24 (successflag S with dependent 329302) — three rules, all discovered one error at a time:**\n1. `p_relation_ship` takes the **MEANING** here (`Child`) — the OPPOSITE of op 31 delete, which needs the CODE (`C`). Omitting it, or sending a code, makes the procedure set `PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE` to NULL → `ORA-01407`.\n2. `p_type_of_sponsership` must exist in the `HMC_HR_SPONSORSHIP_PERSON` value set: `Employee` works, relationship words like `Father` raise `ORA-20001 FLEX-VALUE DOES NOT EXIST`.\n3. The procedure re-validates the **whole** dependent flexfield, so a partial update is rejected: send passport number + issue/expiry, QID + expiry/issue, visa type/number/dates, `p_visa_validy` (Yes|No) and at least one attachment even when changing a single field.\n\n(The earlier intermittent `ORA-00027` at package line 3506 is gone — the backend now clears the EBS session labels before every call.)\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — pending the intermittent ORA-00027 fix (NOT a captured response)",
+              "name": "Success (200, successflag=S) — full flexfield, relationship MEANING, sponsorship Employee",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -7590,7 +7578,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_first_name\": \"Jerome\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"<base64-encoded file content>\"\n}",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_relation_ship\": \"Child\",\n  \"p_relation_ship_start_date\": \"20100923\",\n  \"p_title\": \"Mr\",\n  \"p_first_name\": \"Jerome\",\n  \"p_last_name\": \"Ibrahim\",\n  \"p_gendar\": \"Male\",\n  \"p_date_of_birth\": \"20100923\",\n  \"p_id_number\": \"28812345678\",\n  \"p_expiry_date\": \"20301231\",\n  \"p_date_of_issue_qid\": \"20200101\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_date_of_issue\": \"20200101\",\n  \"p_date_of_expire\": \"20301231\",\n  \"p_place_of_issue\": \"Doha\",\n  \"p_country_of_issue\": \"QA\",\n  \"p_visa_type\": \"Residence Permit\",\n  \"p_visa_number\": \"123456789\",\n  \"p_date_of_issue_visa\": \"20200101\",\n  \"p_date_of_expire_visa\": \"20301231\",\n  \"p_visa_validy\": \"Yes\",\n  \"p_type_of_sponsership\": \"Employee\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\",\n  \"p_name_of_sponsor\": \"Amir Sami Samir Ibrahim\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7611,7 +7599,103 @@
               "body": "{\n  \"status\": \"success\",\n  \"successflag\": \"S\",\n  \"message\": \"Success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
-              "name": "Staging DB error (200, successflag=N sanitized) — intermittent ORA-00027 regressed with real id",
+              "name": "Business Error (200, successflag=N) — flexfield required segment missing (Passport Number)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/update?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "update"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_relation_ship\": \"Child\",\n  \"p_first_name\": \"Jerome\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"The requested operation cannot be completed.\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — a CODE resolves to NULL → ORA-01407 (send the meaning)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/update?lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "update"
+                  ],
+                  "query": [
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"p_dependent_id\": \"329302\",\n  \"p_relation_ship\": \"C\",\n  \"p_relationship\": \"C\",\n  \"p_first_name\": \"Jerome\",\n  \"p_effective_date\": \"20260824\",\n  \"p_file_name1\": \"update-proof.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"error\",\n  \"successflag\": \"N\",\n  \"message\": \"A database operation could not be completed. Please contact support if the problem persists.\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Business Error (200, successflag=N) — relationship omitted → ORA-01407 CONTACT_TYPE to NULL",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -8193,12 +8277,6 @@
                 {
                   "key": "lang",
                   "value": "en"
-                },
-                {
-                  "key": "data_type",
-                  "value": "CONTACT",
-                  "disabled": true,
-                  "description": "Optional filter on the view's grouping column (Oracle D_DATA_TYPE) — returns only the rows of that type (e.g. relationships) instead of the full mixed list."
                 }
               ]
             },
@@ -8748,7 +8826,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9044,21 +9122,6 @@
                 {
                   "key": "username",
                   "value": "AIBRAHIM39"
-                },
-                {
-                  "key": "search",
-                  "value": "Doha",
-                  "disabled": true
-                },
-                {
-                  "key": "page",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "pageSize",
-                  "value": "100",
-                  "disabled": true
                 }
               ]
             },
@@ -9937,7 +10000,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\",\n  \"p_passenger1\": null,\n  \"p_passenger2\": null,\n  \"p_passenger3\": null,\n  \"p_passenger4\": null,\n  \"p_comments\": \"\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

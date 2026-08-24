@@ -10,6 +10,7 @@ import { LovResponseDto } from '@shared/dto/lov-response.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { IdCardService, QidService } from '../application/identity.service';
+import { SAMPLE_ATTACHMENT, VerifiedBody } from '@shared/dto/verified-body';
 import { CompanyIdApplyRequestDto, QidUpdateRequestDto } from './dto/identity.dto';
 import {
   IDENTITY_DELIVERY_LOCATION_LOV_EXAMPLE,
@@ -41,6 +42,18 @@ export class IdentityController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 19 — QID update', operationId: 'identity_qidUpdate' })
   @ApiActionOkResponse({ example: IDENTITY_QID_UPDATE_EXAMPLE })
+  @VerifiedBody(
+    QidUpdateRequestDto,
+    {
+      p_qid_number: '28481809470',
+      p_iss_date: '2025-10-17',
+      p_exp_date: '2029-10-16',
+      p_qid_job: 'Analyst',
+      p_file_name1: 'qid-front.jpg',
+      p_attachment1: SAMPLE_ATTACHMENT,
+    },
+    'Verified against staging. Dates accept yyyy-MM-dd or dd-Mon-yyyy; an attachment of the QID is expected.',
+  )
   updateQid(
     @Body() body: QidUpdateRequestDto,
     @CurrentUser() user: AuthenticatedUser,
@@ -54,6 +67,17 @@ export class IdentityController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 54 — Request company ID', operationId: 'identity_idCardApply' })
   @ApiActionOkResponse({ example: IDENTITY_IDCARD_APPLY_EXAMPLE })
+  @VerifiedBody(
+    CompanyIdApplyRequestDto,
+    {
+      p_reason: 'Damaged',
+      p_charge_for_new_id: 'No',
+      p_delivery_loc: 'Al Wakra Hospital',
+      p_working_location: 'Others',
+      p_comments: 'test',
+    },
+    'Verified against staging. All three list values come from the op 54 LOVs (GET /identity/lov/reason, /lov/delivery-location, /lov/work-location).',
+  )
   requestCompanyId(
     @Body() body: CompanyIdApplyRequestDto,
     @CurrentUser() user: AuthenticatedUser,

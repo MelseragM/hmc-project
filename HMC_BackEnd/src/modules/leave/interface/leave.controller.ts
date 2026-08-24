@@ -11,6 +11,7 @@ import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorator';
 import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { LeaveService } from '../application/leave.service';
+import { VerifiedBody } from '@shared/dto/verified-body';
 import {
   ApplyLeaveRequestDto,
   LeaveAmendLovQueryDto,
@@ -94,6 +95,11 @@ export class LeaveController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 47 — Leave duration calculation', operationId: 'leave_calculate' })
   @ApiReadOkResponse({ example: LEAVE_CALCULATE_EXAMPLE })
+  @VerifiedBody(LeaveCalcRequestDto, {
+    absenceType: 'Casual Leave',
+    startDate: '12-Jun-2025',
+    endDate: '14-Jun-2025',
+  })
   calculate(
     @Body() dto: LeaveCalcRequestDto,
     @CurrentUser() user: AuthenticatedUser,

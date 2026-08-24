@@ -388,7 +388,6 @@ setExamples('Letters', 'GET /letters/lov', [
 setBody('Letters', 'POST /letters/apply', {
   p_letter_language: 'English',
   p_letter_name: 'Bank letter with details with effective date',
-  p_country: 'Qatar',
   p_no_of_copies: '1',
   p_mobile_number: '55723893',
   p_letter_delivery_loc: 'Al Wakra Hospital',
@@ -397,18 +396,23 @@ setBody('Letters', 'POST /letters/apply', {
 setUrl('Letters', 'POST /letters/apply', '/letters/apply?lang=en');
 setDescription('Letters', 'POST /letters/apply',
   '**Purpose:** op 17 — Submit letter request (`XXHMC_SND_HR_EMPLYMNT_LTR_PR`).\n\n' + AUTH_NOTE +
-  '\n\n**KNOWN STAGING ISSUE (2026-08-23):** with values taken from the op 16 LOVs the procedure raises `ORA-01403: no data found` (line 201/180 depending on the letter type) — reference data missing on staging; intermittently also ORA-00001 on FND_SESSIONS. Request format is correct per DTO/Swagger.\n\n' + VERIFIED);
+  '\n\n**RULES DECODED FROM THE PROCEDURE (2026-08-24) — all three used to surface as a bare 404 (ORA-01403):**\n' +
+  '1. `p_letter_name` + `p_letter_language` must be a **valid pair** (line 180). Every letter exists in exactly ONE language — `GET /letters/lov` returns it per name (`Bank letter with details with effective date` = English, `Basic Salary Certificate` = Arabic). A mismatched pair can never resolve.\n' +
+  '2. **Do NOT send `p_country`** unless the letter is `Passage to Saudi Arabia`: the country lookup (line 201) is guarded by `AND \'Passage to Saudi Arabia\' = <letter>`. It is now optional in the DTO — sending it with any other letter guaranteed the failure.\n' +
+  '3. `p_mobile_number` must be an **existing mobile of the employee** (`per_phones.phone_type = M`, line 219) — take it from `GET /letters/lov` → `mobileNo`; `p_letter_delivery_loc` must come from `deliveryLoc` (line 235).\n\n' +
+  '**Status:** the corrected body is below; awaiting the next staging deploy to capture the success response.\n\n' + VERIFIED);
 setExamples('Letters', 'POST /letters/apply', [
   expectedExample({
-    name: 'Expected Success (200) — built from code, pending staging DB fix (NOT a captured response)',
+    name: 'Expected Success (200) — corrected payload, awaiting the next staging deploy (NOT a captured response)',
     method: 'POST', urlPath: '/letters/apply?lang=en',
     requestBody: {
-      p_letter_language: 'English', p_letter_name: 'Bank letter with details with effective date', p_country: 'Qatar',
+      p_letter_language: 'English', p_letter_name: 'Bank letter with details with effective date',
       p_no_of_copies: '1', p_mobile_number: '55723893', p_letter_delivery_loc: 'Al Wakra Hospital', p_purpose_comments: 'test',
     },
     responseBody: EXPECTED_SUBMIT_SUCCESS,
   }),
-  example('letters|Letters apply submit', 'Staging DB error (404) — ORA-01403 inside the procedure'),
+  example('letters|Letters apply submit', 'Old failure (404) — ORA-01403 at line 201: p_country sent with a non-Saudi-passage letter'),
+  example('letters|Letters apply Qatar retry', 'Old failure (404) — ORA-01403 at line 180: English requested for an Arabic-only letter'),
   example('letters|Letters apply validation empty', 'Validation Error (400) — required p_* fields missing'),
 ]);
 

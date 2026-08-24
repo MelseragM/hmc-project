@@ -47,7 +47,7 @@ export class LetterApplyRequestDto {
   [key: string]: unknown;
 }
 
-defineOptionalStringFields(LetterApplyRequestDto, ['p_country', ...ATTACHMENT_FIELDS], {
-  // Only meaningful for the "Passage to Saudi Arabia" letter (see class doc).
-  p_country: '',
-});
+// `p_country` is deliberately left WITHOUT an example: it only applies to the
+// "Passage to Saudi Arabia" letter, and copying the Swagger example with a
+// country filled in is exactly what produced ORA-01403 at line 201.
+defineOptionalStringFields(LetterApplyRequestDto, ['p_country', ...ATTACHMENT_FIELDS]);

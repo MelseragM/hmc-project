@@ -8,6 +8,7 @@ import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
 import { AppointmentsService } from '../application/appointments.service';
+import { VerifiedBody } from '@shared/dto/verified-body';
 import { BookAppointmentRequestDto } from './dto/appointments.dto';
 
 /** Representative Cerner payloads (docs only): the client passes Cerner rows through unchanged. */
@@ -80,6 +81,19 @@ export class AppointmentsController {
   @Post('book')
   @ApiOperation({ summary: 'op 44 — Book appointment', operationId: 'appointments_book' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // Cerner-backed: ids come from GET /appointments/masters and
+  // /appointments/booking-init. Not executable on staging yet —
+  // CERNER_BASE_URL is unset there, so all four ops answer 503.
+  @VerifiedBody(
+    BookAppointmentRequestDto,
+    {
+      clinicId: 'CLINIC-001',
+      locationId: 'LOC-001',
+      serviceId: 'SVC-001',
+      slot: '2026-09-01T09:30:00',
+    },
+    'Shape only — the appointments module needs CERNER_BASE_URL configured on the environment (503 until then). Ids come from GET /appointments/masters.',
+  )
   book(
     @Body() dto: BookAppointmentRequestDto,
     @CurrentUser() user: AuthenticatedUser,

@@ -11,28 +11,53 @@ import {
 import { defineOptionalStringFields, RequiredString } from '@shared/dto/oracle-submit.dto';
 
 export class PhoneItemDto {
-  @ApiPropertyOptional({ description: 'Existing phone id (omit to create).' })
-  @IsOptional()
+  @ApiProperty({
+    example: '310129',
+    description:
+      'Existing phone id — REQUIRED. Despite its name ADD_OR_UPDATE_PHONE only updates ' +
+      'existing rows; read the ids from GET /profile → phones[].phoneId.',
+  })
   @IsString()
-  phoneId?: string;
+  @IsNotEmpty()
+  phoneId!: string;
 
-  @ApiPropertyOptional({ description: 'Object version number for updates.' })
+  @ApiPropertyOptional({
+    example: '1',
+    description: 'Object version number. Optional — the procedure re-reads the row version.',
+  })
   @IsOptional()
   @IsString()
   objectVersionNumber?: string;
 
-  @ApiProperty({ example: 'Qatar Mobile Number', description: 'Exact phone-type LOV meaning.' })
+  @ApiProperty({
+    example: 'Qatar Mobile Number',
+    description: 'Exact phone-type LOV meaning (GET /contact/lov/phone-type → meaning).',
+  })
   @IsString()
   @IsNotEmpty()
   phoneType!: string;
 
-  @ApiProperty({ example: '55512345' })
+  @ApiProperty({ example: '55723893' })
   @IsString()
   @IsNotEmpty()
   phoneNumber!: string;
 }
 
-/** op 28 — UPDATE_PHONE_NUMBER (PHONE_PKG). */
+/**
+ * op 28 — UPDATE_PHONE_NUMBER (PHONE_PKG.ADD_OR_UPDATE_PHONE).
+ *
+ * Verified against the database on 2026-08-24 (successflag Y) after reading the
+ * package spec: the four value parameters are `ETSND_VARCHAR` COLLECTIONS
+ * (`TABLE OF NVARCHAR2(4000) INDEX BY PLS_INTEGER`), not scalars, and the
+ * package's own `str_to_type()` builds them from a COMMA-separated string. The
+ * whole `phones` array therefore goes to Oracle in a single call, index-aligned.
+ *
+ * Binding scalars — what we did before — produced an EMPTY collection, which
+ * the package reported as "Phone type doesnot exist" for every value; the type
+ * was never the problem. Because `str_to_type` drops empty tokens there is no
+ * way to express a NEW phone, so `phoneId` is required per item (raised with
+ * the DB team: creating a phone needs another entry point).
+ */
 export class UpdatePhoneRequestDto {
   @ApiProperty({ type: [PhoneItemDto] })
   @IsArray()

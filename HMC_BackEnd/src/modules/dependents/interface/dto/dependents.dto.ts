@@ -140,8 +140,25 @@ defineOptionalStringFields(
  * The caller's dependent ids are visible in GET /profile
  * (dependentPhones/dependentAddresses).
  */
+/**
+ * op 24 — UPDATE_DEPENDENT_PR. Verified end-to-end on 2026-08-24
+ * (successflag Y, dependent 329302). The procedure re-validates the WHOLE
+ * dependent flexfield, so a partial update is rejected — send the full
+ * identity/passport/visa set even when changing one field:
+ *
+ *  - `p_relation_ship` takes the **MEANING** here (`Child`) — the opposite of
+ *    op 31 delete, which needs the CODE (`C`). Omitting it makes the procedure
+ *    update PER_CONTACT_RELATIONSHIPS.CONTACT_TYPE to NULL → ORA-01407, and a
+ *    code (`C`) resolves to NULL the same way.
+ *  - `p_type_of_sponsership` must exist in the HMC_HR_SPONSORSHIP_PERSON value
+ *    set: `Employee` works, relationship words like `Father` raise
+ *    ORA-20001 FLEX-VALUE DOES NOT EXIST.
+ *  - Passport number + its issue/expiry dates, QID + expiry, visa type/number/
+ *    dates and `p_visa_validy` (Yes|No) are all required segments
+ *    (FLEX-NULL REQUIRED SEGMENT otherwise), and >= 1 attachment is mandatory.
+ */
 export class UpdateDependentRequestDto {
-  @RequiredString('4668195')
+  @RequiredString('329302')
   p_dependent_id!: string;
 
   [key: string]: unknown;
@@ -176,6 +193,8 @@ defineOptionalStringFields(
   'p_expiry_date',
   'p_date_of_issue_qid',
   'p_date_of_issuue_qid',
+  // NOTE the value set: HMC_HR_SPONSORSHIP_PERSON accepts 'Employee' (verified),
+  // NOT relationship words like 'Father'.
   'p_type_of_sponsorship',
   'p_type_of_sponsership',
   'p_name_of_contact',
@@ -199,9 +218,33 @@ defineOptionalStringFields(
   'p_comments',
   ...ATTACHMENT_FIELDS,
   ],
+  // The complete payload that returned successflag Y on 2026-08-24 — copy it
+  // as-is from Swagger and it works (the procedure re-validates every segment,
+  // so a shorter body is rejected).
   {
-    p_first_name: 'John',
-    p_effective_date: '20260823',
+    p_relation_ship: 'Child',
+    p_relation_ship_start_date: '20100923',
+    p_title: 'Mr',
+    p_first_name: 'Jerome',
+    p_last_name: 'Ibrahim',
+    p_gendar: 'Male',
+    p_date_of_birth: '20100923',
+    p_id_number: '28812345678',
+    p_expiry_date: '20301231',
+    p_date_of_issue_qid: '20200101',
+    p_passport_number: 'A38697134',
+    p_date_of_issue: '20200101',
+    p_date_of_expire: '20301231',
+    p_place_of_issue: 'Doha',
+    p_country_of_issue: 'QA',
+    p_visa_type: 'Residence Permit',
+    p_visa_number: '123456789',
+    p_date_of_issue_visa: '20200101',
+    p_date_of_expire_visa: '20301231',
+    p_visa_validy: 'Yes',
+    p_type_of_sponsership: 'Employee',
+    p_name_of_sponsor: 'Amir Sami Samir Ibrahim',
+    p_effective_date: '20260824',
     p_file_name1: 'update-proof.pdf',
     p_attachment1: 'dGVzdCBhdHRhY2htZW50',
   },

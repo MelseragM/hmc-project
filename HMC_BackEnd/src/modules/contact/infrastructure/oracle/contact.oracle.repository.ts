@@ -13,15 +13,33 @@ import {
   UpsertPhoneCommand,
 } from '../../domain/contact.repository';
 
-/** PHONE_PKG.ADD_OR_UPDATE_PHONE input params (Sanaad spec — UPDATE_PHONE_NUMBER). */
+/**
+ * PHONE_PKG.ADD_OR_UPDATE_PHONE input params. Everything except `p_user_name`
+ * is declared as `ETSND_VARCHAR` — `TABLE OF NVARCHAR2(4000) INDEX BY
+ * PLS_INTEGER` — so the four value params are COLLECTIONS, one element per
+ * phone, index-aligned across the four arrays.
+ */
 const UPSERT_PHONE_PARAMS = [
   'p_user_name',
   'p_phone_id',
   'p_object_version_number',
   'p_phone_type',
   'p_phone_number',
-  'p_language',
 ] as const;
+
+/**
+ * The package publishes `str_to_type(VARCHAR2) RETURN ETSND_VARCHAR`, which
+ * splits a COMMA-separated string into that collection (verified on staging:
+ * `str_to_type('a,b').COUNT = 2`). Letting it build the arrays keeps plain
+ * string binds on our side and is what makes the call work at all.
+ */
+const PHONE_ARRAY_PARAMS = [
+  'p_phone_id',
+  'p_object_version_number',
+  'p_phone_type',
+  'p_phone_number',
+] as const;
+const STR_TO_TYPE = 'XXHMC_SND_PHONE_PKG.str_to_type';
 
 /** DEL_PHONE_NUMBER_PR input params (Sanaad spec — DELETE_PHONE_DETAILS_SUBMIT). */
 const DELETE_PHONE_PARAMS = [
@@ -70,14 +88,21 @@ const UPDATE_ADDRESS_PARAMS = [
 ] as const;
 
 /**
- * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE. Each phone is
- * submitted through the scalar package signature so one failed item stops the
- * batch. op 32 — delete via DEL_PHONE_NUMBER_PR.
+ * op 28 — UPDATE_PHONE_NUMBER via PHONE_PKG.ADD_OR_UPDATE_PHONE. op 32 —
+ * delete via DEL_PHONE_NUMBER_PR.
  *
- * Both go through `callSubmitProc`, which builds the call from the procedure's
- * declared arguments: the phone upsert previously appended assumed
- * `p_status`/`p_message` OUT arguments and failed with `PLS-00306: wrong number
- * or types of arguments`.
+ * The whole batch goes in ONE call: the package takes four index-aligned
+ * `ETSND_VARCHAR` collections, built from comma-separated strings by its own
+ * `str_to_type` (see PHONE_ARRAY_PARAMS). Submitting phones one-by-one with
+ * scalar binds is what produced "Phone type doesnot exist" for every value —
+ * the collection arrived empty, so the package found no type to validate.
+ *
+ * `p_phone_id` is REQUIRED per phone: despite the name, the procedure only
+ * updates existing rows. It resolves each id first and answers "Phone ID
+ * doesnot exist" for a placeholder (0) or ORA-01403 for an empty element, and
+ * `str_to_type` drops empty tokens, so a "new phone" slot cannot even be
+ * expressed. Creating a phone needs a different Oracle entry point (raised with
+ * the DB team).
  */
 @Injectable()
 export class PhoneOracleRepository extends BaseOracleRepository implements PhoneRepository {
@@ -86,27 +111,39 @@ export class PhoneOracleRepository extends BaseOracleRepository implements Phone
   }
 
   async upsert(cmd: UpsertPhoneCommand): Promise<SubmitResult> {
-    let result: SubmitResult = {
-      status: 'success',
-      successflag: 'S',
-      errormessage: 'Success',
-    };
-    for (const phone of cmd.phones) {
-      result = await this.callSubmitProc(
-        ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE,
-        UPSERT_PHONE_PARAMS,
-        {
-          p_user_name: cmd.username,
-          p_phone_id: phone.phoneId ?? null,
-          p_object_version_number: phone.objectVersionNumber ?? null,
-          p_phone_type: phone.phoneType,
-          p_phone_number: phone.phoneNumber,
-          p_language: toOracleLanguage(cmd.lang),
-        },
-      );
-      if (result.successflag === 'N') return result;
+    if (!cmd.phones.length) {
+      return { status: 'success', successflag: 'S', errormessage: 'Success' };
     }
-    return result;
+    // Fail fast with a clear message instead of the procedure's raw ORA-01403.
+    const missingId = cmd.phones.findIndex((p) => !p.phoneId);
+    if (missingId >= 0) {
+      return {
+        status: 'error',
+        successflag: 'N',
+        errormessage:
+          `phones[${missingId}].phoneId is required — ADD_OR_UPDATE_PHONE only updates ` +
+          'existing phones. Read the current ids from GET /profile (phones) first.',
+      };
+    }
+
+    const join = (pick: (p: (typeof cmd.phones)[number]) => string | undefined) =>
+      cmd.phones.map((p) => pick(p) ?? '').join(',');
+
+    return this.callSubmitProc(
+      ORACLE_OBJECTS.PHONE_PKG_ADD_OR_UPDATE,
+      UPSERT_PHONE_PARAMS,
+      {
+        p_user_name: cmd.username,
+        p_phone_id: join((p) => p.phoneId),
+        // The procedure re-reads the row's real version; any element keeps the
+        // arrays index-aligned.
+        p_object_version_number: join((p) => p.objectVersionNumber ?? '1'),
+        p_phone_type: join((p) => p.phoneType),
+        p_phone_number: join((p) => p.phoneNumber),
+      },
+      undefined,
+      { wrap: Object.fromEntries(PHONE_ARRAY_PARAMS.map((p) => [p, STR_TO_TYPE])) },
+    );
   }
 
   async delete(cmd: DeletePhoneCommand): Promise<SubmitResult> {

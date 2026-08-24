@@ -19,6 +19,23 @@ import { RequestContext } from '../http/request-context';
  *
  * See Docs_Ai/Repository Pattern/README.md (Recommendations).
  */
+/** Extra rendering rules for `callSubmitProc`. */
+export interface SubmitProcOptions {
+  /**
+   * Parameters to pass through a PL/SQL function instead of binding directly:
+   * `{ p_phone_type: 'XXHMC_SND_PHONE_PKG.str_to_type' }` renders
+   * `p_phone_type => XXHMC_SND_PHONE_PKG.str_to_type(:p_phone_type)`.
+   *
+   * Needed when a formal is a PL/SQL collection type (an associative array such
+   * as `XXHMC_SND_PHONE_PKG.ETSND_VARCHAR`) that the package itself knows how
+   * to build from a delimited string. Binding those formals directly produced
+   * an EMPTY collection, which the phone package reported as the misleading
+   * business error "Phone type doesnot exist" for every value — the type was
+   * never the problem, the empty array was.
+   */
+  wrap?: Record<string, string>;
+}
+
 export abstract class BaseOracleRepository {
   /** Named after the concrete subclass so log lines identify the adapter. */
   private readonly logger = new Logger(this.constructor.name);
@@ -191,8 +208,10 @@ export abstract class BaseOracleRepository {
     params: readonly string[],
     values: Record<string, unknown>,
     outBinds: oracledb.BindParameters = this.statusOutBinds(),
+    options: SubmitProcOptions = {},
   ): Promise<SubmitResult> {
     const declared = await this.schema?.resolveParams(object, params);
+    const wrap = options.wrap ?? {};
     const binds: oracledb.BindParameters = {};
     const names: string[] = [];
 
@@ -216,6 +235,16 @@ export abstract class BaseOracleRepository {
           // surface the drift so the documented param list gets updated.
           this.logger.warn(`Unmapped Oracle parameter ${object}.${param.name} bound as NULL`);
         }
+        if (wrap[param.name]) {
+          // Rendered as `p_x => PKG.fn(:p_x)`: the value is bound as a plain
+          // string and the PL/SQL function builds the composite the formal
+          // actually declares (see SubmitProcOptions.wrap).
+          (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.pick(
+            values,
+            param.name,
+          );
+          continue;
+        }
         (binds as Record<string, unknown>)[param.name] = BaseOracleRepository.inBind(
           param,
           BaseOracleRepository.pick(values, param.name),
@@ -229,7 +258,9 @@ export abstract class BaseOracleRepository {
       }
     }
 
-    const namedArgs = names.map((n) => `${n} => :${n}`).join(',\n          ');
+    const namedArgs = names
+      .map((n) => (wrap[n] ? `${n} => ${wrap[n]}(:${n})` : `${n} => :${n}`))
+      .join(',\n          ');
     const out = await this.call<Record<string, any>>(
       `BEGIN ${object}(\n          ${namedArgs}); END;`,
       binds,

@@ -7,6 +7,7 @@ import { Roles } from '@core/auth/decorators/roles.decorator';
 import { AuthenticatedUser, Role } from '@core/auth/auth-user.interface';
 import { ProfileQueryDto } from '@shared/dto/common-query.dto';
 import { SubmitResultDto } from '@shared/dto/submit-result.dto';
+import { VerifiedBody } from '@shared/dto/verified-body';
 import { ApprovalsService, WorklistService } from '../application/approvals.service';
 import {
   ActionHistoryQueryDto,
@@ -69,6 +70,14 @@ export class ApprovalsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 22 — Approve/Reject', operationId: 'approvals_decision' })
   @ApiOkResponse({ type: SubmitResultDto })
+  // `id` (notification id) and `itemKey` must come from the SAME row of
+  // GET /approvals/worklist — Oracle Workflow rejects a mismatched pair with
+  // "Attribute 'RESULT' does not exist for notification".
+  @VerifiedBody(
+    ApproveRejectRequestDto,
+    { decision: 'APPROVE', itemKey: '18875905', itemType: 'HRSSA', comment: 'Approved.' },
+    'Take the path id AND itemKey from one row of GET /approvals/worklist (STATUS=OPEN and actionable — FYI notifications reject APPROVE).',
+  )
   decision(
     @Param('id') id: string,
     @Body() dto: ApproveRejectRequestDto,
@@ -96,6 +105,17 @@ export class ApprovalsController {
     operationId: 'approvals_requestInfo',
   })
   @ApiOkResponse({ type: SubmitResultDto })
+  @VerifiedBody(
+    RequestInfoRequestDto,
+    {
+      itemKey: '18875965',
+      itemType: 'HRSSA',
+      mode: 'QUESTION',
+      toUsername: 'V-NFERNANDO',
+      comment: 'Please attach the supporting documents.',
+    },
+    'Verified against staging (successflag S) with a real OPEN notification of the caller — take id + itemKey from GET /approvals/worklist.',
+  )
   requestInfo(
     @Param('id') id: string,
     @Body() dto: RequestInfoRequestDto,
@@ -120,6 +140,11 @@ export class ApprovalsController {
   @HttpCode(200)
   @ApiOperation({ summary: 'op 71 — Reassign approval', operationId: 'approvals_reassign' })
   @ApiOkResponse({ type: SubmitResultDto })
+  @VerifiedBody(
+    ReassignApprovalRequestDto,
+    { assignTo: 'V-NFERNANDO', type: 'DELEGATE', comment: 'Reassigning while on leave.' },
+    'Verified against staging (successflag S) with an OPEN notification owned by the caller — the path id comes from GET /approvals/worklist.',
+  )
   reassign(
     @Param('id') id: string,
     @Body() dto: ReassignApprovalRequestDto,
