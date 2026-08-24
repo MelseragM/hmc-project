@@ -1,0 +1,4 @@
+[
+  { "module": "employee", "name": "Supervisor update person_id 112", "method": "POST", "path": "/employee/supervisor?lang=en", "body": { "p_new_supervisor": "112", "p_reason": "Team restructure" } },
+  { "module": "employee", "name": "Supervisor views V-ISIDDIQUI", "method": "GET", "path": "/employee/supervisor/views?username=V-ISIDDIQUI&lang=en" }
+]

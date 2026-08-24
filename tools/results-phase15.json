@@ -1,0 +1,611 @@
+[
+  {
+    "module": "recheck",
+    "name": "No token still bypasses?",
+    "method": "GET",
+    "path": "/contact/lov/phone-type?lang=en",
+    "auth": "none",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": {
+        "items": [
+          {
+            "code": "XXHMC_EMG_INQTR",
+            "meaning": "Emergency contact number Inside Qatar",
+            "used_value": "Emergency contact number Inside Qatar"
+          },
+          {
+            "code": "XXHMC_EMG_OUTQTR",
+            "meaning": "Emergency contact number outside Qatar",
+            "used_value": "Emergency contact number outside Qatar"
+          },
+          {
+            "code": "H1",
+            "meaning": "Home",
+            "used_value": "Home"
+          },
+          {
+            "code": "MPL",
+            "meaning": "Mobile Public",
+            "used_value": "Mobile Public"
+          },
+          {
+            "code": "M",
+            "meaning": "Qatar Mobile Number",
+            "used_value": "Qatar Mobile Number"
+          },
+          {
+            "code": "W1",
+            "meaning": "Work",
+            "used_value": "Work"
+          },
+          {
+            "code": "OUTQATAR",
+            "meaning": "Telephone Outside Qatar",
+            "used_value": "Telephone Outside Qatar"
+          },
+          {
+            "code": "L",
+            "meaning": "Landline",
+            "used_value": "Landline"
+          }
+        ]
+      },
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 6705
+  },
+  {
+    "module": "recheck",
+    "name": "Login response now",
+    "method": "POST",
+    "path": "/auth/login",
+    "auth": "none",
+    "body": {
+      "username": "AIBRAHIM39",
+      "imeinumber": "356789012345678",
+      "mpin": "123456",
+      "platform": "Android",
+      "version": "1.0.0"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "success",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAiLCJ1c2VybmFtZSI6IkFJQlJBSElNMzkiLCJlbXBsb3llZU51bWJlciI6IjAwMDAwMCIsInJvbGVzIjpbIkVNUExPWUVFIl0sImZ1bmN0aW9ucyI6WyJQWVNSUyIsIkxFQVZFIiwiTEVUVEVSIiwiU0RDQVBUIl0sIm5hbWUiOiJEZXYgVXNlciIsImRlcHQiOiJJbmZvcm1hdGlvbiBDb21tdW5pY2F0aW9uIGFuZCBUZWNobm9sb2d5IiwiY29tcGFueSI6IkhNQyIsImlhdCI6MTc4NzQ4NzczOSwiZXhwIjoxNzg3NDkxMzM5fQ.vB8P_0UvwIckY0NwRTi9FhC-VeQzLD-y-Q-Ginu5P_s",
+      "tokenType": "Bearer",
+      "expiresIn": "1h",
+      "employeeusername": "AIBRAHIM39",
+      "employeenumber": "000000",
+      "employeename": "Dev User",
+      "employeenamear": "مستخدم تجريبي",
+      "employeedepartment": "Information Communication and Technology",
+      "employeecompany": "HMC",
+      "functionaccesslist": [
+        {
+          "functionname": "Payroll SSRS",
+          "functioncode": "PYSRS",
+          "remarks": "Payroll SSRS",
+          "status": "1"
+        },
+        {
+          "functionname": "Leave",
+          "functioncode": "LEAVE",
+          "remarks": "Leave",
+          "status": "1"
+        },
+        {
+          "functionname": "Letters",
+          "functioncode": "LETTER",
+          "remarks": "Letters",
+          "status": "1"
+        },
+        {
+          "functionname": "Staff Clinic Apptmnt",
+          "functioncode": "SDCAPT",
+          "remarks": "Staff Clinic Appointment",
+          "status": "1"
+        },
+        {
+          "functionname": "Housing",
+          "functioncode": "HOUSNG",
+          "remarks": "Housing (coming soon)",
+          "status": "2"
+        }
+      ]
+    },
+    "durationMs": 876
+  },
+  {
+    "module": "recheck",
+    "name": "Health DB now",
+    "method": "GET",
+    "path": "/health/db",
+    "auth": "none",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "ok",
+      "enabled": true,
+      "connected": true,
+      "latencyMs": 10,
+      "connection": {
+        "user": "HMCERP",
+        "dsn": "10.91.177.20:1521/ebs_EBSDEV",
+        "poolMin": 2,
+        "poolMax": 10
+      },
+      "pool": {
+        "connectionsOpen": 2,
+        "connectionsInUse": 0
+      },
+      "server": {
+        "version": "19.31.0.0.0",
+        "dbTime": "2026-08-23T15:22:20.458+03:00"
+      },
+      "error": null,
+      "checkedAt": "2026-08-23T12:22:20.455Z"
+    },
+    "durationMs": 210
+  },
+  {
+    "module": "recheck",
+    "name": "Phone type blocker still?",
+    "method": "POST",
+    "path": "/contact/phone?lang=en",
+    "body": {
+      "phones": [
+        {
+          "phoneType": "Qatar Mobile Number",
+          "phoneNumber": "55512345"
+        }
+      ]
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Phone type doesnot exist",
+      "httpStatusCode": 200
+    },
+    "durationMs": 12937
+  },
+  {
+    "module": "recheck",
+    "name": "Leave apply blocker still?",
+    "method": "POST",
+    "path": "/leave/apply?lang=en",
+    "body": {
+      "p_absence_type": "Casual Leave",
+      "p_start_date": "2026-09-07",
+      "p_end_date": "2026-09-08"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Leave Days cannot be applied more than 1 days for HMC Law employees",
+      "httpStatusCode": 200,
+      "result": {
+        "leaveDays": 0
+      }
+    },
+    "durationMs": 2672
+  },
+  {
+    "module": "recheck",
+    "name": "Letters apply blocker still?",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "English",
+      "p_letter_name": "Bank letter with details with effective date",
+      "p_country": "Qatar",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 8650
+  },
+  {
+    "module": "health",
+    "name": "Health DB (new shape with usersDb)",
+    "method": "GET",
+    "path": "/health/db",
+    "auth": "none",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "ok",
+      "enabled": true,
+      "connected": true,
+      "latencyMs": 5172,
+      "connection": {
+        "user": "HMCERP",
+        "dsn": "10.91.177.20:1521/ebs_EBSDEV",
+        "poolMin": 2,
+        "poolMax": 10
+      },
+      "pool": {
+        "connectionsOpen": 2,
+        "connectionsInUse": 1
+      },
+      "server": {
+        "version": "19.31.0.0.0",
+        "dbTime": "2026-08-23T16:08:04.588+03:00"
+      },
+      "error": null,
+      "checkedAt": "2026-08-23T13:07:59.420Z"
+    },
+    "durationMs": 5450
+  },
+  {
+    "module": "health",
+    "name": "Health Users DB (new endpoint)",
+    "method": "GET",
+    "path": "/health/users-db",
+    "auth": "none",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "enabled": false,
+      "connected": false,
+      "latencyMs": null,
+      "connection": {
+        "user": "(not set)",
+        "server": "(not set)",
+        "database": "(not set)",
+        "poolMin": 2,
+        "poolMax": 10,
+        "encrypt": true
+      },
+      "pool": null,
+      "server": null,
+      "error": {
+        "message": "Users DB host/database/user missing — pool not initialized."
+      },
+      "checkedAt": "2026-08-23T13:08:04.953Z"
+    },
+    "durationMs": 144
+  },
+  {
+    "module": "payslip",
+    "name": "Count new shape (852709 Aug2024)",
+    "method": "GET",
+    "path": "/payslip/count?person_id=852709&lang=en&payslipperiod=August%202024",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": {
+        "count": 1
+      },
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 288
+  },
+  {
+    "module": "auth",
+    "name": "Healthcheck recheck",
+    "method": "POST",
+    "path": "/healthcheck",
+    "auth": "none",
+    "body": {
+      "deviceimei": "356789012345678",
+      "platform": "Android",
+      "appname": "Sanaad",
+      "version": "1.0.0"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "appDowntime": "No",
+      "downtimeStart": "",
+      "downtimeEnd": "",
+      "updatetype": "R"
+    },
+    "durationMs": 135
+  },
+  {
+    "module": "auth",
+    "name": "Initiate recheck",
+    "method": "POST",
+    "path": "/auth/initiate",
+    "auth": "none",
+    "body": {
+      "username": "AIBRAHIM39",
+      "imeinumber": "356789012345678",
+      "platform": "Android"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "employeeusername": "AIBRAHIM39",
+      "employeename": "Dev User",
+      "newuser": "No",
+      "employeeflag": "Yes",
+      "employeephonenumber": "7786XXXX",
+      "requestid": "A5AAB8EDAB294F63BBE8558DD1DA2883"
+    },
+    "durationMs": 119
+  },
+  {
+    "module": "auth",
+    "name": "Login recheck",
+    "method": "POST",
+    "path": "/auth/login",
+    "auth": "none",
+    "body": {
+      "username": "AIBRAHIM39",
+      "imeinumber": "356789012345678",
+      "mpin": "123456",
+      "platform": "Android",
+      "version": "1.0.0"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "success",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAiLCJ1c2VybmFtZSI6IkFJQlJBSElNMzkiLCJlbXBsb3llZU51bWJlciI6IjAwMDAwMCIsInJvbGVzIjpbIkVNUExPWUVFIl0sImZ1bmN0aW9ucyI6WyJQWVNSUyIsIkxFQVZFIiwiTEVUVEVSIiwiU0RDQVBUIl0sIm5hbWUiOiJEZXYgVXNlciIsImRlcHQiOiJJbmZvcm1hdGlvbiBDb21tdW5pY2F0aW9uIGFuZCBUZWNobm9sb2d5IiwiY29tcGFueSI6IkhNQyIsImlhdCI6MTc4NzQ5MDQ4NiwiZXhwIjoxNzg3NDk0MDg2fQ.jhcHls-kNjFCcYVfcpkdMo1cENF3kaTfhkWsF7SrUHQ",
+      "tokenType": "Bearer",
+      "expiresIn": "1h",
+      "employeeusername": "AIBRAHIM39",
+      "employeenumber": "000000",
+      "employeename": "Dev User",
+      "employeenamear": "مستخدم تجريبي",
+      "employeedepartment": "Information Communication and Technology",
+      "employeecompany": "HMC",
+      "functionaccesslist": [
+        {
+          "functionname": "Payroll SSRS",
+          "functioncode": "PYSRS",
+          "remarks": "Payroll SSRS",
+          "status": "1"
+        },
+        {
+          "functionname": "Leave",
+          "functioncode": "LEAVE",
+          "remarks": "Leave",
+          "status": "1"
+        },
+        {
+          "functionname": "Letters",
+          "functioncode": "LETTER",
+          "remarks": "Letters",
+          "status": "1"
+        },
+        {
+          "functionname": "Staff Clinic Apptmnt",
+          "functioncode": "SDCAPT",
+          "remarks": "Staff Clinic Appointment",
+          "status": "1"
+        },
+        {
+          "functionname": "Housing",
+          "functioncode": "HOUSNG",
+          "remarks": "Housing (coming soon)",
+          "status": "2"
+        }
+      ]
+    },
+    "durationMs": 124
+  },
+  {
+    "module": "contact",
+    "name": "BLOCKER recheck - phone type",
+    "method": "POST",
+    "path": "/contact/phone?lang=en",
+    "body": {
+      "phones": [
+        {
+          "phoneType": "Qatar Mobile Number",
+          "phoneNumber": "55512345"
+        }
+      ]
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Phone type doesnot exist",
+      "httpStatusCode": 200
+    },
+    "durationMs": 232
+  },
+  {
+    "module": "school-fees",
+    "name": "BLOCKER recheck - school fee apply",
+    "method": "POST",
+    "path": "/school-fees/apply?lang=en",
+    "body": {
+      "p_academic_year": "2025-2026",
+      "p_acd_st_dt": "20250901",
+      "p_acd_end_dt": "20260630",
+      "p_child_name": "Jerome Amir Sami Samir Ibrahim",
+      "p_child_date_birth": "20100923",
+      "p_passport_number": "A38697134",
+      "p_rp_number": "31081804108",
+      "p_school_name": "Al Arqam Academy",
+      "p_educational_stage": "Primary",
+      "p_request_type": "Cash",
+      "p_term": "Term1",
+      "p_amount": "1000",
+      "p_receipt_number": "123",
+      "p_spouse_working": "No",
+      "p_file_name1": "receipt.pdf",
+      "p_attachment1": "dGVzdCBhdHRhY2htZW50"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 9516
+  },
+  {
+    "module": "leave",
+    "name": "BLOCKER recheck - leave apply",
+    "method": "POST",
+    "path": "/leave/apply?lang=en",
+    "body": {
+      "p_absence_type": "Casual Leave",
+      "p_start_date": "2026-09-07",
+      "p_end_date": "2026-09-08"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Leave Days cannot be applied more than 1 days for HMC Law employees",
+      "httpStatusCode": 200,
+      "result": {
+        "leaveDays": 0
+      }
+    },
+    "durationMs": 967
+  },
+  {
+    "module": "leave",
+    "name": "BLOCKER recheck - leave return",
+    "method": "POST",
+    "path": "/leave/return?lang=en",
+    "body": {
+      "p_leave_details": "Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026",
+      "p_return_date": "20-Apr-2026"
+    },
+    "httpStatus": 500,
+    "statusText": "Internal Server Error",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "status": "error",
+      "httpStatusCode": 500
+    },
+    "durationMs": 219
+  },
+  {
+    "module": "letters",
+    "name": "BLOCKER recheck - letters apply",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "English",
+      "p_letter_name": "Bank letter with details with effective date",
+      "p_country": "Qatar",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 166
+  },
+  {
+    "module": "dependents",
+    "name": "BLOCKER recheck - dependent update",
+    "method": "POST",
+    "path": "/dependents/update?lang=en",
+    "body": {
+      "p_dependent_id": "4668195",
+      "p_first_name": "John",
+      "p_effective_date": "20260823",
+      "p_file_name1": "update-proof.pdf",
+      "p_attachment1": "dGVzdCBhdHRhY2htZW50"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 9661
+  },
+  {
+    "module": "annual-ticket",
+    "name": "BLOCKER recheck - ticket balance",
+    "method": "POST",
+    "path": "/annual-ticket/apply?lang=en",
+    "body": {
+      "p_request_for": "Self",
+      "p_employee": "26023",
+      "p_request_type": "Annual Ticket",
+      "p_contractual_year": "01-SEP-2025 to 31-AUG-2026",
+      "p_traveling_dest": "Doha",
+      "p_travel_class": "Economy"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "No ticket balance available for Mr. Amir Sami Samir Ibrahim selected in Annual Leave passage request.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 8375
+  },
+  {
+    "module": "payslip",
+    "name": "BLOCKER recheck - payslip 852709",
+    "method": "GET",
+    "path": "/payslip?person_id=852709&lang=en&payperiod=January%202026&assignmentid=7179444713",
+    "httpStatus": 500,
+    "statusText": "Internal Server Error",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "status": "error",
+      "httpStatusCode": 500
+    },
+    "durationMs": 1825
+  }
+]

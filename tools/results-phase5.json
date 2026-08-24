@@ -1,0 +1,333 @@
+[
+  {
+    "module": "approvals",
+    "name": "History real item key (passport request)",
+    "method": "GET",
+    "path": "/approvals/worklist/18875965/history?lang=en&itemType=HRSSA",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": [
+        {
+          "SEQUENCE_NUM": 1,
+          "NOTIFICATION_ID": 0,
+          "FROM_ROLE": "AIBRAHIM39",
+          "FROM_USER": "037400    - Amir Ibrahim",
+          "TO_ROLE": null,
+          "TO_USER": null,
+          "ACTION_NAME": "Submit",
+          "ACTION_COMMENT": null,
+          "ACTION_DATE": "2026-08-23T08:54:26.000Z",
+          "ITEM_TYPE": "HRSSA",
+          "ITEM_KEY": "18875965"
+        },
+        {
+          "SEQUENCE_NUM": 2,
+          "NOTIFICATION_ID": 123859198,
+          "FROM_ROLE": "MIMRAN2",
+          "FROM_USER": "048945    - Mohammed Imran",
+          "TO_ROLE": null,
+          "TO_USER": null,
+          "ACTION_NAME": "Pending",
+          "ACTION_COMMENT": null,
+          "ACTION_DATE": null,
+          "ITEM_TYPE": "HRSSA",
+          "ITEM_KEY": "18875965"
+        }
+      ],
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 655
+  },
+  {
+    "module": "approvals",
+    "name": "History real item key (closed LOA)",
+    "method": "GET",
+    "path": "/approvals/worklist/18875905/history?lang=en&itemType=HRSSA",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": [
+        {
+          "SEQUENCE_NUM": 1,
+          "NOTIFICATION_ID": 0,
+          "FROM_ROLE": "VPAVITHRAN",
+          "FROM_USER": "038999    - Vandana Pavithran",
+          "TO_ROLE": null,
+          "TO_USER": null,
+          "ACTION_NAME": "Submit",
+          "ACTION_COMMENT": null,
+          "ACTION_DATE": "2026-08-18T07:45:40.000Z",
+          "ITEM_TYPE": "HRSSA",
+          "ITEM_KEY": "18875905"
+        },
+        {
+          "SEQUENCE_NUM": 2,
+          "NOTIFICATION_ID": 123859121,
+          "FROM_ROLE": "AIBRAHIM39",
+          "FROM_USER": "037400    - Amir Ibrahim",
+          "TO_ROLE": null,
+          "TO_USER": null,
+          "ACTION_NAME": "Approve",
+          "ACTION_COMMENT": " ",
+          "ACTION_DATE": "2026-08-18T07:46:17.000Z",
+          "ITEM_TYPE": "HRSSA",
+          "ITEM_KEY": "18875905"
+        }
+      ],
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 316
+  },
+  {
+    "module": "approvals",
+    "name": "Details real notification (FYI passport)",
+    "method": "GET",
+    "path": "/approvals/123859197/details?lang=en",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": [],
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 145
+  },
+  {
+    "module": "approvals",
+    "name": "Details real notification (closed LOA)",
+    "method": "GET",
+    "path": "/approvals/123859121/details?lang=en",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": [],
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 150
+  },
+  {
+    "module": "approvals",
+    "name": "Worklist summary real notificationId",
+    "method": "GET",
+    "path": "/approvals/worklist/summary?enum=AIBRAHIM39&lang=en&notificationId=123859197",
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "result": [
+        {
+          "NOTIFICATION_ID": 123859197,
+          "FROM_USER": "SYSADMIN",
+          "TO_USER": "037400    - Amir Ibrahim",
+          "SUBJECT": "Passport has been forwarded for approval to 048945    - Mohammed Imran",
+          "LANGUAGE": "US",
+          "BEGIN_DATE": "2026-08-23T08:54:31.000Z",
+          "DUE_DATE": null,
+          "STATUS": "OPEN",
+          "RECIPIENT_ROLE": "AIBRAHIM39",
+          "END_DATE": null,
+          "TYPE": "HR",
+          "MORE_INFO_ROLE": null,
+          "FROM_ROLE": "SYSADMIN",
+          "MESSAGE_TYPE": "HRSSA",
+          "ITEM_KEY": "18875965",
+          "MESSAGE_NAME": "HR_EMBD_NTFY_APPROVAL_FWD_MSG",
+          "MAIL_STATUS": "MAIL",
+          "ORIGINAL_RECIPIENT": "AIBRAHIM39"
+        }
+      ],
+      "opstatus": 0,
+      "status": "success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 1646
+  },
+  {
+    "module": "approvals",
+    "name": "Decision on closed notification (real business error)",
+    "method": "POST",
+    "path": "/approvals/123859121/decision?lang=en",
+    "body": {
+      "decision": "APPROVE",
+      "itemKey": "18875905",
+      "itemType": "HRSSA",
+      "comment": "Test decision on already-closed notification."
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "The requested operation cannot be completed.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 161
+  },
+  {
+    "module": "approvals",
+    "name": "Request-info validation error (400)",
+    "method": "POST",
+    "path": "/approvals/99001/request-info",
+    "body": {},
+    "httpStatus": 400,
+    "statusText": "Bad Request",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "Validation failed.",
+      "status": "error",
+      "httpStatusCode": 400,
+      "errors": {
+        "details": [
+          "itemKey should not be empty",
+          "itemKey must be a string",
+          "comment should not be empty",
+          "comment must be a string"
+        ]
+      }
+    },
+    "durationMs": 174
+  },
+  {
+    "module": "annual-ticket",
+    "name": "Apply with employee full name (title)",
+    "method": "POST",
+    "path": "/annual-ticket/apply?lang=en",
+    "body": {
+      "p_request_for": "Self",
+      "p_employee": "Mr. Amir Sami Samir Ibrahim",
+      "p_request_type": "Annual Ticket",
+      "p_contractual_year": "01-SEP-2025 to 31-AUG-2026",
+      "p_traveling_dest": "Doha",
+      "p_travel_class": "Economy"
+    },
+    "httpStatus": 500,
+    "statusText": "Internal Server Error",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "status": "error",
+      "httpStatusCode": 500
+    },
+    "durationMs": 9903
+  },
+  {
+    "module": "annual-ticket",
+    "name": "Apply with employee full name (no title)",
+    "method": "POST",
+    "path": "/annual-ticket/apply?lang=en",
+    "body": {
+      "p_request_for": "Self",
+      "p_employee": "Amir Sami Samir Ibrahim",
+      "p_request_type": "Annual Ticket",
+      "p_contractual_year": "01-SEP-2025 to 31-AUG-2026",
+      "p_traveling_dest": "Doha",
+      "p_travel_class": "Economy"
+    },
+    "httpStatus": 500,
+    "statusText": "Internal Server Error",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "A database operation could not be completed. Please contact support if the problem persists.",
+      "status": "error",
+      "httpStatusCode": 500
+    },
+    "durationMs": 195
+  },
+  {
+    "module": "contact",
+    "name": "Phone update-in-place (real phoneId, same values)",
+    "method": "POST",
+    "path": "/contact/phone?lang=en",
+    "body": {
+      "phones": [
+        {
+          "phoneId": "310129",
+          "phoneType": "Qatar Mobile Number",
+          "phoneNumber": "55723893"
+        }
+      ]
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Phone type doesnot exist",
+      "httpStatusCode": 200
+    },
+    "durationMs": 217
+  },
+  {
+    "module": "contact",
+    "name": "Update address real id (same values)",
+    "method": "POST",
+    "path": "/contact/address/update?lang=en",
+    "body": {
+      "p_address_id": "1720601",
+      "p_effective_date": "20260823",
+      "p_address_type": "Primary Home Country Address",
+      "p_country": "QA",
+      "p_address_line1": "Building 45"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Invalid Country",
+      "httpStatusCode": 200
+    },
+    "durationMs": 161
+  },
+  {
+    "module": "school-fees",
+    "name": "Apply fuller payload (spec-style)",
+    "method": "POST",
+    "path": "/school-fees/apply?lang=en",
+    "body": {
+      "p_academic_year": "2025-2026",
+      "p_acd_st_dt": "20250901",
+      "p_acd_end_dt": "20260630",
+      "p_child_name": "Jerome Amir Sami Samir Ibrahim",
+      "p_child_date_birth": "20100923",
+      "p_passport_number": "A38697134",
+      "p_rp_number": "31081804108",
+      "p_school_name": "Al Arqam Academy",
+      "p_educational_stage": "Primary",
+      "p_request_type": "Cash",
+      "p_term": "Term1",
+      "p_amount": "1000",
+      "p_receipt_number": "123",
+      "p_spouse_working": "No",
+      "p_comments": "test"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 477
+  }
+]

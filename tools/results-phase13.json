@@ -1,0 +1,72 @@
+[
+  {
+    "module": "employee",
+    "name": "Supervisor update FULL_NAME retry",
+    "method": "POST",
+    "path": "/employee/supervisor?lang=en",
+    "body": {
+      "p_new_supervisor": "000001 - Dr. Hajar Ahmed Hajar",
+      "p_reason": "Team restructure"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "The requested operation cannot be completed.",
+      "httpStatusCode": 200
+    },
+    "durationMs": 206
+  },
+  {
+    "module": "letters",
+    "name": "Letters apply Egypt retry",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "English",
+      "p_letter_name": "Bank letter with details with effective date",
+      "p_country": "Egypt",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 314
+  },
+  {
+    "module": "letters",
+    "name": "Letters apply Qatar retry",
+    "method": "POST",
+    "path": "/letters/apply?lang=en",
+    "body": {
+      "p_letter_language": "English",
+      "p_letter_name": "Basic Salary Certificate",
+      "p_country": "Qatar",
+      "p_no_of_copies": "1",
+      "p_mobile_number": "55723893",
+      "p_letter_delivery_loc": "Al Wakra Hospital",
+      "p_purpose_comments": "test"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 351
+  }
+]

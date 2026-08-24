@@ -1,0 +1,7 @@
+[
+  { "module": "discovery", "name": "employee basic", "method": "GET", "path": "/employee/basic?lang=en&enum=053613" },
+  { "module": "discovery", "name": "profile", "method": "GET", "path": "/profile?lang=en&enum=053613" },
+  { "module": "approvals", "name": "my-requests after submits", "method": "GET", "path": "/approvals/my-requests?enum=053613&lang=en" },
+  { "module": "approvals", "name": "worklist summary after submits", "method": "GET", "path": "/approvals/worklist/summary?enum=053613&lang=en" },
+  { "module": "approvals", "name": "worklist retry", "method": "GET", "path": "/approvals/worklist?enum=053613&lang=en" }
+]

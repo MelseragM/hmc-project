@@ -1,0 +1,3 @@
+[
+  { "module": "dependents", "name": "Delete SUCCESS attempt full", "method": "POST", "path": "/dependents/delete?lang=en", "body": { "p_dependent_id": "1607679", "p_contact_type": "C", "p_relationship": "Child", "p_relationship_end_date": "20260824", "p_file_name1": "end-proof.pdf", "p_attachment1": "dGVzdCBhdHRhY2htZW50" } }
+]

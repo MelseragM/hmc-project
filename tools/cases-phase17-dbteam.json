@@ -1,0 +1,16 @@
+[
+  { "module": "dependents", "name": "Update dependent REAL id 329302", "method": "POST", "path": "/dependents/update?lang=en", "body": { "p_dependent_id": "329302", "p_first_name": "Jerome", "p_effective_date": "20260824", "p_file_name1": "update-proof.pdf", "p_attachment1": "dGVzdCBhdHRhY2htZW50" } },
+  { "module": "dependents", "name": "Delete dependent REAL id 1607679", "method": "POST", "path": "/dependents/delete?lang=en", "body": { "p_dependent_id": "1607679", "p_relationship_end_date": "20260824", "p_file_name1": "end-proof.pdf", "p_attachment1": "dGVzdCBhdHRhY2htZW50" } },
+
+  { "module": "contact", "name": "Phone create retest QMN", "method": "POST", "path": "/contact/phone?lang=en", "body": { "phones": [ { "phoneType": "Qatar Mobile Number", "phoneNumber": "55512345" } ] } },
+  { "module": "contact", "name": "Phone create retest Landline", "method": "POST", "path": "/contact/phone?lang=en", "body": { "phones": [ { "phoneType": "Landline", "phoneNumber": "44412345" } ] } },
+
+  { "module": "annual-ticket", "name": "Ticket retest person_id 26023", "method": "POST", "path": "/annual-ticket/apply?lang=en", "body": { "p_request_for": "Self", "p_employee": "26023", "p_request_type": "Annual Ticket", "p_contractual_year": "01-SEP-2025 to 31-AUG-2026", "p_traveling_dest": "Doha", "p_travel_class": "Economy" } },
+
+  { "module": "leave", "name": "Amend composite Casual 19-APR", "method": "POST", "path": "/leave/amend?lang=en", "body": { "p_leave_type": "Casual Leave", "p_leave_to_amend": "Casual Leave|19-APR-2026|19-APR-2026", "p_new_end_date": "2026-04-20", "p_comments": "Extending by one day." } },
+  { "module": "leave", "name": "Cancel composite Annual 12-MAR", "method": "POST", "path": "/leave/cancel?lang=en", "body": { "p_leave_type": "Annual Leave", "p_leave_to_cancel": "Annual Leave|12-MAR-2026|12-MAR-2026", "p_reason_for_cancel": "Plans changed" } },
+  { "module": "leave", "name": "Return short composite Casual 19-APR", "method": "POST", "path": "/leave/return?lang=en", "body": { "p_leave_details": "Casual Leave|19-APR-2026|19-APR-2026", "p_return_date": "20-Apr-2026" } },
+
+  { "module": "approvals", "name": "Worklist recheck for open actionable", "method": "GET", "path": "/approvals/worklist?enum=AIBRAHIM39&lang=en" },
+  { "module": "school-fees", "name": "School fee recheck", "method": "POST", "path": "/school-fees/apply?lang=en", "body": { "p_academic_year": "2025-2026", "p_acd_st_dt": "20250901", "p_acd_end_dt": "20260630", "p_child_name": "Jerome Amir Sami Samir Ibrahim", "p_child_date_birth": "20100923", "p_school_name": "Al Arqam Academy", "p_educational_stage": "Primary", "p_request_type": "Cash", "p_term": "Term1", "p_amount": "1000", "p_file_name1": "receipt.pdf", "p_attachment1": "dGVzdCBhdHRhY2htZW50" } }
+]

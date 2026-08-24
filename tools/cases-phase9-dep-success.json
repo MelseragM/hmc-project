@@ -1,0 +1,33 @@
+[
+  { "module": "dependents", "name": "Add dependent SUCCESS (full flexfield payload)", "method": "POST", "path": "/dependents?lang=en", "body": {
+    "p_title": "Mr.",
+    "p_first_name": "Testchild2",
+    "p_last_name": "Ibrahim",
+    "p_relationship": "Child",
+    "p_relationship_start_date": "20150101",
+    "p_gender": "Male",
+    "p_date_of_birth": "20150101",
+    "p_effective_date": "20260823",
+    "p_email_address": "testchild2@example.com",
+    "p_passport_number": "A7654322",
+    "p_pp_issue_date": "20200101",
+    "p_pp_expiry_date": "20300101",
+    "p_place_of_issue": "Doha",
+    "p_country_of_issue": "QA",
+    "p_visa_type": "Residence Permit",
+    "p_visa_number": "123456790",
+    "p_visa_issue_date": "20250101",
+    "p_visa_expiry_date": "20270101",
+    "p_visa_validity": "Yes",
+    "p_id_number": "31599876543",
+    "p_id_issue_date": "20250101",
+    "p_id_expiry_date": "20270101",
+    "p_job_as_in_qid": "Student",
+    "p_type_of_sponsorship": "Employee",
+    "p_sponsor_contact_name": "Amir Ibrahim",
+    "p_file_name1": "birth-certificate.pdf",
+    "p_attachment1": "dGVzdCBhdHRhY2htZW50"
+  } },
+  { "module": "dependents", "name": "Update dependent with attachment (pinned id)", "method": "POST", "path": "/dependents/update?lang=en", "body": { "p_dependent_id": "4668195", "p_first_name": "John", "p_effective_date": "20260823", "p_file_name1": "update-proof.pdf", "p_attachment1": "dGVzdCBhdHRhY2htZW50" } },
+  { "module": "discovery", "name": "profile after dependent add", "method": "GET", "path": "/profile?lang=en&username=AIBRAHIM39" }
+]

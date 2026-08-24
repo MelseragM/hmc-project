@@ -1,0 +1,25 @@
+[
+  {
+    "module": "contact",
+    "name": "Update address real id country name",
+    "method": "POST",
+    "path": "/contact/address/update?lang=en",
+    "body": {
+      "p_address_id": "1720601",
+      "p_effective_date": "20260823",
+      "p_address_type": "Primary Home Country Address",
+      "p_country": "Qatar",
+      "p_address_line1": "Building 45"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "success",
+      "successflag": "S",
+      "message": "Success",
+      "httpStatusCode": 200
+    },
+    "durationMs": 440
+  }
+]

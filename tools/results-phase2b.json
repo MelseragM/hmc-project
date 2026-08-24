@@ -1,0 +1,96 @@
+[
+  {
+    "module": "dependents",
+    "name": "Success (200) — add dependent",
+    "method": "POST",
+    "path": "/dependents?lang=en",
+    "body": {
+      "p_first_name": "John",
+      "p_last_name": "Doe",
+      "p_relationship": "Son",
+      "p_gender": "Male",
+      "p_date_of_birth": "19900101",
+      "p_effective_date": "20260809"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Attachement is mandatory",
+      "httpStatusCode": 200
+    },
+    "durationMs": 14084
+  },
+  {
+    "module": "dependents",
+    "name": "Business Error — delete unknown dependent",
+    "method": "POST",
+    "path": "/dependents/delete?lang=en",
+    "body": {
+      "p_dependent_id": "999999999",
+      "p_relationship_end_date": "20260823"
+    },
+    "httpStatus": 200,
+    "statusText": "OK",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "status": "error",
+      "successflag": "N",
+      "message": "Dependent does not exist",
+      "httpStatusCode": 200
+    },
+    "durationMs": 9148
+  },
+  {
+    "module": "school-fees",
+    "name": "Success (200) — apply (real child data)",
+    "method": "POST",
+    "path": "/school-fees/apply?lang=en",
+    "body": {
+      "p_academic_year": "2025-2026",
+      "p_acd_st_dt": "20250901",
+      "p_acd_end_dt": "20260630",
+      "p_child_name": "Jerome Amir Sami Samir Ibrahim",
+      "p_child_date_birth": "20100923",
+      "p_school_name": "Al Arqam Academy",
+      "p_educational_stage": "Primary",
+      "p_request_type": "Cash",
+      "p_term": "Term1",
+      "p_amount": "1000"
+    },
+    "httpStatus": 404,
+    "statusText": "Not Found",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "The requested resource was not found.",
+      "status": "error",
+      "httpStatusCode": 404
+    },
+    "durationMs": 9454
+  },
+  {
+    "module": "appointments",
+    "name": "Book — real staging behaviour (503)",
+    "method": "POST",
+    "path": "/appointments/book?lang=en",
+    "body": {
+      "clinicId": "CLINIC-001",
+      "locationId": "LOC-001",
+      "serviceId": "SVC-001",
+      "slot": "2026-09-01T09:30:00"
+    },
+    "httpStatus": 503,
+    "statusText": "Service Unavailable",
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": {
+      "success": false,
+      "message": "An external service is currently unavailable.",
+      "status": "error",
+      "httpStatusCode": 503
+    },
+    "durationMs": 178
+  }
+]
