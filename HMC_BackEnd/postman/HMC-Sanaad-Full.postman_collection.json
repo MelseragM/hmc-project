@@ -76,7 +76,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\"\n}",
+              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:10:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -216,7 +216,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -359,7 +359,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -504,7 +504,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -613,7 +613,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\",\n  \"appname\": \"Sanaad\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -756,7 +756,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -859,7 +859,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1917,7 +1917,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\"\n}",
+              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2846,6 +2846,17 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "accurlpln",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Accrual plan id."
+                },
+                {
+                  "key": "effectivedate",
+                  "value": "19000101",
+                  "disabled": true
                 }
               ]
             },
@@ -3115,7 +3126,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
+              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3515,7 +3526,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3721,7 +3732,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3879,7 +3890,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
+              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\",\n  \"p_related_leave1\": null,\n  \"p_related_leave2\": null,\n  \"p_comments\": \"Returned early.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4639,6 +4650,297 @@
           ]
         },
         {
+          "name": "GET /leave/lov/return-details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has items array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.result).to.have.property('items');",
+                  "    pm.expect(json.result.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/return-details?username=AIBRAHIM39&lang=en",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leave",
+                "lov",
+                "return-details"
+              ],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "AIBRAHIM39"
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "**Purpose:** RFL_LEAVE_DET_LOV — return-from-leave details (all view columns). Companion LOV to op 56 return-from-leave (`GET /leave/lov/return` supplies `p_leave_details`; these supply the details / `p_related_leave1` / `p_related_leave2` values).\n\n**Auth:** Bearer {{token}}\n**Query parameters:** username (required), lang\n\n**Response:** Sanaad read envelope — `{ result: { items }, opstatus, status, httpStatusCode }`.\n\n**Source:** added from Swagger (/docs-json) sync on 2026-08-24 — example below is the documented Swagger example, NOT a captured staging response."
+          },
+          "response": [
+            {
+              "name": "Success (200) — Swagger documented example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/lov/return-details?username=AIBRAHIM39&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "lov",
+                    "return-details"
+                  ],
+                  "query": [
+                    {
+                      "key": "username",
+                      "value": "AIBRAHIM39"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"USER_NAME\": \"V-NFERNANDO\",\n        \"ABSENCE_ATTENDANCE_ID\": 56944958,\n        \"LEAVE\": \"Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /leave/lov/return-related1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has items array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.result).to.have.property('items');",
+                  "    pm.expect(json.result.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/return-related1?username=AIBRAHIM39&lang=en",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leave",
+                "lov",
+                "return-related1"
+              ],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "AIBRAHIM39"
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "**Purpose:** RFL_REL_LEAVE1_LOV — related leave 1 (all view columns). Companion LOV to op 56 return-from-leave (`GET /leave/lov/return` supplies `p_leave_details`; these supply the details / `p_related_leave1` / `p_related_leave2` values).\n\n**Auth:** Bearer {{token}}\n**Query parameters:** username (required), lang\n\n**Response:** Sanaad read envelope — `{ result: { items }, opstatus, status, httpStatusCode }`.\n\n**Source:** added from Swagger (/docs-json) sync on 2026-08-24 — example below is the documented Swagger example, NOT a captured staging response."
+          },
+          "response": [
+            {
+              "name": "Success (200) — Swagger documented example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/lov/return-related1?username=AIBRAHIM39&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "lov",
+                    "return-related1"
+                  ],
+                  "query": [
+                    {
+                      "key": "username",
+                      "value": "AIBRAHIM39"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"USER_NAME\": \"V-NFERNANDO\",\n        \"ABSENCE_ATTENDANCE_ID\": 56944958,\n        \"LEAVE\": \"Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /leave/lov/return-related2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has items array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.result).to.have.property('items');",
+                  "    pm.expect(json.result.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leave/lov/return-related2?username=AIBRAHIM39&lang=en",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "leave",
+                "lov",
+                "return-related2"
+              ],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "AIBRAHIM39"
+                },
+                {
+                  "key": "lang",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "**Purpose:** RFL_REL_LEAVE2_LOV — related leave 2 (all view columns). Companion LOV to op 56 return-from-leave (`GET /leave/lov/return` supplies `p_leave_details`; these supply the details / `p_related_leave1` / `p_related_leave2` values).\n\n**Auth:** Bearer {{token}}\n**Query parameters:** username (required), lang\n\n**Response:** Sanaad read envelope — `{ result: { items }, opstatus, status, httpStatusCode }`.\n\n**Source:** added from Swagger (/docs-json) sync on 2026-08-24 — example below is the documented Swagger example, NOT a captured staging response."
+          },
+          "response": [
+            {
+              "name": "Success (200) — Swagger documented example",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/leave/lov/return-related2?username=AIBRAHIM39&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "leave",
+                    "lov",
+                    "return-related2"
+                  ],
+                  "query": [
+                    {
+                      "key": "username",
+                      "value": "AIBRAHIM39"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"USER_NAME\": \"V-NFERNANDO\",\n        \"ABSENCE_ATTENDANCE_ID\": 56944958,\n        \"LEAVE\": \"Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            }
+          ]
+        },
+        {
           "name": "GET /leave/lov/cancel",
           "event": [
             {
@@ -4785,6 +5087,18 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "username",
+                  "value": "AIBRAHIM39",
+                  "disabled": true,
+                  "description": "Oracle username form (legacy)."
+                },
+                {
+                  "key": "enum",
+                  "value": "037400",
+                  "disabled": true,
+                  "description": "Employee number (legacy)."
                 }
               ]
             },
@@ -6144,7 +6458,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneId\": \"1574794\"\n}",
+              "raw": "{\n  \"phoneId\": \"1574794\",\n  \"phoneType\": \"Qatar Mobile Number\",\n  \"phoneNumber\": \"+97455512345\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6353,7 +6667,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_effective_date\": \"20260823\",\n  \"p_primary_flag\": \"N\",\n  \"p_country\": \"Qatar\",\n  \"p_address_type\": \"Temporary Offer Address\",\n  \"p_address_line1\": \"Building 45\",\n  \"p_town_or_city\": \"Doha\",\n  \"p_po_box\": \"12345\"\n}",
+              "raw": "{\n  \"p_effective_date\": \"20260823\",\n  \"p_primary_flag\": \"N\",\n  \"p_country\": \"Qatar\",\n  \"p_address_type\": \"Temporary Offer Address\",\n  \"p_address_line1\": \"Building 45\",\n  \"p_town_or_city\": \"Doha\",\n  \"p_po_box\": \"12345\",\n  \"p_main_address\": \"Al Sadd Street\",\n  \"p_address_line2\": \"Street 12\",\n  \"p_address_line3\": \"Zone 60\",\n  \"p_region1\": \"Al Rayyan\",\n  \"p_region2\": \"\",\n  \"p_region3\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7879,6 +8193,12 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "data_type",
+                  "value": "CONTACT",
+                  "disabled": true,
+                  "description": "Optional filter on the view's grouping column (Oracle D_DATA_TYPE) — returns only the rows of that type (e.g. relationships) instead of the full mixed list."
                 }
               ]
             },
@@ -8428,7 +8748,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\"\n}",
+              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8724,6 +9044,21 @@
                 {
                   "key": "username",
                   "value": "AIBRAHIM39"
+                },
+                {
+                  "key": "search",
+                  "value": "Doha",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100",
+                  "disabled": true
                 }
               ]
             },
@@ -9174,6 +9509,21 @@
                 {
                   "key": "username",
                   "value": "AIBRAHIM39"
+                },
+                {
+                  "key": "search",
+                  "value": "Doha",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100",
+                  "disabled": true
                 }
               ]
             },
@@ -9587,7 +9937,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\"\n}",
+              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\",\n  \"p_passenger1\": null,\n  \"p_passenger2\": null,\n  \"p_passenger3\": null,\n  \"p_passenger4\": null,\n  \"p_comments\": \"\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -12333,6 +12683,12 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "username",
+                  "value": "V-NFERNANDO",
+                  "disabled": true,
+                  "description": "User-scoped LOVs only."
                 }
               ]
             },
@@ -13324,6 +13680,142 @@
           ]
         },
         {
+          "name": "POST /diagnostics/users-db/sql",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 5 seconds\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Has rows array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('rows');",
+                  "    pm.expect(json.rows).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/diagnostics/users-db/sql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnostics",
+                "users-db",
+                "sql"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sql\": \"SELECT TOP (@n) LoginID, IMEINumber FROM HMC_Sanad_DeviceRegn_tbl WHERE LoginID = @login\",\n  \"params\": {\n    \"n\": 5,\n    \"login\": \"AIBRAHIM39\"\n  },\n  \"maxRows\": 200\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "**Purpose:** Ad-hoc **SELECT-only** query against the Users SQL Server DB (`{sql, params?, maxRows?}`, named `@param` binds). Guarded by `assertReadOnlySelect` — single statement, DML/EXEC/`INTO`/`xp_*` rejected.\n\n**Auth:** Bearer {{token}}\n**Requires:** `USERS_DB_SQL_ENABLED=true`; always 403 in production.\n\n**Response:** raw (no envelope) — `{ rowCount, totalRows, truncated, durationMs, columns, rows }`."
+          },
+          "response": [
+            {
+              "name": "Success (200) — expected shape (NOT a captured response)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/diagnostics/users-db/sql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "diagnostics",
+                    "users-db",
+                    "sql"
+                  ],
+                  "query": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sql\": \"SELECT TOP (@n) LoginID, IMEINumber FROM HMC_Sanad_DeviceRegn_tbl WHERE LoginID = @login\",\n  \"params\": {\n    \"n\": 5,\n    \"login\": \"AIBRAHIM39\"\n  },\n  \"maxRows\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"rowCount\": 1,\n  \"totalRows\": 1,\n  \"truncated\": false,\n  \"durationMs\": 12,\n  \"columns\": [\n    \"LoginID\",\n    \"IMEINumber\"\n  ],\n  \"rows\": [\n    {\n      \"LoginID\": \"AIBRAHIM39\",\n      \"IMEINumber\": \"356789012345678\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Error (403) — console disabled or production",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/diagnostics/users-db/sql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "diagnostics",
+                    "users-db",
+                    "sql"
+                  ],
+                  "query": []
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sql\": \"SELECT TOP (@n) LoginID, IMEINumber FROM HMC_Sanad_DeviceRegn_tbl WHERE LoginID = @login\",\n  \"params\": {\n    \"n\": 5,\n    \"login\": \"AIBRAHIM39\"\n  },\n  \"maxRows\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"The Users-DB SQL console is disabled. Set USERS_DB_SQL_ENABLED=true to enable it in this environment.\",\n  \"status\": \"error\",\n  \"httpStatusCode\": 403\n}"
+            }
+          ]
+        },
+        {
           "name": "DELETE /diagnostics/oracle-logs",
           "event": [
             {
@@ -13766,13 +14258,19 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api-logs/statistics",
+              "raw": "{{baseUrl}}/api-logs/statistics?slowThresholdMs=1000",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api-logs",
                 "statistics"
+              ],
+              "query": [
+                {
+                  "key": "slowThresholdMs",
+                  "value": "1000"
+                }
               ]
             },
             "description": "**Purpose:** API logs statistics\n\n**Auth:** Bearer {{token}} required\n\n**Response:** Sanaad read envelope — `{ result, opstatus, status, httpStatusCode }`."
