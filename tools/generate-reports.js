@@ -419,7 +419,8 @@ async function buildApiReference() {
     ['Dates', 'Submit dates are strings; most procedures accept yyyymmdd or yyyy-MM-dd; leave endpoints accept dd-Mon-yyyy or yyyy-MM-dd (see each body example).'],
     ['Cold-cache latency', 'First call after DB idle can take 15-30 s on: approvals/worklist, lookups/rfmi-user, leave defaults/request-lov, passport apply. Retry once / show a spinner; warm calls are 0.2-3 s.'],
     ['Status column meaning', 'WORKING = live-verified now · BLOCKED-DB = correct request, Oracle procedure defect (see DB report; response WILL be the standard S envelope once fixed) · NEEDS TEST DATA = works, needs staging data to show success · BLOCKED-ENV = CERNER_BASE_URL not configured (appointments).'],
-    ['"Expected" examples', 'Examples labeled "Expected Success … (NOT a captured response)" show the exact final success shape (built from the backend response pipeline) for endpoints currently blocked — integrate against them safely.'],
+    ['"Success Response is…" column', 'READ THIS BEFORE THE SUCCESS COLUMN. "REAL (captured)" = we actually received that body from staging. "EXPECTED (pending fix)" = the endpoint is still blocked, so the body shown is the exact shape the backend WILL return once the blocker clears (built from the response pipeline, never invented). The success cell itself repeats this marker on its first line.'],
+    ['Last verified', '2026-08-24 — after reading the Oracle procedure sources directly: school-fees/apply and dependents/delete now return successflag S (see their notes for the exact parameter rules), and the ORA-00027 family has a root cause + backend workaround.'],
     ['Full examples', 'The Postman collection (HMC_BackEnd/postman/HMC-Sanaad-Full.postman_collection.json) carries EVERY real captured response (172 examples) — this sheet shows the essentials.'],
   ];
   for (const [k, v] of conv) {
@@ -437,9 +438,9 @@ async function buildApiReference() {
     { header: 'Method', width: 9 },
     { header: 'Endpoint (path + query)', width: 52 },
     { header: 'Status', width: 17 },
+    { header: 'Success Response is…', width: 20 },
     { header: 'Request Body (exact, tested)', width: 55 },
-    { header: 'Success Response', width: 60 },
-    { header: 'Success Source', width: 16 },
+    { header: 'Success Response', width: 62 },
     { header: 'Sample Error Response (validation/business)', width: 55 },
     { header: 'Integration Notes for Mobile', width: 62 },
   ];
@@ -457,16 +458,31 @@ async function buildApiReference() {
       const body = it.request.body && it.request.body.raw ? it.request.body.raw : '';
       const succ = pickExample(it.response, 'success');
       const err = pickExample(it.response, 'error');
-      const succSource = succ ? (/NOT a captured/.test(succ.name) ? 'EXPECTED (pending fix)' : 'REAL (captured)') : '';
+      const isExpected = succ ? /NOT a captured/.test(succ.name) : false;
+      const succSource = succ ? (isExpected ? 'EXPECTED (pending fix)' : 'REAL (captured)') : '';
+      // The body itself carries the provenance, so a success payload sitting
+      // next to a red BLOCKED status can never be misread as "already works".
+      const succBody = succ
+        ? (isExpected
+            ? `⚠ EXPECTED SHAPE — NOT captured yet (endpoint is ${meta.status || 'blocked'}).\n` +
+              'This is exactly what you will receive once the blocker is cleared:\n\n'
+            : '✔ REAL response captured from staging (2026-08-24):\n\n') + trunc(succ.body)
+        : '';
       const r = ws.addRow([
-        n++, dir.name, it.request.method, url, meta.status,
-        trunc(body, 1800), succ ? trunc(succ.body) : '', succSource,
+        n++, dir.name, it.request.method, url, meta.status, succSource,
+        trunc(body, 1800), succBody,
         err ? trunc(err.body, 1200) : '', meta.note,
       ]);
       statusFill(r.getCell(5), meta.status);
-      if (succSource.startsWith('EXPECTED')) {
-        r.getCell(8).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.orange } };
-        r.getCell(8).font = { bold: true, color: { argb: COLORS.orangeText } };
+      if (succSource) {
+        const ok = !isExpected;
+        r.getCell(6).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: ok ? COLORS.green : COLORS.orange },
+        };
+        r.getCell(6).font = { bold: true, color: { argb: ok ? COLORS.greenText : COLORS.orangeText } };
+        r.getCell(6).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
       }
     }
   }
