@@ -7,9 +7,11 @@ import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import {
+  APPROVER_KEY_CANDIDATES,
   ITEM_KEY_COLUMN,
   ITEM_TYPE_COLUMN,
   MORE_INFO_ROLE_COLUMN,
+  REQUESTOR_KEY_CANDIDATES,
   NOTIFICATION_ID_COLUMN,
   RECIPIENT_ROLE_COLUMN,
   USERNAME_KEY_CANDIDATES,
@@ -63,10 +65,24 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
     super(ora, schema);
   }
 
-  async getSummary(username: string, _lang: Lang): Promise<ApprovalsSummary> {
+  /**
+   * op 20 — what is waiting for MY approval, so both views are filtered on the
+   * APPROVER side. `keys` carries the caller's username AND employee number
+   * because these views disagree on which form they store (see
+   * readByResolvedKeyAny).
+   */
+  async getSummary(keys: readonly string[], _lang: Lang): Promise<ApprovalsSummary> {
     const [approvals, pendingQid] = await Promise.all([
-      this.readByUser(ORACLE_OBJECTS.APPROVE_SUMRY_V, username),
-      this.readByUser(ORACLE_OBJECTS.PNDNG_QID_V, username),
+      this.readByResolvedKeyAny<ApprovalRow>(
+        ORACLE_OBJECTS.APPROVE_SUMRY_V,
+        keys,
+        APPROVER_KEY_CANDIDATES,
+      ),
+      this.readByResolvedKeyAny<ApprovalRow>(
+        ORACLE_OBJECTS.PNDNG_QID_V,
+        keys,
+        APPROVER_KEY_CANDIDATES,
+      ),
     ]);
     return { approvals, pendingQid };
   }
@@ -79,10 +95,19 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
     );
   }
 
-  async getMyRequests(username: string, _lang: Lang): Promise<MyRequests> {
+  /** op 23 — what I submitted, so both views are filtered on the REQUESTOR side. */
+  async getMyRequests(keys: readonly string[], _lang: Lang): Promise<MyRequests> {
     const [requests, pendingQid] = await Promise.all([
-      this.readByUser(ORACLE_OBJECTS.MY_REQEST_SUMMARY_V, username),
-      this.readByUser(ORACLE_OBJECTS.PNDNG_QID_V, username),
+      this.readByResolvedKeyAny<ApprovalRow>(
+        ORACLE_OBJECTS.MY_REQEST_SUMMARY_V,
+        keys,
+        REQUESTOR_KEY_CANDIDATES,
+      ),
+      this.readByResolvedKeyAny<ApprovalRow>(
+        ORACLE_OBJECTS.PNDNG_QID_V,
+        keys,
+        REQUESTOR_KEY_CANDIDATES,
+      ),
     ]);
     return { requests, pendingQid };
   }
@@ -111,9 +136,7 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
     });
   }
 
-  private readByUser(object: string, username: string): Promise<ApprovalRow[]> {
-    return this.readByResolvedKey<ApprovalRow>(object, username, USERNAME_KEY_CANDIDATES);
-  }
+
 }
 
 /**

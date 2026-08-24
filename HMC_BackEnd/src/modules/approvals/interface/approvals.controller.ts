@@ -31,14 +31,16 @@ export class ApprovalsController {
 
   @Get()
   @ApiOperation({ summary: 'op 20 — Approvals summary', operationId: 'approvals_summary' })
-  summary(@Query() q: ProfileQueryDto) {
-    return this.approvals.summary(q.enum, q.lang);
+  summary(@Query() q: ProfileQueryDto, @CurrentUser() user: AuthenticatedUser) {
+    // `enum` accepts either the login or the employee number: the two views
+    // behind this response store different forms of the same person.
+    return this.approvals.summary(q.enum, q.lang, user);
   }
 
   @Get('my-requests')
   @ApiOperation({ summary: 'op 23 — My requests', operationId: 'approvals_myRequests' })
-  myRequests(@Query() q: ProfileQueryDto) {
-    return this.approvals.myRequests(q.enum, q.lang);
+  myRequests(@Query() q: ProfileQueryDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.approvals.myRequests(q.enum, q.lang, user);
   }
 
   @Get('worklist')

@@ -1,2 +1,11 @@
 ./.devin
 ./.claude
+
+# Local-only API verification toolkit (kept out of the repo on purpose).
+# Live staging test cases/results, the Postman/Swagger example generators and
+# the Excel report generator. Everything here is a development aid: the
+# artefacts it produces (postman collection, reports/) are what gets committed.
+/tools/
+
+# Excel lock files created while a report is open.
+reports/~$*.xlsx
