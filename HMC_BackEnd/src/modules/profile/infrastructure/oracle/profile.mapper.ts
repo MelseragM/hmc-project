@@ -11,6 +11,7 @@ export interface ProfileRowSet {
   personalRows: Record<string, any>[];
   phoneRows: Record<string, any>[];
   addressRows: Record<string, any>[];
+  insideAddressRows: Record<string, any>[];
   dependentPhoneRows: Record<string, any>[];
   dependentAddressRows: Record<string, any>[];
 }
@@ -76,6 +77,7 @@ export class ProfileMapper {
       personal: this.toPersonal(rows.personalRows[0], lang),
       phones: rows.phoneRows.map((r) => this.toPhone(r)),
       outsideAddresses: rows.addressRows.map((r) => this.toAddress(r)),
+      insideAddresses: rows.insideAddressRows.map((r) => this.toAddress(r)),
       dependentPhones: rows.dependentPhoneRows.map((r) => this.toPhone(r)),
       dependentAddresses: rows.dependentAddressRows.map((r) => this.toAddress(r)),
     };

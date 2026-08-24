@@ -45,17 +45,31 @@ export class ProfileOracleRepository extends BaseOracleRepository implements Pro
     // These views are keyed by the caller's login, but the actual column name
     // differs per object (hard-coded `username` raised ORA-00904). Resolve it
     // from the data dictionary (USER_NAME → USERNAME) and bind the value.
-    const [personalRows, phoneRows, addressRows, dependentPhoneRows, dependentAddressRows] =
-      await Promise.all([
-        this.readByResolvedKey(ORACLE_OBJECTS.PERSONAL_DETAILS_V, username, USERNAME_KEY_CANDIDATES),
-        this.readByResolvedKey(ORACLE_OBJECTS.EMP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
-        this.readByResolvedKey(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
-        this.readByResolvedKey(ORACLE_OBJECTS.DEP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
-        this.readByResolvedKey(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, username, USERNAME_KEY_CANDIDATES),
-      ]);
+    const [
+      personalRows,
+      phoneRows,
+      addressRows,
+      insideAddressRows,
+      dependentPhoneRows,
+      dependentAddressRows,
+    ] = await Promise.all([
+      this.readByResolvedKey(ORACLE_OBJECTS.PERSONAL_DETAILS_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.EMP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.EMP_OUT_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.EMP_IN_ADDRESS_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.DEP_PHONE_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V, username, USERNAME_KEY_CANDIDATES),
+    ]);
 
     return ProfileMapper.toProfile(
-      { personalRows, phoneRows, addressRows, dependentPhoneRows, dependentAddressRows },
+      {
+        personalRows,
+        phoneRows,
+        addressRows,
+        insideAddressRows,
+        dependentPhoneRows,
+        dependentAddressRows,
+      },
       lang,
     );
   }

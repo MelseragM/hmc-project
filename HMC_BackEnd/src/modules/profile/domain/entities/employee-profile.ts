@@ -55,6 +55,7 @@ export interface EmployeeProfile {
   personal: PersonalDetails;
   phones: EmployeePhone[];
   outsideAddresses: EmployeeAddress[];
+  insideAddresses: EmployeeAddress[];
   dependentPhones: EmployeePhone[];
   dependentAddresses: EmployeeAddress[];
 }

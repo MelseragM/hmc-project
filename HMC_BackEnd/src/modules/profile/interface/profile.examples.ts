@@ -47,6 +47,18 @@ export const PROFILE_GET_EXAMPLE = {
       style: 'GENERIC',
     },
   ],
+  insideAddresses: [
+    {
+      addressId: '1720617',
+      username: 'V-NFERNANDO',
+      employeeNumber: '053613',
+      addressLine1: 'Building 12, Zone 25',
+      addressLine2: 'Street 830',
+      addressType: 'Qatar Address',
+      country: 'QA',
+      townOrCity: 'Doha',
+    },
+  ],
   dependentPhones: [],
   dependentAddresses: [],
 };
