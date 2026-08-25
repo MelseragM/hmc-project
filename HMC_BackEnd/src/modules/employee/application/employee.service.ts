@@ -37,8 +37,8 @@ export class SupervisorService {
     @Inject(SUPERVISOR_REPOSITORY) private readonly repo: SupervisorRepository,
   ) {}
 
-  views(username: string, lang: Lang): Promise<SupervisorView[]> {
-    return this.repo.getSupervisorViews(username, lang);
+  views(username: string, lang: Lang, searchKeyWord?: string): Promise<SupervisorView[]> {
+    return this.repo.getSupervisorViews(username, lang, searchKeyWord);
   }
 
   update(fields: Record<string, unknown>, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {

@@ -10,6 +10,7 @@ import { ApiReadOkResponse } from '@shared/swagger/api-read-ok-response.decorato
 import { ApiActionOkResponse } from '@shared/swagger/api-action-ok-response.decorator';
 import { EmployeeService, SupervisorService } from '../application/employee.service';
 import { SupervisorUpdateRequestDto } from './dto/supervisor-update.request.dto';
+import { SupervisorViewsQueryDto } from './dto/supervisor-views.query.dto';
 import {
   EMPLOYEE_EMPLOYMENT_EXAMPLE,
   EMPLOYEE_PERFORMANCE_EXAMPLE,
@@ -53,8 +54,8 @@ export class EmployeeController {
   @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 35 — Supervisor view', operationId: 'employee_supervisorViews' })
   @ApiReadOkResponse({ example: EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE })
-  supervisorViews(@Query() q: LovUserQueryDto) {
-    return this.supervisor.views(q.username, q.lang);
+  supervisorViews(@Query() q: SupervisorViewsQueryDto) {
+    return this.supervisor.views(q.username, q.lang, q.searchKeyWord);
   }
 
   @Post('supervisor')

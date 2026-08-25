@@ -1814,10 +1814,16 @@
                 {
                   "key": "lang",
                   "value": "en"
+                },
+                {
+                  "key": "searchKeyWord",
+                  "value": "Hajar",
+                  "disabled": true,
+                  "description": "Optional case-insensitive substring filter on FULL_NAME (applied Oracle-side before the 2000-row cap)."
                 }
               ]
             },
-            "description": "**Purpose:** op 35 — Supervisor view (candidate supervisors with PERSON_ID — use PERSON_ID in op 36).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 35 — Supervisor view (candidate supervisors with PERSON_ID — use PERSON_ID in op 36).\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**\n\n**Query parameters:** username (required), lang, searchKeyWord (optional FULL_NAME contains-filter, case-insensitive)."
           },
           "response": [
             {

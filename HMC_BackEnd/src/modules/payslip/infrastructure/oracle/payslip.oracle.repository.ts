@@ -65,6 +65,17 @@ const GENERATE_SCALAR_OUT_PARAMS = [
 ] as const;
 
 /**
+ * PAYSLIP_PR renders its numeric display values LPAD-padded for the legacy
+ * report layout ("      18,900.00"). Trim leading/trailing whitespace from
+ * every string — interior spaces (e.g. "Basic Salary") are kept.
+ */
+const trimValue = (v: unknown): unknown => (typeof v === 'string' ? v.trim() : v);
+const trimRows = (rows?: Record<string, unknown>[]): Record<string, unknown>[] =>
+  (rows ?? []).map((row) =>
+    Object.fromEntries(Object.entries(row).map(([k, v]) => [k, trimValue(v)])),
+  );
+
+/**
  * Payroll is served by Oracle program units (GET_PAYSLIP_PERIODS,
  * CHK_PAYROLL_CNT, PAYSLIP_PR) that return their rows through a REF CURSOR.
  *
@@ -121,18 +132,18 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       GENERATE_SCALAR_OUT_PARAMS,
     );
     return {
-      earnings: cursors.p_get_earnings ?? [],
-      deductions: cursors.p_get_deductions ?? [],
-      totals: cursors.p_get_totals ?? [],
-      balances: cursors.p_get_balances ?? [],
-      informations: cursors.p_get_informations ?? [],
-      netPayments: cursors.p_get_net_payments ?? [],
-      housing: cursors.p_get_housing ?? [],
-      profile: scalars.p_profile,
-      totalEarnings: scalars.p_total_earnings,
-      totalDeductions: scalars.p_total_deductions,
+      earnings: trimRows(cursors.p_get_earnings),
+      deductions: trimRows(cursors.p_get_deductions),
+      totals: trimRows(cursors.p_get_totals),
+      balances: trimRows(cursors.p_get_balances),
+      informations: trimRows(cursors.p_get_informations),
+      netPayments: trimRows(cursors.p_get_net_payments),
+      housing: trimRows(cursors.p_get_housing),
+      profile: trimValue(scalars.p_profile) as string,
+      totalEarnings: trimValue(scalars.p_total_earnings) as string,
+      totalDeductions: trimValue(scalars.p_total_deductions) as string,
       successFlag: scalars.p_success_flag,
-      errorMessage: scalars.p_error_msg,
+      errorMessage: trimValue(scalars.p_error_msg) as string,
     };
   }
 }

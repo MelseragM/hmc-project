@@ -70,7 +70,11 @@ export class SupervisorOracleRepository
     super(ora, schema);
   }
 
-  getSupervisorViews(username: string, _lang: Lang): Promise<SupervisorView[]> {
+  getSupervisorViews(
+    username: string,
+    _lang: Lang,
+    searchKeyWord?: string,
+  ): Promise<SupervisorView[]> {
     // Confirmed by Oracle: XXHMC_SND_SUPERVISOR_VIEW is a FUNCTION —
     // `FUNCTION(p_user_name IN VARCHAR2, p_limit_txt VARCHAR2) RETURN
     // xxhmc_snd_emp_dets_nt` (a collection type) — not a table (`SELECT ...
@@ -78,10 +82,14 @@ export class SupervisorOracleRepository
     // PLS-00221). Table functions are queried via SELECT * FROM TABLE(fn(...)),
     // capped server-side (queryTableFunction's default maxRows) — one real
     // call returned 31,000+ rows, far more than any client should get back.
-    return this.queryTableFunction<SupervisorView>(ORACLE_OBJECTS.SUPERVISOR_VIEW, [
-      username,
-      null,
-    ]);
+    // `searchKeyWord` filters FULL_NAME Oracle-side, BEFORE that cap, so a
+    // search sees the whole employee list rather than the first 2000 rows.
+    return this.queryTableFunction<SupervisorView>(
+      ORACLE_OBJECTS.SUPERVISOR_VIEW,
+      [username, null],
+      undefined,
+      searchKeyWord ? { column: 'FULL_NAME', value: searchKeyWord } : undefined,
+    );
   }
 
   async updateSupervisor(cmd: SupervisorUpdateCommand): Promise<SubmitResult> {

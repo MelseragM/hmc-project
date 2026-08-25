@@ -21,6 +21,15 @@ class TestRepository extends BaseOracleRepository {
   ) {
     return this.readByResolvedKeyIn(object, values, candidates);
   }
+
+  public exposeTableFn(
+    object: string,
+    args: readonly unknown[],
+    maxRows?: number,
+    containsFilter?: { column: string; value: string },
+  ) {
+    return this.queryTableFunction(object, args, maxRows, containsFilter);
+  }
 }
 
 /**
@@ -120,5 +129,44 @@ describe('BaseOracleRepository.readByResolvedKeyIn', () => {
     await repo.exposeReadIn('XXHMC_SND_DEP_PHONE_V', ids, ['dependent_id']);
     expect(query).toHaveBeenCalledTimes(2);
     expect((query.mock.calls[1][0] as string)).toContain('IN (:k0)');
+  });
+});
+
+/**
+ * queryTableFunction's containsFilter backs the supervisor-view search
+ * (GET /employee/supervisor/views?searchKeyWord=): the filter must sit in the
+ * same WHERE as the ROWNUM cap so it applies to the full row set (31k+ rows on
+ * staging), not just the first `maxRows` fetched.
+ */
+describe('BaseOracleRepository.queryTableFunction containsFilter', () => {
+  const makeRepo = () => {
+    const query = jest.fn().mockResolvedValue([]);
+    const repo = new TestRepository({ query } as any);
+    return { repo, query };
+  };
+
+  it('adds a bound case-insensitive LIKE before the ROWNUM cap', async () => {
+    const { repo, query } = makeRepo();
+    await repo.exposeTableFn('XXHMC_SND_SUPERVISOR_VIEW', ['V-TEST', null], undefined, {
+      column: 'FULL_NAME',
+      value: ' hajar ',
+    });
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM TABLE(XXHMC_SND_SUPERVISOR_VIEW(:arg0, :arg1)) ' +
+        'WHERE UPPER(FULL_NAME) LIKE :filterValue AND ROWNUM <= :maxRows',
+      { maxRows: 2000, arg0: 'V-TEST', arg1: null, filterValue: '%HAJAR%' },
+    );
+  });
+
+  it('keeps the plain ROWNUM-only query when no filter (or a blank one) is given', async () => {
+    const { repo, query } = makeRepo();
+    await repo.exposeTableFn('XXHMC_SND_SUPERVISOR_VIEW', ['V-TEST', null], undefined, {
+      column: 'FULL_NAME',
+      value: '   ',
+    });
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM TABLE(XXHMC_SND_SUPERVISOR_VIEW(:arg0, :arg1)) WHERE ROWNUM <= :maxRows',
+      { maxRows: 2000, arg0: 'V-TEST', arg1: null },
+    );
   });
 });

@@ -92,11 +92,18 @@ export abstract class BaseOracleRepository {
    * returned 31,000+ rows — not something any client should ever receive in
    * one response, and large enough that some downstream JSON serialization
    * step could exhaust the call stack. Default is generous but bounded.
+   *
+   * `containsFilter` adds a case-insensitive `LIKE '%value%'` on one of the
+   * collection's columns, applied in the same WHERE — i.e. BEFORE the ROWNUM
+   * cap, so a search matches the full row set, not just the first `maxRows`
+   * rows. The column name comes from the calling repository (a code constant,
+   * never user input); only the value is bound.
    */
   protected queryTableFunction<T = Record<string, any>>(
     object: string,
     args: readonly unknown[],
     maxRows = 2000,
+    containsFilter?: { column: string; value: string },
   ): Promise<T[]> {
     const binds: oracledb.BindParameters = { maxRows };
     const placeholders = args.map((value, i) => {
@@ -104,8 +111,15 @@ export abstract class BaseOracleRepository {
       (binds as Record<string, unknown>)[name] = value;
       return `:${name}`;
     });
+    const conditions: string[] = [];
+    if (containsFilter?.value.trim()) {
+      (binds as Record<string, unknown>).filterValue =
+        `%${containsFilter.value.trim().toUpperCase()}%`;
+      conditions.push(`UPPER(${containsFilter.column}) LIKE :filterValue`);
+    }
+    conditions.push('ROWNUM <= :maxRows');
     return this.query<T>(
-      `SELECT * FROM TABLE(${object}(${placeholders.join(', ')})) WHERE ROWNUM <= :maxRows`,
+      `SELECT * FROM TABLE(${object}(${placeholders.join(', ')})) WHERE ${conditions.join(' AND ')}`,
       binds,
     );
   }
