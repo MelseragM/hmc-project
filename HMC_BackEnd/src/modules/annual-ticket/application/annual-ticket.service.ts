@@ -5,9 +5,13 @@ import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LookupsService } from '@lookups/application/lookups.service';
-import { TICKET_REPOSITORY, TicketRepository } from '../domain/annual-ticket.repository';
+import {
+  TICKET_REPOSITORY,
+  TicketCancelOptions,
+  TicketRepository,
+} from '../domain/annual-ticket.repository';
 
-/** Annual-ticket service (ops 66, 67). */
+/** Annual-ticket service (ops 66, 67, 72). */
 @Injectable()
 export class AnnualTicketService {
   constructor(
@@ -27,5 +31,15 @@ export class AnnualTicketService {
 
   apply(fields: Record<string, unknown>, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {
     return this.repo.apply({ username: user.username, lang, fields });
+  }
+
+  /** op 72 — inputs of the cancellation form (tickets + taken-as + repayment). */
+  cancelOptions(personId: string): Promise<TicketCancelOptions> {
+    return this.repo.cancelOptions(personId);
+  }
+
+  /** op 72 — submit the cancellation (CANCEL_TKT_PR). */
+  cancel(fields: Record<string, unknown>, user: AuthenticatedUser, lang: Lang): Promise<SubmitResult> {
+    return this.repo.cancel({ username: user.username, lang, fields });
   }
 }
