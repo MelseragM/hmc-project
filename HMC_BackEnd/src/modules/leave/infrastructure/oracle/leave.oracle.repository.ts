@@ -193,7 +193,38 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
   }
 
   async returnFromLeave(cmd: LeaveMutationCommand): Promise<SubmitResult> {
-    return this.callSubmitProc(ORACLE_OBJECTS.RET_FRM_LEAV_PR, LEAVE_RETURN_PARAMS, this.values(cmd));
+    const values = this.values(cmd);
+    for (const field of ['p_leave_details', 'p_related_leave1', 'p_related_leave2']) {
+      const compact = LeaveOracleRepository.compactLeaveRef(values[field]);
+      if (compact !== undefined) values[field] = compact;
+    }
+    return this.callSubmitProc(ORACLE_OBJECTS.RET_FRM_LEAV_PR, LEAVE_RETURN_PARAMS, values);
+  }
+
+  /**
+   * Rewrite the op 55 LOV's DISPLAY string into the compact form the procedure
+   * can actually hold.
+   *
+   * `RET_FRM_LEAV_PR` copies this value into `lc_segment5`, declared
+   * `VARCHAR2(60)` (source line 60, assigned line 196) — but its own LOV
+   * returns ~75 characters:
+   *
+   *   'Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026'
+   *
+   * so passing the LOV value verbatim always raised `ORA-06502: character
+   * string buffer too small`. The same leave in the compact
+   * `Type|start|end` form (36 chars) resolves correctly, so the labels are
+   * stripped here instead of asking every client to reformat the value it just
+   * read from the LOV. Values already compact, or in any other shape, are left
+   * untouched.
+   */
+  private static compactLeaveRef(value: unknown): string | undefined {
+    if (typeof value !== 'string') return undefined;
+    const parts = value.split('|');
+    if (parts.length !== 2) return undefined;
+    const dates = parts[1].match(/\d{1,2}-[A-Za-z]{3}-\d{4}/g);
+    if (!dates || dates.length < 2) return undefined;
+    return `${parts[0].trim()}|${dates[0]}|${dates[1]}`;
   }
 
   /** The return-from-leave LOV view backing each kind (op 56 inputs). */

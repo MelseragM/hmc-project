@@ -324,9 +324,10 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       const scalars: Record<string, any> = {};
       for (const [key, value] of Object.entries(outBinds)) {
         if (cursorSet.has(key)) {
-          const cursor = value as oracledb.ResultSet<Record<string, any>> | undefined;
-          cursors[key] = cursor ? ((await cursor.getRows(0)) ?? []) : [];
-          if (cursor) await cursor.close();
+          cursors[key] = await this.readCursorTolerantly(
+            key,
+            value as oracledb.ResultSet<Record<string, any>> | undefined,
+          );
         } else {
           scalars[key] = value;
         }
@@ -346,6 +347,40 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
       throw this.logCallError(call, err);
     } finally {
       await this.safeClose(conn);
+    }
+  }
+
+  /**
+   * Read one REF CURSOR OUT bind, treating an UNOPENED cursor as "no rows".
+   *
+   * A PL/SQL procedure that returns several cursors does not necessarily OPEN
+   * all of them: XXHMC_SND_PAYSLIP_PR leaves every cursor unopened when the
+   * person/period combination has no payroll data, and the driver then answers
+   * `NJS-107: invalid cursor` / `ORA-24338: statement handle not executed` the
+   * moment we fetch. That turned "this employee has no payslip for that
+   * period" into a hard HTTP 500, even though the procedure itself succeeded
+   * and reported through `p_success_flag`.
+   *
+   * An unopened cursor is a legitimate empty section, so it degrades to `[]`
+   * (logged at debug) and the OUT flags carry the real outcome. Any other
+   * fetch error still propagates.
+   */
+  private async readCursorTolerantly(
+    name: string,
+    cursor: oracledb.ResultSet<Record<string, any>> | undefined,
+  ): Promise<Record<string, any>[]> {
+    if (!cursor) return [];
+    try {
+      const rows = (await cursor.getRows(0)) ?? [];
+      await cursor.close().catch(() => undefined);
+      return rows;
+    } catch (err) {
+      const message = (err as Error).message ?? '';
+      if (/NJS-107|ORA-24338/.test(message)) {
+        this.logger.debug(`Cursor ${name} was never opened by the procedure — treating as empty.`);
+        return [];
+      }
+      throw err;
     }
   }
 
