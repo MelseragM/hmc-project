@@ -15,9 +15,15 @@ export function defineOptionalStringFields(
   }
 }
 
-export function RequiredString(example?: string): PropertyDecorator {
+/**
+ * Required `p_*` field of an Oracle submit body. `description` is worth filling
+ * in whenever the accepted values are not obvious from the example — the value
+ * sets behind these procedures are not discoverable from the schema, and a
+ * wrong one usually comes back as a bare ORA-20001 / ORA-01403.
+ */
+export function RequiredString(example?: string, description?: string): PropertyDecorator {
   return (target, propertyKey) => {
-    ApiProperty({ type: String, example })(target, propertyKey as string);
+    ApiProperty({ type: String, example, description })(target, propertyKey as string);
     IsString()(target, propertyKey as string);
     IsNotEmpty()(target, propertyKey as string);
   };

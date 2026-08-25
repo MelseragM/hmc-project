@@ -76,7 +76,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:10:00\"\n}",
+              "raw": "{\n  \"deviceimei\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -216,7 +216,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -359,7 +359,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"requestid\": \"TESTREQID001\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -504,7 +504,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -613,7 +613,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\",\n  \"appname\": \"Sanaad\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"mpin\": \"123456\",\n  \"platform\": \"Android\",\n  \"version\": \"1.0.0\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -756,7 +756,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -859,7 +859,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\",\n  \"platform\": \"Android\",\n  \"appname\": \"Sanaad\",\n  \"version\": \"1.0.0\",\n  \"sysdate\": \"2026-01-02T14:20:00\"\n}",
+              "raw": "{\n  \"username\": \"AIBRAHIM39\",\n  \"imeinumber\": \"356789012345678\",\n  \"otp\": \"123456\",\n  \"newmpin\": \"654321\",\n  \"requestid\": \"TESTREQID001\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1917,7 +1917,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
+              "raw": "{\n  \"p_new_supervisor\": \"112\",\n  \"p_reason\": \"Team restructure\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3126,7 +3126,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\",\n  \"p_absence_reason\": \"Personal\",\n  \"p_adv_leave_salary\": null,\n  \"p_travel_days\": null,\n  \"p_leave_inc_bonus\": null,\n  \"p_annual_tkt\": null,\n  \"p_contractual_year\": null,\n  \"p_remarks\": null,\n  \"p_relationship_bereaved\": null,\n  \"p_bereavement_date\": null,\n  \"p_leave_classification\": null,\n  \"p_exam_date\": null,\n  \"p_examination_centre\": null,\n  \"p_marriage_date\": null,\n  \"p_delivery_date\": null,\n  \"p_number_of_children\": null,\n  \"p_doctor_comments\": null,\n  \"p_med_commt_decision\": null,\n  \"p_hc_number\": null,\n  \"p_order_id\": null,\n  \"p_order_date\": null,\n  \"p_encounter_id\": null,\n  \"p_visit_date\": null,\n  \"p_discharge_date\": null,\n  \"p_medical_service\": null,\n  \"p_facility\": null,\n  \"p_special_instructions\": null,\n  \"p_work_related_injury\": null,\n  \"p_unfit_number_of_days\": null,\n  \"p_practitioner_name\": null,\n  \"p_practitionr_corp_number\": null,\n  \"p_electronicaly_signed_on\": null,\n  \"p_deliver_date\": null,\n  \"p_primary_diagnosis\": null,\n  \"p_spouse_name\": null,\n  \"p_spouse_id\": null,\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_absence_type\": \"Casual Leave\",\n  \"p_start_date\": \"2026-09-07\",\n  \"p_end_date\": \"2026-09-07\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3526,7 +3526,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_amend\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_new_end_date\": \"2026-03-13\",\n  \"p_comments\": \"Extending by one day.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3732,7 +3732,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\",\n  \"p_file_name1\": \"passport.pdf\",\n  \"p_attachment1\": \"JVBERi0xLjQKJ...==\"\n}",
+              "raw": "{\n  \"p_leave_type\": \"Annual Leave\",\n  \"p_leave_to_cancel\": \"Annual Leave|12-MAR-2026|12-MAR-2026\",\n  \"p_reason_for_cancel\": \"Plans changed\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3890,7 +3890,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\",\n  \"p_related_leave1\": null,\n  \"p_related_leave2\": null,\n  \"p_comments\": \"Returned early.\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_leave_details\": \"Casual Leave|19-APR-2026|19-APR-2026\",\n  \"p_return_date\": \"20-Apr-2026\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5087,18 +5087,6 @@
                 {
                   "key": "lang",
                   "value": "en"
-                },
-                {
-                  "key": "username",
-                  "value": "AIBRAHIM39",
-                  "disabled": true,
-                  "description": "Oracle username form (legacy)."
-                },
-                {
-                  "key": "enum",
-                  "value": "037400",
-                  "disabled": true,
-                  "description": "Employee number (legacy)."
                 }
               ]
             },
@@ -6506,18 +6494,18 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneId\": \"1574794\",\n  \"phoneType\": \"Qatar Mobile Number\",\n  \"phoneNumber\": \"55723893\"\n}",
+              "raw": "{\n  \"phoneId\": \"1574745\",\n  \"phoneType\": \"Qatar Mobile Number\",\n  \"phoneNumber\": \"25636589\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "**Purpose:** op 32 — Delete phone (`XXHMC_SND_DEL_PHONE_NUMBER_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (DeletePhoneRequestDto):** `phoneId` (required) — an existing phone id of the user (visible in `GET /profile` → `phones[].phoneId`); `phoneType`, `phoneNumber` optional.\n\n**Response:** action envelope; unknown phone id → HTTP 200 with `successflag N`.\n\n**Note:** a success example was intentionally NOT captured — the dev user has exactly one real phone (310129) and deleting it would destroy real staging data.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 32 — Delete phone (`XXHMC_SND_DEL_PHONE_NUMBER_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (DeletePhoneRequestDto):** `phoneId` (required); `phoneType`, `phoneNumber` optional (the procedure also accepts the values the row is expected to hold).\n\n**Response:** action envelope; unknown phone id → HTTP 200 with `successflag N — \"Phone ID doesnot exist\"`.\n\n**Verified 2026-08-25 (successflag S)** with a spare phone id supplied by the DB team. NOTE: the procedure sees more rows than the read views do — `GET /profile` and the op 27/28 views expose only the primary phone (310129) for the test user, yet id 1574745 deleted successfully. So do NOT rely on the profile list alone to decide what is deletable.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
-              "name": "Expected Success (200) — built from code; needs a real deletable phoneId (NOT a captured response)",
+              "name": "Success (200, successflag=S) — spare phone id",
               "originalRequest": {
                 "method": "POST",
                 "header": [
@@ -6545,7 +6533,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"phoneId\": \"1574794\"\n}",
+                  "raw": "{\n  \"phoneId\": \"1574745\",\n  \"phoneType\": \"Qatar Mobile Number\",\n  \"phoneNumber\": \"25636589\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6722,7 +6710,7 @@
                 }
               }
             },
-            "description": "**Purpose:** op 29 — Create address (`XXHMC_SND_CREATE_ADDRESS_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (CreateAddressRequestDto — p_* keys):** required `p_effective_date` (yyyymmdd), `p_primary_flag` (Y|N), `p_country` (country NAME from op 30 `used_value`, e.g. `Qatar`), `p_address_type` (address-type value from op 64 LOV, e.g. `Primary Local Address`, `Temporary Offer Address`), `p_address_line1`; optional `p_main_address`, `p_address_line2/3`, `p_town_or_city`, `p_region1/2/3`, `p_po_box`. Non-`p_*` keys (the old collection body: `addressType`, `country`) are REJECTED with 400.\n\n**Response:** action envelope; business failures are HTTP 200 with `successflag N`.\n\n**Business rule (verified):** creating a second address of the same type with an overlapping date range fails (\"You have already created an address ... which overlaps this date range\" — sanitized on the wire).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 29 — Create address (`XXHMC_SND_CREATE_ADDRESS_PR`).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Body (CreateAddressRequestDto — p_* keys):** required `p_effective_date` (yyyymmdd), `p_primary_flag` (Y|N), `p_country` (country NAME from op 30 `used_value`, e.g. `Qatar`), `p_address_type`, `p_address_line1`; optional `p_main_address`, `p_address_line2/3`, `p_town_or_city`, `p_region1/2/3`, `p_po_box`. Non-`p_*` keys (the old collection body: `addressType`, `country`) are REJECTED with 400.\n\n**Where `p_address_type` comes from:** `GET /dependents/lov?data_type=ADDRESS_TYPE` — there is no separate address-type endpoint. The five valid values are `HMC Accommodation Address`, `Primary Home Country Address`, `Primary Local Address`, `Recruiting`, `Temporary Offer Address`; anything else (e.g. `Work Location Address`) does not exist.\n\n**Response:** action envelope; business failures are HTTP 200 with `successflag N`.\n\n**Business rule (verified):** creating a second address of the same type with an overlapping date range fails (\"You have already created an address ... which overlaps this date range\" — sanitized on the wire).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
@@ -7350,7 +7338,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_title\": \"Mr.\",\n  \"p_first_name\": \"Testchild3\",\n  \"p_last_name\": \"Ibrahim\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_start_date\": \"20150101\",\n  \"p_gender\": \"Male\",\n  \"p_date_of_birth\": \"20150101\",\n  \"p_effective_date\": \"20260823\",\n  \"p_email_address\": \"testchild3@example.com\",\n  \"p_passport_number\": \"A7654323\",\n  \"p_pp_issue_date\": \"20200101\",\n  \"p_pp_expiry_date\": \"20300101\",\n  \"p_place_of_issue\": \"Doha\",\n  \"p_country_of_issue\": \"QA\",\n  \"p_visa_type\": \"Residence Permit\",\n  \"p_visa_number\": \"123456791\",\n  \"p_visa_issue_date\": \"20250101\",\n  \"p_visa_expiry_date\": \"20270101\",\n  \"p_visa_validity\": \"Yes\",\n  \"p_id_number\": \"31599876544\",\n  \"p_id_issue_date\": \"20250101\",\n  \"p_id_expiry_date\": \"20270101\",\n  \"p_job_as_in_qid\": \"Student\",\n  \"p_type_of_sponsorship\": \"Employee\",\n  \"p_sponsor_contact_name\": \"Amir Ibrahim\",\n  \"p_file_name1\": \"birth-certificate.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\",\n  \"p_national_identifier\": \"29912345678\"\n}",
+              "raw": "{\n  \"p_title\": \"Mr.\",\n  \"p_first_name\": \"Testchild3\",\n  \"p_last_name\": \"Ibrahim\",\n  \"p_relationship\": \"Child\",\n  \"p_relationship_start_date\": \"20150101\",\n  \"p_gender\": \"Male\",\n  \"p_date_of_birth\": \"20150101\",\n  \"p_effective_date\": \"20260823\",\n  \"p_email_address\": \"testchild3@example.com\",\n  \"p_passport_number\": \"A7654323\",\n  \"p_pp_issue_date\": \"20200101\",\n  \"p_pp_expiry_date\": \"20300101\",\n  \"p_place_of_issue\": \"Doha\",\n  \"p_country_of_issue\": \"QA\",\n  \"p_visa_type\": \"Residence Permit\",\n  \"p_visa_number\": \"123456791\",\n  \"p_visa_issue_date\": \"20250101\",\n  \"p_visa_expiry_date\": \"20270101\",\n  \"p_visa_validity\": \"Yes\",\n  \"p_id_number\": \"31599876544\",\n  \"p_id_issue_date\": \"20250101\",\n  \"p_id_expiry_date\": \"20270101\",\n  \"p_job_as_in_qid\": \"Student\",\n  \"p_type_of_sponsorship\": \"Employee\",\n  \"p_sponsor_contact_name\": \"Amir Ibrahim\",\n  \"p_file_name1\": \"birth-certificate.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -8385,16 +8373,10 @@
                 {
                   "key": "lang",
                   "value": "en"
-                },
-                {
-                  "key": "data_type",
-                  "value": "CONTACT",
-                  "disabled": true,
-                  "description": "Optional filter on the view's grouping column (Oracle D_DATA_TYPE) — returns only the rows of that type (e.g. relationships) instead of the full mixed list."
                 }
               ]
             },
-            "description": "**Purpose:** op 64 — Dependent LOV (`XXHMC_SND_DEP_LOOKUP_LOV` — one view mixing address types, relationships, genders, employment statuses...). Items carry `type` (grouping, e.g. `CONTACT`) and `used_value` (English label to bind back on submits).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**Query:** `lang` (en|ar); optional `data_type` to return only one group (e.g. `CONTACT` = relationships).\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
+            "description": "**Purpose:** op 64 — Dependent LOV (`XXHMC_SND_DEP_LOOKUP_LOV`). One view mixing SIX vocabularies, selected with `data_type`. Items carry `code`, `meaning` (localised by `lang`), `used_value` and `type` (the group).\n\n**Auth:** Bearer {{token}} (staging currently runs with AUTH_DISABLED=true: requests succeed even without a token, the backend injects dev user `AIBRAHIM39`/`037400`, and 401/403 cannot be reproduced there).\n\n**This endpoint is also the ONLY source of the address types used by the CONTACT module** — there is no separate address-type LOV. Full contents, verified 2026-08-25:\n\n| `data_type` | Values |\n|---|---|\n| `CONTACT` | `BROTHER`→Brother, `C`→Child, `P`→Parent, `SISTER`→Sister, `S`→Spouse |\n| `ADDRESS_TYPE` | HMC Accommodation Address · Primary Home Country Address · Primary Local Address · Recruiting · Temporary Offer Address |\n| `SPONSORSHIP` | Employee · HMC · Others · Spouse |\n| `VISA` | QID(Qatari) · Residence Permit |\n| `TITLE` | Dr. · Miss · Mr. · Mrs. · Ms. · Professor |\n| `GENDER` | Male · Female |\n\n**CONTACT is the only group with a real `code`, and the two dependent procedures disagree on which half to send:** op 31 delete needs the CODE (`C`), op 24 update needs the MEANING (`Child`). Values outside these lists (`Son`, `Daughter`, `Contact`, `Work Location Address`) do not exist and are rejected with ORA-20001.\n\n**Verified against staging (current build) on 2026-08-23 — every example below is a real captured response.**"
           },
           "response": [
             {
@@ -8430,6 +8412,120 @@
               ],
               "cookie": [],
               "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"HMC Accommodation Address\",\n        \"meaning\": \"HMC Accommodation Address\",\n        \"used_value\": \"HMC Accommodation Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Primary Home Country Address\",\n        \"meaning\": \"Primary Home Country Address\",\n        \"used_value\": \"Primary Home Country Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Primary Local Address\",\n        \"meaning\": \"Primary Local Address\",\n        \"used_value\": \"Primary Local Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Recruiting\",\n        \"meaning\": \"Recruiting\",\n        \"used_value\": \"Recruiting\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Temporary Offer Address\",\n        \"meaning\": \"Temporary Offer Address\",\n        \"used_value\": \"Temporary Offer Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"BROTHER\",\n        \"meaning\": \"Brother\",\n        \"used_value\": \"Brother\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"C\",\n        \"meaning\": \"Child\",\n        \"used_value\": \"Child\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"P\",\n        \"meaning\": \"Parent\",\n        \"used_value\": \"Parent\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"SISTER\",\n        \"meaning\": \"Sister\",\n        \"used_value\": \"Sister\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"S\",\n        \"meaning\": \"Spouse\",\n        \"used_value\": \"Spouse\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"Female\",\n        \"meaning\": \"Female\",\n        \"used_value\": \"Female\",\n        \"type\": \"GENDER\"\n      },\n      {\n        \"code\": \"Male\",\n        \"meaning\": \"Male\",\n        \"used_value\": \"Male\",\n        \"type\": \"GENDER\"\n      },\n      {\n        \"code\": \"Employee\",\n        \"meaning\": \"Employee\",\n        \"used_value\": \"Employee\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"HMC\",\n        \"meaning\": \"HMC\",\n        \"used_value\": \"HMC\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"Others\",\n        \"meaning\": \"Others\",\n        \"used_value\": \"Others\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"Spouse\",\n        \"meaning\": \"Spouse\",\n        \"used_value\": \"Spouse\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"Dr.\",\n        \"meaning\": \"Dr.\",\n        \"used_value\": \"Dr.\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"Miss\",\n        \"meaning\": \"Miss\",\n        \"used_value\": \"Miss\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"Mr.\",\n        \"meaning\": \"Mr.\",\n        \"used_value\": \"Mr.\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"Mrs.\",\n        \"meaning\": \"Mrs.\",\n        \"used_value\": \"Mrs.\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"Ms.\",\n        \"meaning\": \"Ms.\",\n        \"used_value\": \"Ms.\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"Professor\",\n        \"meaning\": \"Professor\",\n        \"used_value\": \"Professor\",\n        \"type\": \"TITLE\"\n      },\n      {\n        \"code\": \"QID(Qatari)\",\n        \"meaning\": \"QID(Qatari)\",\n        \"used_value\": \"QID(Qatari)\",\n        \"type\": \"VISA\"\n      },\n      {\n        \"code\": \"Residence Permit\",\n        \"meaning\": \"Residence Permit\",\n        \"used_value\": \"Residence Permit\",\n        \"type\": \"VISA\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Success (200) — data_type=CONTACT (code + meaning)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/lov?data_type=CONTACT&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "lov"
+                  ],
+                  "query": [
+                    {
+                      "key": "data_type",
+                      "value": "CONTACT"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"BROTHER\",\n        \"meaning\": \"Brother\",\n        \"used_value\": \"Brother\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"C\",\n        \"meaning\": \"Child\",\n        \"used_value\": \"Child\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"P\",\n        \"meaning\": \"Parent\",\n        \"used_value\": \"Parent\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"SISTER\",\n        \"meaning\": \"Sister\",\n        \"used_value\": \"Sister\",\n        \"type\": \"CONTACT\"\n      },\n      {\n        \"code\": \"S\",\n        \"meaning\": \"Spouse\",\n        \"used_value\": \"Spouse\",\n        \"type\": \"CONTACT\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Success (200) — data_type=ADDRESS_TYPE (used by the contact-address ops)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/lov?data_type=ADDRESS_TYPE&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "lov"
+                  ],
+                  "query": [
+                    {
+                      "key": "data_type",
+                      "value": "ADDRESS_TYPE"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"HMC Accommodation Address\",\n        \"meaning\": \"HMC Accommodation Address\",\n        \"used_value\": \"HMC Accommodation Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Primary Home Country Address\",\n        \"meaning\": \"Primary Home Country Address\",\n        \"used_value\": \"Primary Home Country Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Primary Local Address\",\n        \"meaning\": \"Primary Local Address\",\n        \"used_value\": \"Primary Local Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Recruiting\",\n        \"meaning\": \"Recruiting\",\n        \"used_value\": \"Recruiting\",\n        \"type\": \"ADDRESS_TYPE\"\n      },\n      {\n        \"code\": \"Temporary Offer Address\",\n        \"meaning\": \"Temporary Offer Address\",\n        \"used_value\": \"Temporary Offer Address\",\n        \"type\": \"ADDRESS_TYPE\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+            },
+            {
+              "name": "Success (200) — data_type=SPONSORSHIP",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/dependents/lov?data_type=SPONSORSHIP&lang=en",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "dependents",
+                    "lov"
+                  ],
+                  "query": [
+                    {
+                      "key": "data_type",
+                      "value": "SPONSORSHIP"
+                    },
+                    {
+                      "key": "lang",
+                      "value": "en"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"result\": {\n    \"items\": [\n      {\n        \"code\": \"Employee\",\n        \"meaning\": \"Employee\",\n        \"used_value\": \"Employee\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"HMC\",\n        \"meaning\": \"HMC\",\n        \"used_value\": \"HMC\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"Others\",\n        \"meaning\": \"Others\",\n        \"used_value\": \"Others\",\n        \"type\": \"SPONSORSHIP\"\n      },\n      {\n        \"code\": \"Spouse\",\n        \"meaning\": \"Spouse\",\n        \"used_value\": \"Spouse\",\n        \"type\": \"SPONSORSHIP\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
             },
             {
               "name": "Success (200) — filtered by data_type=CONTACT",
@@ -8940,7 +9036,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\",\n  \"p_file_name1\": \"receipt.pdf\",\n  \"p_attachment1\": \"dGVzdCBhdHRhY2htZW50\"\n}",
+              "raw": "{\n  \"p_academic_year\": \"2025-2026\",\n  \"p_acd_st_dt\": \"20250901\",\n  \"p_acd_end_dt\": \"20260630\",\n  \"p_child_name\": \"Jerome Amir Sami Samir Ibrahim||Male||23-SEP-10\",\n  \"p_child_date_birth\": \"20100923\",\n  \"p_passport_number\": \"A38697134\",\n  \"p_rp_number\": \"31081804108\",\n  \"p_school_name\": \"Al Arqam Academy\",\n  \"p_educational_stage\": \"Primary\",\n  \"p_request_type\": \"Cash\",\n  \"p_term\": \"Term1\",\n  \"p_amount\": \"1000\",\n  \"p_receipt_number\": \"123\",\n  \"p_spouse_working\": \"No\",\n  \"p_comments\": \"test\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9236,21 +9332,6 @@
                 {
                   "key": "username",
                   "value": "AIBRAHIM39"
-                },
-                {
-                  "key": "search",
-                  "value": "Doha",
-                  "disabled": true
-                },
-                {
-                  "key": "page",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "pageSize",
-                  "value": "100",
-                  "disabled": true
                 }
               ]
             },
@@ -10129,7 +10210,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\",\n  \"p_passenger1\": null,\n  \"p_passenger2\": null,\n  \"p_passenger3\": null,\n  \"p_passenger4\": null,\n  \"p_comments\": \"\",\n  \"p_file_name1\": null,\n  \"p_attachment1\": null,\n  \"p_file_name2\": null,\n  \"p_attachment2\": null,\n  \"p_file_name3\": null,\n  \"p_attachment3\": null,\n  \"p_file_name4\": null,\n  \"p_attachment4\": null,\n  \"p_file_name5\": null,\n  \"p_attachment5\": null,\n  \"p_file_name6\": null,\n  \"p_attachment6\": null,\n  \"p_file_name7\": null,\n  \"p_attachment7\": null,\n  \"p_file_name8\": null,\n  \"p_attachment8\": null,\n  \"p_file_name9\": null,\n  \"p_attachment9\": null,\n  \"p_file_name10\": null,\n  \"p_attachment10\": null\n}",
+              "raw": "{\n  \"p_request_for\": \"Self\",\n  \"p_employee\": \"26023\",\n  \"p_request_type\": \"Annual Ticket\",\n  \"p_contractual_year\": \"01-SEP-2025 to 31-AUG-2026\",\n  \"p_traveling_dest\": \"Doha\",\n  \"p_travel_class\": \"Economy\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

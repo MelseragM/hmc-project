@@ -144,7 +144,10 @@ export class DependentsController {
   }
 
   @Get('lov')
-  @ApiOperation({ summary: 'op 64 — Dependent LOV', operationId: 'dependents_lov' })
+  @ApiOperation({
+    summary: 'op 64 — Dependent LOV (also the source for ADDRESS_TYPE / SPONSORSHIP / VISA)',
+    operationId: 'dependents_lov',
+  })
   @ApiOkResponse({ type: LovResponseDto })
   async dependentLov(@Query() q: DependentLovQueryDto): Promise<LovResponseDto> {
     return { items: await this.dependents.dependentLov(q.lang, q.data_type) };

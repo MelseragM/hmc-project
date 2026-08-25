@@ -100,10 +100,20 @@ export class CreateAddressRequestDto {
   @RequiredString('N')
   p_primary_flag!: string;
 
-  @RequiredString('Qatar')
+  @RequiredString(
+    'Qatar',
+    'Country NAME from GET /contact/lov/country (`used_value`), e.g. "Qatar". The ISO ' +
+      'code "QA" is rejected with "Invalid Country".',
+  )
   p_country!: string;
 
-  @RequiredString('Temporary Offer Address')
+  @RequiredString(
+    'Temporary Offer Address',
+    'From GET /dependents/lov?data_type=ADDRESS_TYPE (op 64 — there is no separate ' +
+      'address-type endpoint). Valid values: HMC Accommodation Address | Primary Home ' +
+      'Country Address | Primary Local Address | Recruiting | Temporary Offer Address. ' +
+      'Anything else (e.g. "Work Location Address") does not exist.',
+  )
   p_address_type!: string;
 
   @RequiredString('Building 45')
@@ -135,6 +145,11 @@ defineOptionalStringFields(
  * country NAME (`Qatar`; the 2-letter `QA` returns "Invalid Country"), and
  * Oracle date-tracks the change — repeating the same update with the same
  * `p_effective_date` fails, so use a fresh effective date per update.
+ *
+ * Address-type values come from `GET /dependents/lov?data_type=ADDRESS_TYPE`
+ * (there is no separate address-type endpoint): `HMC Accommodation Address`,
+ * `Primary Home Country Address`, `Primary Local Address`, `Recruiting`,
+ * `Temporary Offer Address`.
  */
 export class UpdateAddressRequestDto {
   @RequiredString('1720601')

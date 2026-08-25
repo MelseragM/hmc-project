@@ -7,12 +7,33 @@ import {
   RequiredString,
 } from '@shared/dto/oracle-submit.dto';
 
-/** op 64 — dependent LOV query. DEP_LOOKUP_LOV mixes several vocabularies in one view. */
+/**
+ * op 64 — dependent LOV query. `DEP_LOOKUP_LOV` mixes SIX vocabularies in one
+ * view, selected with `data_type`. This is the ONLY source for several values
+ * the submit endpoints validate, including the address types used by the
+ * CONTACT module (there is no separate address-type endpoint). Verified live
+ * 2026-08-25:
+ *
+ * | `data_type`    | Values (`code` → `meaning`) |
+ * |----------------|-----------------------------|
+ * | `CONTACT`      | `BROTHER`→Brother, `C`→Child, `P`→Parent, `SISTER`→Sister, `S`→Spouse |
+ * | `ADDRESS_TYPE` | HMC Accommodation Address, Primary Home Country Address, Primary Local Address, Recruiting, Temporary Offer Address |
+ * | `SPONSORSHIP`  | Employee, HMC, Others, Spouse |
+ * | `VISA`         | QID(Qatari), Residence Permit |
+ * | `TITLE`        | Dr., Miss, Mr., Mrs., Ms., Professor |
+ * | `GENDER`       | Male, Female |
+ *
+ * NOTE the CONTACT group is the only one with a real `code`, and the two
+ * dependent procedures disagree on which half to send: op 31 delete needs the
+ * CODE (`C`), op 24 update needs the MEANING (`Child`). Values outside this
+ * list — `Son`, `Daughter`, `Contact`, `Work Location Address` — do not exist
+ * and are rejected with ORA-20001.
+ */
 export class DependentLovQueryDto extends LangQueryDto {
   @ApiPropertyOptional({
     example: 'CONTACT',
     description:
-      "Optional filter on the view's grouping column (Oracle D_DATA_TYPE) — returns only the rows of that type (e.g. relationships) instead of the full mixed list.",
+      'Filter on the grouping column (Oracle D_DATA_TYPE): CONTACT | ADDRESS_TYPE | SPONSORSHIP | VISA | TITLE | GENDER. Omit it to get the full mixed list.',
   })
   @IsOptional()
   @IsString()
@@ -265,7 +286,12 @@ defineOptionalStringFields(
  * At least one attachment is mandatory.
  */
 export class DeleteDependentRequestDto {
-  @RequiredString('1607679')
+  @RequiredString(
+    '1607679',
+    'An existing dependent id of the caller. Send `p_relationship` as the LOV CODE ' +
+      '(GET /dependents/lov?data_type=CONTACT → C | S | P | BROTHER | SISTER) — the ' +
+      'meaning ("Child") is rejected here, unlike op 24 update which needs the meaning.',
+  )
   p_dependent_id!: string;
 
   [key: string]: unknown;
