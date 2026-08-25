@@ -20,7 +20,12 @@ const SUPERVISOR_PR_PARAMS = [
   ...BaseOracleRepository.attachmentParams(),
 ] as const;
 
-import { EmploymentDetails, PerformanceRecord, SupervisorView } from '../../domain/entities/employment';
+import {
+  EmploymentDetails,
+  EmploymentInfo,
+  PerformanceRecord,
+  SupervisorView,
+} from '../../domain/entities/employment';
 import {
   EmploymentRepository,
   SupervisorRepository,
@@ -38,9 +43,22 @@ export class EmploymentOracleRepository
     super(ora, schema);
   }
 
-  async getEmployment(employeeNumber: string, _lang: Lang): Promise<EmploymentDetails | undefined> {
-    const rows = await this.readByEmployee(ORACLE_OBJECTS.EMPLOYMENT_DETAILS_V, employeeNumber);
-    return EmployeeMapper.toEmployment(rows[0]);
+  async getEmployment(username: string, _lang: Lang): Promise<EmploymentInfo> {
+    // op 3 is keyed by USER_NAME (client request 2026-08-24) and aggregates
+    // three views: the EMPLOYMENT_DETAILS_V record plus the SALARY_V and
+    // EMPLOYMENT_V histories. The key column is resolved per view from the
+    // data dictionary; a view without a username column degrades to empty
+    // (SCHEMA_MISMATCH warning) instead of failing the whole response.
+    const [detailRows, salaryRows, assignmentRows] = await Promise.all([
+      this.readByResolvedKey(ORACLE_OBJECTS.EMPLOYMENT_DETAILS_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.SALARY_V, username, USERNAME_KEY_CANDIDATES),
+      this.readByResolvedKey(ORACLE_OBJECTS.EMPLOYMENT_V, username, USERNAME_KEY_CANDIDATES),
+    ]);
+    return {
+      details: EmployeeMapper.toEmployment(detailRows[0]),
+      salary: salaryRows.map((r) => EmployeeMapper.toSalary(r)),
+      assignments: assignmentRows.map((r) => EmployeeMapper.toAssignment(r)),
+    };
   }
 
   async getBasic(employeeNumber: string, _lang: Lang): Promise<EmploymentDetails | undefined> {

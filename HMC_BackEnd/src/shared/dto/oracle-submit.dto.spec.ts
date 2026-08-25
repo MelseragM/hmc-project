@@ -5,6 +5,7 @@ import {
   UpdateAddressRequestDto,
 } from '../../modules/contact/interface/dto/contact.dto';
 import {
+  AddDependentRequestDto,
   PassportApplyRequestDto,
   UpdateDependentRequestDto,
 } from '../../modules/dependents/interface/dto/dependents.dto';
@@ -94,6 +95,67 @@ describe('Oracle submit DTOs', () => {
       p_attachment11: 'JVBERi0xLjQKJ...==',
     });
     expect(invalid.some((error) => error.property === 'p_attachment11')).toBe(true);
+  });
+
+  // p_phone_type / p_phone_number are PL/SQL associative arrays (my_type) on
+  // the Oracle side — the wire value is an array of strings, paired by index.
+  it('accepts string arrays for the dependent phone fields', async () => {
+    const errors = await validateDto(AddDependentRequestDto, {
+      p_first_name: 'Testchild',
+      p_last_name: 'Ibrahim',
+      p_relationship: 'Child',
+      p_gender: 'Male',
+      p_date_of_birth: '20150101',
+      p_effective_date: '20260824',
+      p_phone_type: ['Qatar Mobile Number', 'Home'],
+      p_phone_number: ['55512345', '44412345'],
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('wraps a lone phone string into a one-item array (backward compat)', () => {
+    const dto = plainToInstance(AddDependentRequestDto, {
+      p_phone_type: 'Qatar Mobile Number',
+      p_phone_number: '55512345',
+    });
+    expect(dto.p_phone_type).toEqual(['Qatar Mobile Number']);
+    expect(dto.p_phone_number).toEqual(['55512345']);
+  });
+
+  it('coerces numeric items to strings (my_type is a VARCHAR2 table)', () => {
+    const dto = plainToInstance(UpdateDependentRequestDto, {
+      p_dependent_id: '329302',
+      p_phone_id: [324324, 4324234],
+      p_phone_id1: [111, '222'],
+    });
+    expect(dto.p_phone_id).toEqual(['324324', '4324234']);
+    expect(dto.p_phone_id1).toEqual(['111', '222']);
+  });
+
+  it('accepts the update phone groups as string arrays', async () => {
+    const errors = await validateDto(UpdateDependentRequestDto, {
+      p_dependent_id: '329302',
+      p_phone_id: ['324324'],
+      p_phone_type: ['Qatar Mobile Number'],
+      p_phone_number: ['55512345'],
+      p_phone_id1: [4324234],
+      p_phone_type1: ['Home'],
+      p_phone_number1: ['44412345'],
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects non-string/non-number items in the phone arrays', async () => {
+    const errors = await validateDto(AddDependentRequestDto, {
+      p_first_name: 'Testchild',
+      p_last_name: 'Ibrahim',
+      p_relationship: 'Child',
+      p_gender: 'Male',
+      p_date_of_birth: '20150101',
+      p_effective_date: '20260824',
+      p_phone_number: [{ number: '55512345' }],
+    });
+    expect(errors.some((error) => error.property === 'p_phone_number')).toBe(true);
   });
 
   it('requires school-fee identifiers and amount', async () => {

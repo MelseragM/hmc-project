@@ -13,6 +13,7 @@ import { SupervisorUpdateRequestDto } from './dto/supervisor-update.request.dto'
 import { SupervisorViewsQueryDto } from './dto/supervisor-views.query.dto';
 import {
   EMPLOYEE_EMPLOYMENT_EXAMPLE,
+  EMPLOYEE_EMPLOYMENT_INFO_EXAMPLE,
   EMPLOYEE_PERFORMANCE_EXAMPLE,
   EMPLOYEE_SUPERVISOR_UPDATE_BODY,
   EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE,
@@ -30,10 +31,15 @@ export class EmployeeController {
   ) {}
 
   @Get('employment')
-  @ApiOperation({ summary: 'op 3 — Employee (employment) details', operationId: 'employee_employment' })
-  @ApiReadOkResponse({ example: EMPLOYEE_EMPLOYMENT_EXAMPLE })
-  employment(@Query() q: ProfileQueryDto) {
-    return this.employee.employment(q.enum, q.lang);
+  @ApiOperation({
+    summary: 'op 3 — Employee (employment) details + salary/assignment history',
+    operationId: 'employee_employment',
+  })
+  @ApiReadOkResponse({ example: EMPLOYEE_EMPLOYMENT_INFO_EXAMPLE })
+  employment(@Query() q: LovUserQueryDto) {
+    // Keyed by username (was `enum`) and aggregates EMPLOYMENT_DETAILS_V +
+    // SALARY_V + EMPLOYMENT_V (client request 2026-08-24).
+    return this.employee.employment(q.username, q.lang);
   }
 
   @Get('basic')

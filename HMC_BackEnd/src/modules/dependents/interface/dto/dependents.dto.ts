@@ -3,6 +3,7 @@ import { IsOptional, IsString } from 'class-validator';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import {
   ATTACHMENT_FIELDS,
+  defineOptionalStringArrayFields,
   defineOptionalStringFields,
   RequiredString,
 } from '@shared/dto/oracle-submit.dto';
@@ -118,12 +119,22 @@ export class AddDependentRequestDto {
   [key: string]: unknown;
 }
 
+// p_phone_type / p_phone_number are PL/SQL associative arrays on the Oracle
+// side (XXHMC_SND_ADD_DEPENDENT_PKG.my_type, paired by index:
+// p_phone_type[i] types p_phone_number[i]) — send arrays of strings.
+defineOptionalStringArrayFields(
+  AddDependentRequestDto,
+  ['p_phone_type', 'p_phone_number'],
+  {
+    p_phone_type: ['Qatar Mobile Number', 'Home'],
+    p_phone_number: ['55512345', '44412345'],
+  },
+);
+
 defineOptionalStringFields(
   AddDependentRequestDto,
   [
     ...IDENTITY_FIELDS,
-    'p_phone_type',
-    'p_phone_number',
     'p_phone_enabled',
     ...ADDRESS_FIELDS,
     'p_employment_status',
@@ -185,6 +196,20 @@ export class UpdateDependentRequestDto {
   [key: string]: unknown;
 }
 
+// Like the add, the phone fields are PL/SQL associative arrays paired by
+// index (XXHMC_SND_ADD_DEPENDENT_PKG.my_type): p_phone_id[i] identifies the
+// phone that p_phone_type[i]/p_phone_number[i] update; the `*1` set is the
+// second phone group of the legacy service, same array shape.
+defineOptionalStringArrayFields(
+  UpdateDependentRequestDto,
+  ['p_phone_id', 'p_phone_type', 'p_phone_number', 'p_phone_id1', 'p_phone_type1', 'p_phone_number1'],
+  {
+    p_phone_id: ['324324', '4324234'],
+    p_phone_type: ['Qatar Mobile Number', 'Home'],
+    p_phone_number: ['55512345', '44412345'],
+  },
+);
+
 defineOptionalStringFields(
   UpdateDependentRequestDto,
   [
@@ -227,13 +252,7 @@ defineOptionalStringFields(
   'p_effective_date',
   'p_address_id',
   ...ADDRESS_FIELDS,
-  'p_phone_id',
-  'p_phone_type',
-  'p_phone_number',
   'p_phone_enabled',
-  'p_phone_id1',
-  'p_phone_type1',
-  'p_phone_number1',
   'p_phone_enabled1',
   'p_employment_status',
   'p_comments',

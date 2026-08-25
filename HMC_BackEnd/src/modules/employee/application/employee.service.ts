@@ -2,7 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Lang } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
-import { EmploymentDetails, PerformanceRecord, SupervisorView } from '../domain/entities/employment';
+import {
+  EmploymentDetails,
+  EmploymentInfo,
+  PerformanceRecord,
+  SupervisorView,
+} from '../domain/entities/employment';
 import {
   EMPLOYMENT_REPOSITORY,
   EmploymentRepository,
@@ -17,8 +22,8 @@ export class EmployeeService {
     @Inject(EMPLOYMENT_REPOSITORY) private readonly repo: EmploymentRepository,
   ) {}
 
-  employment(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined> {
-    return this.repo.getEmployment(employeeNumber, lang);
+  employment(username: string, lang: Lang): Promise<EmploymentInfo> {
+    return this.repo.getEmployment(username, lang);
   }
 
   basic(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined> {
