@@ -1364,7 +1364,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/employee/employment?enum=053613&lang=en",
+              "raw": "{{baseUrl}}/employee/employment?username=AIBRAHIM39&lang=en",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1374,8 +1374,8 @@
               ],
               "query": [
                 {
-                  "key": "enum",
-                  "value": "053613"
+                  "key": "username",
+                  "value": "AIBRAHIM39"
                 },
                 {
                   "key": "lang",
@@ -1383,7 +1383,7 @@
                 }
               ]
             },
-            "description": "**Purpose:** op 3 — Employment details.\n\n**Auth:** Bearer {{token}} (staging runs AUTH_DISABLED=true: dev user `AIBRAHIM39`/`037400` is injected; 401/403 not reproducible).\n\n**Query:** `lang`, `enum` (employee number).\n\n**Verified against staging (current build) on 2026-08-23 — examples below are real captured responses unless labeled \"Expected\".**"
+            "description": "**Purpose:** op 3 — Employee (employment) details + salary/assignment history. Keyed by USERNAME (was `enum`, changed 2026-08-24) and aggregates three views: `details` (EMPLOYMENT_DETAILS_V), `salary[]` (XXHMC_SND_SALARY_V: changeDate, monthlyBasicSalary, grade) and `assignments[]` (XXHMC_SND_EMPLOYMENT_V: assignmentStatus, start/end dates, department, job, grade — *Ar twins collapse by lang).\n\n**Auth:** Bearer {{token}}\n**Query parameters:** username (required), lang"
           },
           "response": [
             {
@@ -1392,7 +1392,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/employee/employment?enum=053613&lang=en",
+                  "raw": "{{baseUrl}}/employee/employment?username=AIBRAHIM39&lang=en",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -1402,8 +1402,8 @@
                   ],
                   "query": [
                     {
-                      "key": "enum",
-                      "value": "053613"
+                      "key": "username",
+                      "value": "AIBRAHIM39"
                     },
                     {
                       "key": "lang",
@@ -1422,7 +1422,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"result\": {\n    \"PERSON_ID\": 852709,\n    \"USER_NAME\": \"V-NFERNANDO\",\n    \"EMPLOYEE_NUMBER\": \"053613\",\n    \"JOINING_DATE\": \"28-10-2018\",\n    \"EMAIL_ADDRESS\": \"username@null.qa\",\n    \"DEPARTMENT\": \"Admin.Information Communication and Technology.Health Information and Communication Technology\",\n    \"JOB\": \"112216.HICT Analyst.HMC.\",\n    \"SUPERVISOR_NUMBER\": \"037915\",\n    \"SUPERVISOR_NAME\": \"Mr. Usama Mahmoud Mohamed Maabed Abdelsamad\",\n    \"employeeNumber\": \"053613\",\n    \"department\": \"Admin.Information Communication and Technology.Health Information and Communication Technology\",\n    \"supervisorName\": \"Mr. Usama Mahmoud Mohamed Maabed Abdelsamad\"\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
+              "body": "{\n  \"result\": {\n    \"details\": {\n      \"PERSON_ID\": 852709,\n      \"USER_NAME\": \"V-NFERNANDO\",\n      \"EMPLOYEE_NUMBER\": \"053613\",\n      \"JOINING_DATE\": \"28-10-2018\",\n      \"EMAIL_ADDRESS\": \"username@null.qa\",\n      \"DEPARTMENT\": \"Admin.Information Communication and Technology.Health Information and Communication Technology\",\n      \"JOB\": \"112216.HICT Analyst.HMC.\",\n      \"SUPERVISOR_NUMBER\": \"037915\",\n      \"SUPERVISOR_NAME\": \"Mr. Usama Mahmoud Mohamed Maabed Abdelsamad\",\n      \"employeeNumber\": \"053613\",\n      \"department\": \"Admin.Information Communication and Technology.Health Information and Communication Technology\",\n      \"supervisorName\": \"Mr. Usama Mahmoud Mohamed Maabed Abdelsamad\"\n    },\n    \"salary\": [\n      {\n        \"username\": \"V-NFERNANDO\",\n        \"changeDate\": \"01-01-2025\",\n        \"monthlyBasicSalary\": 16738,\n        \"grade\": \"HM112.Grade 112\"\n      }\n    ],\n    \"assignments\": [\n      {\n        \"username\": \"V-NFERNANDO\",\n        \"assignmentStatus\": \"Active Assignment\",\n        \"assignmentStartDate\": \"28-10-2018\",\n        \"department\": \"Admin.Information Communication and Technology.Health Information and Communication Technology\",\n        \"job\": \"112216.HICT Analyst.HMC.\",\n        \"grade\": \"HM112.Grade 112\"\n      }\n    ]\n  },\n  \"opstatus\": 0,\n  \"status\": \"success\",\n  \"httpStatusCode\": 200\n}"
             }
           ]
         },

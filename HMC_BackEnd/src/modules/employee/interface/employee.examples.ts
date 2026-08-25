@@ -6,7 +6,7 @@ import { attachmentProperties, ATTACHMENT_EXAMPLE } from '@shared/swagger/reques
  * them in the Sanaad success envelope.
  */
 
-/** Shared employment/basic record (ops 3 & 8 return the same shape). */
+/** Employment/basic record from EMPLOYMENT_DETAILS_V (op 8 returns it flat; op 3 wraps it as `details`). */
 export const EMPLOYEE_EMPLOYMENT_EXAMPLE = {
   PERSON_ID: 852709,
   USER_NAME: 'V-NFERNANDO',
@@ -22,6 +22,35 @@ export const EMPLOYEE_EMPLOYMENT_EXAMPLE = {
   department:
     'Admin.Information Communication and Technology.Health Information and Communication Technology',
   supervisorName: 'Mr. Usama Mahmoud Mohamed Maabed Abdelsamad',
+};
+
+/**
+ * op 3 — GET /employee/employment?username=&lang= (aggregate, 2026-08-24):
+ * `details` from EMPLOYMENT_DETAILS_V plus the SALARY_V and EMPLOYMENT_V
+ * histories, all keyed by USER_NAME. The salary/assignments rows are
+ * constructed from the view definitions, NOT captured from staging.
+ */
+export const EMPLOYEE_EMPLOYMENT_INFO_EXAMPLE = {
+  details: EMPLOYEE_EMPLOYMENT_EXAMPLE,
+  salary: [
+    {
+      username: 'V-NFERNANDO',
+      changeDate: '01-01-2025',
+      monthlyBasicSalary: 16738,
+      grade: 'HM112.Grade 112',
+    },
+  ],
+  assignments: [
+    {
+      username: 'V-NFERNANDO',
+      assignmentStatus: 'Active Assignment',
+      assignmentStartDate: '28-10-2018',
+      department:
+        'Admin.Information Communication and Technology.Health Information and Communication Technology',
+      job: '112216.HICT Analyst.HMC.',
+      grade: 'HM112.Grade 112',
+    },
+  ],
 };
 
 /** op 7 — GET /employee/performance?enum=&lang= */

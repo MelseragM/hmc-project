@@ -1,10 +1,15 @@
 import { Lang } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
-import { EmploymentDetails, PerformanceRecord, SupervisorView } from './entities/employment';
+import {
+  EmploymentDetails,
+  EmploymentInfo,
+  PerformanceRecord,
+  SupervisorView,
+} from './entities/employment';
 
-/** Port: employment reads (ops 3, 7, 8). */
+/** Port: employment reads (ops 3, 7, 8). op 3 is keyed by username; op 8 by employee number. */
 export interface EmploymentRepository {
-  getEmployment(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined>;
+  getEmployment(username: string, lang: Lang): Promise<EmploymentInfo>;
   getBasic(employeeNumber: string, lang: Lang): Promise<EmploymentDetails | undefined>;
   getPerformance(username: string, lang: Lang): Promise<PerformanceRecord[]>;
 }
