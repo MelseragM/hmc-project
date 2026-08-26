@@ -8,15 +8,18 @@ import {
   HttpCode,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
-import { AppConfig, UsersDbConfig } from '../config/configuration';
+import { AppConfig, MotcSmsConfig, UsersDbConfig } from '../config/configuration';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
+import { DiagnosticsEnabledGuard } from '../http/diagnostics-enabled.guard';
 import { MssqlService } from './mssql.service';
+import { MotcSmsDbService } from './motc-sms-db.service';
 import {
   OracleCallOp,
   OracleCallStatus,
@@ -108,21 +111,27 @@ export class UsersDbSqlRequestDto {
  * Lets you list/filter every Oracle call the backend made (object, binds,
  * duration, status, ORA code, correlation id) — the structured view of the
  * `[ora#N]` console logs. In-memory only; cleared on restart.
+ *
+ * The whole controller disappears (404) with DIAGNOSTICS_ENABLED=false.
  */
+@UseGuards(DiagnosticsEnabledGuard)
 @ApiTags('diagnostics')
 @Controller('diagnostics')
 export class DiagnosticsController {
   private readonly nodeEnv: string;
   private readonly usersDbCfg: UsersDbConfig;
+  private readonly motcSmsCfg: MotcSmsConfig;
 
   constructor(
     private readonly store: OracleLogStore,
     private readonly metadata: OracleMetadataService,
     private readonly mssql: MssqlService,
+    private readonly motcSmsDb: MotcSmsDbService,
     config: ConfigService,
   ) {
     this.nodeEnv = config.getOrThrow<AppConfig>('app').nodeEnv;
     this.usersDbCfg = config.getOrThrow<UsersDbConfig>('usersDb');
+    this.motcSmsCfg = config.getOrThrow<MotcSmsConfig>('motcSms');
   }
 
   /**
@@ -146,10 +155,42 @@ export class DiagnosticsController {
         'The users-db SQL console is disabled — set USERS_DB_SQL_ENABLED=true to enable it.',
       );
     }
+    return this.runSqlConsole(this.mssql, body);
+  }
+
+  /**
+   * Ad-hoc read-only SQL console against the MOTC SMS gateway DB (the OTP
+   * push table) — the MOTC twin of /diagnostics/users-db/sql, gated by
+   * MOTC_SMS_SQL_ENABLED and hard-disabled in production. NOTE: result rows
+   * from MOTC_SMS_PushTable can contain live OTPs (MessageBody) and phone
+   * numbers — staging/dev debugging only.
+   */
+  @Post('motc-sms-db/sql')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Run a read-only SELECT against the MOTC SMS DB (dev/staging only)',
+    operationId: 'diag_motcSmsDbSql',
+  })
+  async motcSmsDbSql(@Body() body: UsersDbSqlRequestDto) {
+    if (this.nodeEnv === 'production') {
+      throw new ForbiddenException('The motc-sms-db SQL console is disabled in production.');
+    }
+    if (!this.motcSmsCfg.sqlConsoleEnabled) {
+      throw new ForbiddenException(
+        'The motc-sms-db SQL console is disabled — set MOTC_SMS_SQL_ENABLED=true to enable it.',
+      );
+    }
+    return this.runSqlConsole(this.motcSmsDb, body);
+  }
+
+  private async runSqlConsole(
+    db: Pick<MssqlService, 'query'>,
+    body: UsersDbSqlRequestDto,
+  ) {
     const statement = assertReadOnlySelect(body.sql);
     const maxRows = body.maxRows ?? 200;
     const started = Date.now();
-    const rows = await this.mssql.query(statement, body.params ?? {});
+    const rows = await db.query(statement, body.params ?? {});
     return {
       rowCount: Math.min(rows.length, maxRows),
       totalRows: rows.length,

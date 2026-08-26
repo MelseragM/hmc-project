@@ -68,6 +68,22 @@ export interface DevConsoleConfig {
   timeoutMs: number;
 }
 
+/**
+ * Master switch for the observability/test surface: the diagnostics APIs
+ * (`/diagnostics/*` — Oracle logs, oracle-object, the users-db and motc-sms-db
+ * SQL consoles), the API request/response log (`/api-logs/*`), and the DB
+ * connection-test endpoints (`/health/db`, `/health/users-db`,
+ * `/health/motc-sms-db`). The plain `/health` liveness endpoint is NOT gated
+ * (the gateway's dependency check relies on it). Disabled routes return 404,
+ * so probing cannot tell the features exist. Finer-grained flags
+ * (USERS_DB_SQL_ENABLED, MOTC_SMS_SQL_ENABLED, DEV_CONSOLE_ENABLED) still
+ * apply on top when this is on.
+ */
+export interface DiagnosticsConfig {
+  /** DIAGNOSTICS_ENABLED — defaults to true; set false to remove the routes. */
+  enabled: boolean;
+}
+
 export interface AuthConfig {
   jwtSecret: string;
   jwtIssuer: string;
@@ -144,6 +160,62 @@ export interface SmsConfig {
   messageTemplate: string;
 }
 
+/**
+ * MOTC SMS gateway database (client request 2026-08-25): the OTP is generated
+ * by us, INSERTed into `MOTC_SMS_PushTable` (the government SMS push outbox —
+ * the insert IS the SMS delivery) and validated back against the same table.
+ * A second SQL Server pool next to the Users DB (named instance, static port).
+ */
+export interface MotcSmsConfig {
+  /** Server host, optionally with a named instance (e.g. HSHCL7VVSQ1\SQL1). */
+  host: string;
+  /** Static port of the instance (9001 per the client). 0 = resolve via the instance name. */
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+  poolMin: number;
+  poolMax: number;
+  requestTimeoutMs: number;
+  connectTimeoutMs: number;
+  encrypt: boolean;
+  trustServerCertificate: boolean;
+  disabled: boolean;
+  /**
+   * Enables POST /diagnostics/motc-sms-db/sql (ad-hoc SELECT console). Ignored
+   * in production — the endpoint is always 403 there regardless of this flag.
+   */
+  sqlConsoleEnabled: boolean;
+  /** Push/outbox table name (interpolated as an identifier — validated). */
+  table: string;
+  /**
+   * <AppId> of the client's INSERT — written to ServiceID, ApplicationID and
+   * (unless fromAddress overrides it) FromAddress.
+   */
+  appId: string;
+  /** FromAddress column; empty = use appId (mirrors the client's INSERT). */
+  fromAddress: string;
+  /** <Subject> → SubjectID column. */
+  subjectId: string;
+  priority: string;
+  languageId: string;
+  recipientAddressType: string;
+  /** ProcessedState of a freshly queued message (0 = pending push). */
+  processedState: string;
+  messageExpireMinutes: string;
+  /** CustomerID column; empty = NULL. */
+  customerId: string;
+  maskMessageLog: string;
+  /**
+   * BusinessParam1/2 column values. Leave BOTH empty (recommended) and the
+   * adapter uses them to correlate OTP rows to username (1) + device IMEI (2),
+   * which is what makes DB-side validation per-user possible. Setting static
+   * values disables that correlation (verification then keys on MessageID only).
+   */
+  businessParam1: string;
+  businessParam2: string;
+}
+
 export interface MpinConfig {
   minLength: number;
   maxLength: number;
@@ -156,6 +228,12 @@ export interface OtpConfig {
   ttlSeconds: number;
   maxAttempts: number;
   resendWindowSeconds: number;
+  /**
+   * Where OTPs are stored, delivered and validated: `motc` (default) = the
+   * MOTC_SMS push table (MotcSmsOtpRepository); `legacy` = HMC_RHAP_OTP_tbl in
+   * the Users DB + the HTTP SMS adapter (instant rollback, no redeploy).
+   */
+  store: 'motc' | 'legacy';
 }
 
 export interface LdapConfig {
@@ -221,7 +299,9 @@ export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
   devConsole: DevConsoleConfig;
+  diagnostics: DiagnosticsConfig;
   usersDb: UsersDbConfig;
+  motcSms: MotcSmsConfig;
   sms: SmsConfig;
   auth: AuthConfig;
   cerner: CernerConfig;
@@ -297,6 +377,11 @@ export default (): RootConfig => ({
     maxRows: Number(process.env.DEV_CONSOLE_MAX_ROWS ?? 500),
     timeoutMs: Number(process.env.DEV_CONSOLE_TIMEOUT_MS ?? 60000),
   },
+  diagnostics: {
+    // Default ON (matches current behavior); set false to hide the whole
+    // diagnostics/logs/db-test surface.
+    enabled: toBool(process.env.DIAGNOSTICS_ENABLED ?? 'true'),
+  },
   usersDb: {
     host: process.env.USERS_DB_HOST ?? '',
     port: Number(process.env.USERS_DB_PORT ?? 1433),
@@ -311,6 +396,34 @@ export default (): RootConfig => ({
     trustServerCertificate: toBool(process.env.USERS_DB_TRUST_SERVER_CERT ?? 'false'),
     disabled: toBool(process.env.USERS_DB_DISABLED),
     sqlConsoleEnabled: toBool(process.env.USERS_DB_SQL_ENABLED),
+  },
+  motcSms: {
+    host: process.env.MOTC_SMS_DB_HOST ?? '',
+    port: Number(process.env.MOTC_SMS_DB_PORT ?? 9001),
+    database: process.env.MOTC_SMS_DB_NAME ?? 'MOTC_SMS',
+    user: process.env.MOTC_SMS_DB_USER ?? '',
+    password: process.env.MOTC_SMS_DB_PASSWORD ?? '',
+    poolMin: Number(process.env.MOTC_SMS_DB_POOL_MIN ?? 2),
+    poolMax: Number(process.env.MOTC_SMS_DB_POOL_MAX ?? 10),
+    requestTimeoutMs: Number(process.env.MOTC_SMS_DB_REQUEST_TIMEOUT_MS ?? 25000),
+    connectTimeoutMs: Number(process.env.MOTC_SMS_DB_CONNECT_TIMEOUT_MS ?? 15000),
+    encrypt: toBool(process.env.MOTC_SMS_DB_ENCRYPT ?? 'true'),
+    trustServerCertificate: toBool(process.env.MOTC_SMS_DB_TRUST_SERVER_CERT ?? 'false'),
+    disabled: toBool(process.env.MOTC_SMS_DB_DISABLED),
+    sqlConsoleEnabled: toBool(process.env.MOTC_SMS_SQL_ENABLED),
+    table: process.env.MOTC_SMS_TABLE ?? 'MOTC_SMS_PushTable',
+    appId: process.env.MOTC_SMS_APP_ID ?? '',
+    fromAddress: process.env.MOTC_SMS_FROM_ADDRESS ?? '',
+    subjectId: process.env.MOTC_SMS_SUBJECT_ID ?? '',
+    priority: process.env.MOTC_SMS_PRIORITY ?? '1',
+    languageId: process.env.MOTC_SMS_LANGUAGE_ID ?? '1',
+    recipientAddressType: process.env.MOTC_SMS_RECIPIENT_ADDRESS_TYPE ?? '1',
+    processedState: process.env.MOTC_SMS_PROCESSED_STATE ?? '0',
+    messageExpireMinutes: process.env.MOTC_SMS_MESSAGE_EXPIRE_MINUTES ?? '5',
+    customerId: process.env.MOTC_SMS_CUSTOMER_ID ?? '',
+    maskMessageLog: process.env.MOTC_SMS_MASK_MESSAGE_LOG ?? '1',
+    businessParam1: process.env.MOTC_SMS_BUSINESS_PARAM1 ?? '',
+    businessParam2: process.env.MOTC_SMS_BUSINESS_PARAM2 ?? '',
   },
   sms: {
     baseUrl: process.env.SMS_API_BASE_URL ?? '',
@@ -351,6 +464,7 @@ export default (): RootConfig => ({
     ttlSeconds: Number(process.env.OTP_TTL_SECONDS ?? 300),
     maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
     resendWindowSeconds: Number(process.env.OTP_RESEND_WINDOW_SECONDS ?? 60),
+    store: process.env.OTP_STORE === 'legacy' ? 'legacy' : 'motc',
   },
   ldap: {
     enabled: toBool(process.env.LDAP_ENABLED),

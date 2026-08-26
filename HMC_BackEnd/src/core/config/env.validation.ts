@@ -44,6 +44,34 @@ export const envValidationSchema = Joi.object({
   USERS_DB_TRUST_SERVER_CERT: Joi.boolean().default(false),
   USERS_DB_DISABLED: Joi.boolean().default(false),
 
+  // MOTC SMS gateway DB (OTP store + delivery via MOTC_SMS_PushTable)
+  MOTC_SMS_DB_HOST: Joi.string().allow('').default(''),
+  MOTC_SMS_DB_PORT: Joi.number().default(9001),
+  MOTC_SMS_DB_NAME: Joi.string().default('MOTC_SMS'),
+  MOTC_SMS_DB_USER: Joi.string().allow('').default(''),
+  MOTC_SMS_DB_PASSWORD: Joi.string().allow('').default(''),
+  MOTC_SMS_DB_POOL_MIN: Joi.number().default(2),
+  MOTC_SMS_DB_POOL_MAX: Joi.number().default(10),
+  MOTC_SMS_DB_REQUEST_TIMEOUT_MS: Joi.number().min(1).default(25000),
+  MOTC_SMS_DB_CONNECT_TIMEOUT_MS: Joi.number().min(1).default(15000),
+  MOTC_SMS_DB_ENCRYPT: Joi.boolean().default(true),
+  MOTC_SMS_DB_TRUST_SERVER_CERT: Joi.boolean().default(false),
+  MOTC_SMS_DB_DISABLED: Joi.boolean().default(false),
+  MOTC_SMS_SQL_ENABLED: Joi.boolean().default(false),
+  MOTC_SMS_TABLE: Joi.string().default('MOTC_SMS_PushTable'),
+  MOTC_SMS_APP_ID: Joi.string().allow('').default(''),
+  MOTC_SMS_FROM_ADDRESS: Joi.string().allow('').default(''),
+  MOTC_SMS_SUBJECT_ID: Joi.string().allow('').default(''),
+  MOTC_SMS_PRIORITY: Joi.string().default('1'),
+  MOTC_SMS_LANGUAGE_ID: Joi.string().default('1'),
+  MOTC_SMS_RECIPIENT_ADDRESS_TYPE: Joi.string().default('1'),
+  MOTC_SMS_PROCESSED_STATE: Joi.string().default('0'),
+  MOTC_SMS_MESSAGE_EXPIRE_MINUTES: Joi.string().default('5'),
+  MOTC_SMS_CUSTOMER_ID: Joi.string().allow('').default(''),
+  MOTC_SMS_MASK_MESSAGE_LOG: Joi.string().default('1'),
+  MOTC_SMS_BUSINESS_PARAM1: Joi.string().allow('').default(''),
+  MOTC_SMS_BUSINESS_PARAM2: Joi.string().allow('').default(''),
+
   // SMS gateway (OTP delivery)
   SMS_API_BASE_URL: Joi.string().uri().allow('').default(''),
   SMS_API_KEY: Joi.string().allow('').default(''),
@@ -81,6 +109,8 @@ export const envValidationSchema = Joi.object({
   OTP_TTL_SECONDS: Joi.number().default(300),
   OTP_MAX_ATTEMPTS: Joi.number().default(5),
   OTP_RESEND_WINDOW_SECONDS: Joi.number().default(60),
+  // OTP store/delivery: MOTC push table (default) or the legacy Users-DB table.
+  OTP_STORE: Joi.string().valid('motc', 'legacy').default('motc'),
 
   // Auth framework — LDAP directory (corporate Active Directory)
   LDAP_ENABLED: Joi.boolean().default(false),
@@ -114,6 +144,10 @@ export const envValidationSchema = Joi.object({
   ENTRA_LOGIN_BASE_URL: Joi.string().uri().default('https://login.microsoftonline.com'),
   ENTRA_LOOKUP_ATTRIBUTE: Joi.string().default('userPrincipalName'),
   ENTRA_TIMEOUT_MS: Joi.number().default(10000),
+
+  // Master switch for /diagnostics/*, /api-logs/* and the /health/db,
+  // /health/users-db, /health/motc-sms-db connection tests (404 when false).
+  DIAGNOSTICS_ENABLED: Joi.boolean().default(true),
 
   // Internal dev console (SQL worksheet + API tester) — hidden from Swagger.
   // Works with no configuration: ON by default and READ-ONLY until the UI

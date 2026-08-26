@@ -8,7 +8,7 @@ import { OnboardingService } from './application/onboarding.service';
 import { MpinService } from './application/mpin.service';
 import { HealthCheckService } from './application/healthcheck.service';
 import { LDAP_USER_PORT, LdapUserPort } from './domain/ports/ldap-user.port';
-import { OTP_PORT } from './domain/ports/otp.port';
+import { OTP_PORT, OtpPort } from './domain/ports/otp.port';
 import { OTP_DELIVERY_PORT } from './domain/ports/otp-delivery.port';
 import { MPIN_STORE_PORT } from './domain/ports/mpin-store.port';
 import { DEVICE_REGISTRY_PORT } from './domain/ports/device-registry.port';
@@ -16,6 +16,7 @@ import { FUNCTION_ACCESS_PORT } from './domain/ports/function-access.port';
 import { LdapUserRepository } from './infrastructure/adapters/ldap-user.repository';
 import { EntraGraphUserRepository } from './infrastructure/adapters/entra-graph-user.repository';
 import { MssqlOtpRepository } from './infrastructure/adapters/mssql-otp.repository';
+import { MotcSmsOtpRepository } from './infrastructure/adapters/motc-sms-otp.repository';
 import { MssqlMpinStoreRepository } from './infrastructure/adapters/mssql-mpin-store.repository';
 import { MssqlDeviceRegistryRepository } from './infrastructure/adapters/mssql-device-registry.repository';
 import { SmsOtpDeliveryAdapter } from './infrastructure/adapters/sms-otp-delivery.adapter';
@@ -26,12 +27,14 @@ import { MssqlUserRepository } from './infrastructure/adapters/mssql-user.reposi
  * Auth feature module — Sanaad User Authentication & Access Control framework
  * (APIs 1-7). JWT signing/verification comes from the global core AuthModule.
  *
- * OTP / MPIN / device-registry are backed by the legacy Sanaad SQL Server
- * tables (HMC_RHAP_OTP_tbl, HMC_Sanad_DeviceRegn_tbl) via the global
- * MssqlService pool; OTP delivery goes out through the config-driven SMS
- * gateway adapter. Function-access reads the Users DB view named by
- * FUNCTION_ACCESS_VIEW (default HMC_Sanad_AppMaster_VW). The dev bypass inside
- * each application service triggers on AUTH_DISABLED=true only.
+ * MPIN / device-registry are backed by the legacy Sanaad SQL Server tables
+ * (HMC_Sanad_DeviceRegn_tbl) via the global MssqlService pool. The OTP port
+ * is bound by OTP_STORE: `motc` (default) generates, delivers AND validates
+ * the OTP through the MOTC_SMS_PushTable outbox (MotcSmsOtpRepository — the
+ * insert is the SMS); `legacy` restores HMC_RHAP_OTP_tbl + the HTTP SMS
+ * adapter (instant rollback). Function-access reads the Users DB view named
+ * by FUNCTION_ACCESS_VIEW (default HMC_Sanad_AppMaster_VW). The dev bypass
+ * inside each application service triggers on AUTH_DISABLED=true only.
  *
  * The identity port (LDAP_USER_PORT) is bound at runtime by AUTH_DIRECTORY:
  * `entra` → Microsoft Graph (EntraGraphUserRepository), `usersdb` → the legacy
@@ -65,7 +68,17 @@ import { MssqlUserRepository } from './infrastructure/adapters/mssql-user.reposi
       },
     },
     { provide: OTP_DELIVERY_PORT, useClass: SmsOtpDeliveryAdapter },
-    { provide: OTP_PORT, useClass: MssqlOtpRepository },
+    MssqlOtpRepository,
+    MotcSmsOtpRepository,
+    {
+      provide: OTP_PORT,
+      inject: [ConfigService, MotcSmsOtpRepository, MssqlOtpRepository],
+      useFactory: (
+        config: ConfigService,
+        motc: MotcSmsOtpRepository,
+        legacy: MssqlOtpRepository,
+      ): OtpPort => (config.get<string>('otp.store') === 'legacy' ? legacy : motc),
+    },
     { provide: MPIN_STORE_PORT, useClass: MssqlMpinStoreRepository },
     { provide: DEVICE_REGISTRY_PORT, useClass: MssqlDeviceRegistryRepository },
     { provide: FUNCTION_ACCESS_PORT, useClass: MssqlFunctionAccessRepository },

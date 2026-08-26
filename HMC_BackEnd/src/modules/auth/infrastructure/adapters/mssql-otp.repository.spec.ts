@@ -5,7 +5,13 @@ import { OtpConfig } from '@core/config/configuration';
 import { MssqlOtpRepository } from './mssql-otp.repository';
 import { OtpDeliveryPort } from '../../domain/ports/otp-delivery.port';
 
-const OTP_CFG: OtpConfig = { length: 6, ttlSeconds: 300, maxAttempts: 3, resendWindowSeconds: 60 };
+const OTP_CFG: OtpConfig = {
+  length: 6,
+  ttlSeconds: 300,
+  maxAttempts: 3,
+  resendWindowSeconds: 60,
+  store: 'legacy',
+};
 
 function makeRepo(cfg: Partial<OtpConfig> = {}) {
   const db = { query: jest.fn(), execute: jest.fn() } as unknown as jest.Mocked<MssqlService>;

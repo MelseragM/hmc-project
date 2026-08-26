@@ -1,7 +1,8 @@
-import { Controller, Delete, Get, Header, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Header, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
+import { DiagnosticsEnabledGuard } from '../http/diagnostics-enabled.guard';
 import { ApiLogQueryDto } from './dto/api-log-query.dto';
 import { ApiLogsService } from './api-logs.service';
 import { API_LOG_VIEW_HTML } from './api-log.view';
@@ -13,7 +14,10 @@ import { API_LOG_VIEW_HTML } from './api-log.view';
  * (`/diagnostics/oracle-logs`) follow the same open pattern. Gate this module
  * (e.g. `@Roles(Role.ADMIN)` once introduced) before exposing it outside a
  * trusted network — it can reveal stack traces and request bodies.
+ *
+ * The whole controller disappears (404) with DIAGNOSTICS_ENABLED=false.
  */
+@UseGuards(DiagnosticsEnabledGuard)
 @Public()
 @ApiTags('api-logs')
 @Controller('api-logs')
