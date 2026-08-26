@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Lang } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
@@ -8,11 +8,14 @@ import {
   ApprovalRow,
   ApprovalsRepository,
   ApprovalsSummary,
+  AttachmentContent,
   MyRequests,
   ReassignType,
+  RequestAttachment,
   WORKLIST_REPOSITORY,
   WorklistRepository,
 } from '../domain/approvals.repository';
+import { RequestField, buildRequestFields, requestTypeKeyOf } from '../domain/request-fields';
 
 /** Controller-facing shape of the RFMI submit (route carries the notification id). */
 export interface RequestInfoDto {
@@ -21,6 +24,28 @@ export interface RequestInfoDto {
   mode: string;
   comment: string;
   toUsername?: string;
+}
+
+/** Display-ready response of op 21 — see `details()`. */
+export interface RequestDetailResponse {
+  notificationId: string;
+  itemKey: string | null;
+  itemType: string | null;
+  /** Localised label, e.g. `Request School Fee Reimb`. */
+  requestType: string | null;
+  /** Stable key for client-side branching, e.g. `SCHOOL_FEE`. */
+  requestTypeKey: string | null;
+  serviceView: string | null;
+  subject: string | null;
+  requestor: { userName: string | null; name: string | null };
+  approver: { userName: string | null; name: string | null };
+  submittedAt: string | null;
+  dueDate: string | null;
+  /** False when the notification id matched nothing (still HTTP 200). */
+  found: boolean;
+  fields: RequestField[];
+  values: Record<string, string | number | null>;
+  attachments: RequestAttachment[];
 }
 
 /** Approvals summary/detail/decision/my-requests (ops 20, 21, 22, 23). */
@@ -42,8 +67,46 @@ export class ApprovalsService {
     return [...new Set([identifier, user?.username, user?.employeeNumber].filter(Boolean))] as string[];
   }
 
-  details(approvalId: string, lang: Lang): Promise<ApprovalRow[]> {
-    return this.repo.getDetails(approvalId, lang);
+  /**
+   * op 21 — one request, ready to render.
+   *
+   * The client gets an ordered `fields` list (label key + value + value kind)
+   * instead of the raw columns of whichever of the 17 detail views this request
+   * happens to live in, so a single screen renders every request type and a new
+   * column does not need an app release. `values` is the same data as a flat
+   * map, for validation/filtering, and `attachments` carries a download path
+   * per file.
+   */
+  async details(approvalId: string, lang: Lang): Promise<RequestDetailResponse> {
+    const src = await this.repo.getDetails(approvalId, lang);
+    const header = src.header ?? {};
+    const { fields, values } = buildRequestFields(src.serviceView, src.detailRow);
+    const str = (v: unknown) => (v === null || v === undefined ? null : String(v));
+    const date = (v: unknown) => (v ? new Date(v as string).toISOString() : null);
+
+    return {
+      notificationId: approvalId,
+      itemKey: src.itemKey,
+      itemType: str(header.ITEM_TYPE),
+      requestType: str(header.SERVICE_REQUEST),
+      requestTypeKey: requestTypeKeyOf(src.serviceView),
+      serviceView: src.serviceView,
+      subject: str(header.SUBJECT),
+      requestor: { userName: str(header.REQUESTOR_USER_NAME), name: str(header.REQUESTOR_NAME) },
+      approver: { userName: str(header.APPROVER_USER_NAME), name: str(header.APPROVER_NAME) },
+      submittedAt: date(src.detailRow?.DATE_OF_SUBMISSION ?? header.BEGIN_DATE),
+      dueDate: date(header.DUE_DATE),
+      found: !!src.header,
+      fields,
+      values,
+      attachments: src.attachments,
+    };
+  }
+
+  async attachment(attachedDocumentId: string): Promise<AttachmentContent> {
+    const file = await this.repo.getAttachmentContent(attachedDocumentId);
+    if (!file) throw new NotFoundException(`Attachment ${attachedDocumentId} was not found.`);
+    return file;
   }
 
   decide(

@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
 import { OracleSchemaService } from '@core/database/oracle-schema.service';
 import { BaseOracleRepository } from '@core/database/base.repository';
 import { Lang, toOracleLanguage } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
-import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { ORACLE_OBJECTS, REQUEST_DETAIL_VIEWS } from '@shared/constants/oracle-objects';
 import {
   APPROVER_KEY_CANDIDATES,
   ITEM_KEY_COLUMN,
@@ -20,9 +20,12 @@ import {
   ApprovalRow,
   ApprovalsRepository,
   ApprovalsSummary,
+  AttachmentContent,
   DecisionCommand,
   MyRequests,
   ReassignCommand,
+  RequestAttachment,
+  RequestDetailSource,
   RequestInfoCommand,
   WorklistRepository,
 } from '../../domain/approvals.repository';
@@ -61,6 +64,9 @@ const RFMI_PARAMS = [
  */
 @Injectable()
 export class ApprovalsOracleRepository extends BaseOracleRepository implements ApprovalsRepository {
+  /** Own logger — the base class keeps its instance private. */
+  private static readonly log = new Logger(ApprovalsOracleRepository.name);
+
   constructor(ora: OracleService, schema: OracleSchemaService) {
     super(ora, schema);
   }
@@ -87,12 +93,101 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
     return { approvals, pendingQid };
   }
 
-  getDetails(approvalId: string, _lang: Lang): Promise<ApprovalRow[]> {
-    // The detail service is keyed by the notification id the summary rows carry.
-    return this.query<ApprovalRow>(
-      `SELECT * FROM ${ORACLE_OBJECTS.NOTYFY_APPR_V} WHERE ${NOTIFICATION_ID_COLUMN} = :id`,
-      { id: approvalId },
+  /**
+   * op 21 — everything about one request, keyed by the notification id the
+   * summary rows carry.
+   *
+   * The notification row only DESCRIBES the request; the values the employee
+   * submitted live in a per-type view whose name the row itself carries in
+   * `SERVICE_VIEW` (a school-fee request points at
+   * `XXHMC_SND_PNDNG_SCHOO_FEE_V`, holding academic year, child, school,
+   * amount, receipt…). So the row is resolved → its view → the matching row by
+   * `ITEM_KEY`, and paired with `XXHMC_SND_HR_ATTACHMENTS_V` for the files.
+   *
+   * `SERVICE_VIEW` is data, hence the REQUEST_DETAIL_VIEWS check before it is
+   * ever put in a statement.
+   */
+  async getDetails(approvalId: string, _lang: Lang): Promise<RequestDetailSource> {
+    const header = await this.findRequestHead(approvalId);
+    const serviceView = header?.SERVICE_VIEW ? String(header.SERVICE_VIEW).toUpperCase() : null;
+    const itemKey = header?.ITEM_KEY ? String(header.ITEM_KEY) : null;
+    const known = !!serviceView && REQUEST_DETAIL_VIEWS.has(serviceView);
+
+    if (serviceView && !known) {
+      ApprovalsOracleRepository.log.warn(
+        `SERVICE_VIEW "${serviceView}" of notification ${approvalId} is not an allow-listed ` +
+          'detail view — returning the request without its payload.',
+      );
+    }
+
+    const [detail, attachments] = await Promise.all([
+      known && itemKey
+        ? this.query<ApprovalRow>(`SELECT * FROM ${serviceView} WHERE ${ITEM_KEY_COLUMN} = :k`, {
+            k: itemKey,
+          })
+        : Promise.resolve([]),
+      itemKey ? this.readAttachments(itemKey) : Promise.resolve([]),
+    ]);
+
+    return { header, serviceView, itemKey, detailRow: detail[0], attachments };
+  }
+
+  /**
+   * Locate the request by notification id. `NOTYFY_APPR_V` only holds OPEN
+   * actionable notifications, so the two summary views are fallbacks — that way
+   * a row opened from "my requests" resolves as well.
+   */
+  private async findRequestHead(notificationId: string): Promise<ApprovalRow | undefined> {
+    for (const object of [
+      ORACLE_OBJECTS.NOTYFY_APPR_V,
+      ORACLE_OBJECTS.MY_REQEST_SUMMARY_V,
+      ORACLE_OBJECTS.APPROVE_SUMRY_V,
+    ]) {
+      const rows = await this.query<ApprovalRow>(
+        `SELECT * FROM ${object} WHERE ${NOTIFICATION_ID_COLUMN} = :id`,
+        { id: notificationId },
+      );
+      if (rows.length) return rows[0];
+    }
+    return undefined;
+  }
+
+  /** Metadata only — the BLOB is fetched on demand by the download endpoint. */
+  private async readAttachments(itemKey: string): Promise<RequestAttachment[]> {
+    const rows = await this.query<Record<string, any>>(
+      `SELECT attached_document_id, file_name, file_content_type,
+              DBMS_LOB.GETLENGTH(file_data) AS size_bytes, last_update_date
+         FROM ${ORACLE_OBJECTS.HR_ATTACHMENTS_V}
+        WHERE ${ITEM_KEY_COLUMN} = :k
+        ORDER BY last_update_date DESC`,
+      { k: itemKey },
     );
+    return rows.map((r) => ({
+      id: Number(r.ATTACHED_DOCUMENT_ID),
+      fileName: String(r.FILE_NAME ?? ''),
+      contentType: String(r.FILE_CONTENT_TYPE ?? 'application/octet-stream'),
+      sizeBytes: r.SIZE_BYTES === null ? null : Number(r.SIZE_BYTES),
+      uploadedAt: r.LAST_UPDATE_DATE ? new Date(r.LAST_UPDATE_DATE).toISOString() : null,
+      url: `/approvals/attachments/${r.ATTACHED_DOCUMENT_ID}`,
+    }));
+  }
+
+  async getAttachmentContent(attachedDocumentId: string): Promise<AttachmentContent | undefined> {
+    const rows = await this.query<Record<string, any>>(
+      `SELECT file_name, file_content_type, file_data
+         FROM ${ORACLE_OBJECTS.HR_ATTACHMENTS_V}
+        WHERE attached_document_id = :id`,
+      { id: attachedDocumentId },
+    );
+    const row = rows[0];
+    if (!row) return undefined;
+    // fetchAsString covers CLOBs only, so a BLOB arrives as a Buffer.
+    const data = row.FILE_DATA;
+    return {
+      fileName: String(row.FILE_NAME ?? ''),
+      contentType: String(row.FILE_CONTENT_TYPE ?? 'application/octet-stream'),
+      contentBase64: Buffer.isBuffer(data) ? data.toString('base64') : '',
+    };
   }
 
   /** op 23 — what I submitted, so both views are filtered on the REQUESTOR side. */

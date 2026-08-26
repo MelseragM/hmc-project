@@ -68,6 +68,16 @@ export class ApprovalsController {
     return this.approvals.details(id, q.lang);
   }
 
+  /** Download one of the files listed by `:id/details` → `attachments[].url`. */
+  @Get('attachments/:documentId')
+  @ApiOperation({
+    summary: 'op 21b — Download a request attachment',
+    operationId: 'approvals_attachment',
+  })
+  attachment(@Param('documentId') documentId: string) {
+    return this.approvals.attachment(documentId);
+  }
+
   @Post(':id/decision')
   @HttpCode(200)
   @ApiOperation({ summary: 'op 22 — Approve/Reject', operationId: 'approvals_decision' })

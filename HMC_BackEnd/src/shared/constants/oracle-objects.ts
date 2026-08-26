@@ -48,6 +48,32 @@ export const ORACLE_OBJECTS = {
   DEPENDENT_ADDR_V: o('DEPENDENT_ADDR_V'),
   PHONE_TYPE_V: o('PHONE_TYPE_V'),
   PNDNG_QID_V: o('PNDNG_QID_V'),
+
+  /**
+   * Per-request DETAIL views. An approvals/my-requests row carries the name of
+   * the view holding its own payload in `SERVICE_VIEW`: the summary describes
+   * the request, these hold what the employee actually submitted, keyed by
+   * `ITEM_KEY`. Matched against `REQUEST_DETAIL_VIEWS` before use, so a row can
+   * never point us at an arbitrary object.
+   */
+  PNDNG_BANK_V: o('PNDNG_BANK_V'),
+  PNDNG_COID_V: o('PNDNG_COID_V'),
+  PNDNG_EXT_PERMIT_V: o('PNDNG_EXT_PERMIT_V'),
+  PNDNG_HR_LETTER_V: o('PNDNG_HR_LETTER_V'),
+  PNDNG_LEAVE_V: o('PNDNG_LEAVE_V'),
+  PNDNG_LEAV_AMEND_V: o('PNDNG_LEAV_AMEND_V'),
+  PNDNG_LEAV_CNCL_V: o('PNDNG_LEAV_CNCL_V'),
+  PNDNG_PASS_DTL_V: o('PNDNG_PASS_DTL_V'),
+  PNDNG_RET_FRM_LV_V: o('PNDNG_RET_FRM_LV_V'),
+  PNDNG_SCHOO_FEE_V: o('PNDNG_SCHOO_FEE_V'),
+  PNDNG_SUPERVISOR_V: o('PNDNG_SUPERVISOR_V'),
+  PNDNG_UPD_PERSON_V: o('PNDNG_UPD_PERSON_V'),
+  PND_DEPENDENT_PHN_V: o('PND_DEPENDENT_PHN_V'),
+  PND_DEPENDENT_V: o('PND_DEPENDENT_V'),
+  PND_REMOV_DEPNT_V: o('PND_REMOV_DEPNT_V'),
+
+  /** Files attached to a request (FILE_DATA is the BLOB), keyed by ITEM_KEY. */
+  HR_ATTACHMENTS_V: o('HR_ATTACHMENTS_V'),
   QID_DET_V: o('QID_DET_V'),
   RFL_LEAVE_DET_V: o('RFL_LEAVE_DET_V'),
   RFL_REL_LEAVE1_V: o('RFL_REL_LEAVE1_V'),
@@ -139,3 +165,29 @@ export const ORACLE_OBJECT_NAMES: ReadonlySet<string> = new Set(
 export function isKnownOracleObject(name: string): boolean {
   return ORACLE_OBJECT_NAMES.has(name);
 }
+
+/**
+ * Views a request row may legitimately point to through its `SERVICE_VIEW`
+ * column. That column is DATA, so it is matched against this set before it ever
+ * reaches a statement — an unexpected value yields "no payload" instead of a
+ * query against whatever the row happens to contain.
+ */
+export const REQUEST_DETAIL_VIEWS: ReadonlySet<string> = new Set([
+  ORACLE_OBJECTS.PNDNG_BANK_V,
+  ORACLE_OBJECTS.PNDNG_COID_V,
+  ORACLE_OBJECTS.PNDNG_EXT_PERMIT_V,
+  ORACLE_OBJECTS.PNDNG_HR_LETTER_V,
+  ORACLE_OBJECTS.PNDNG_LEAVE_V,
+  ORACLE_OBJECTS.PNDNG_LEAV_AMEND_V,
+  ORACLE_OBJECTS.PNDNG_LEAV_CNCL_V,
+  ORACLE_OBJECTS.PNDNG_PASS_DTL_V,
+  ORACLE_OBJECTS.PNDNG_QID_V,
+  ORACLE_OBJECTS.PNDNG_RET_FRM_LV_V,
+  ORACLE_OBJECTS.PNDNG_SCHOO_FEE_V,
+  ORACLE_OBJECTS.PNDNG_SUPERVISOR_V,
+  ORACLE_OBJECTS.PNDNG_UPD_PERSON_V,
+  ORACLE_OBJECTS.PND_DEPENDENT_ADDR_V,
+  ORACLE_OBJECTS.PND_DEPENDENT_PHN_V,
+  ORACLE_OBJECTS.PND_DEPENDENT_V,
+  ORACLE_OBJECTS.PND_REMOV_DEPNT_V,
+]);

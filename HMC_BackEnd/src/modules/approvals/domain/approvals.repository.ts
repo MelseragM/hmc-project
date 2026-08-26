@@ -59,6 +59,34 @@ export interface RequestInfoCommand {
   comment: string;
 }
 
+/** One file attached to a request. The bytes are fetched separately. */
+export interface RequestAttachment {
+  id: number;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number | null;
+  uploadedAt: string | null;
+  /** Ready-to-call path for the download endpoint. */
+  url: string;
+}
+
+/** Raw material for op 21: the notification row, its payload row and its files. */
+export interface RequestDetailSource {
+  header: ApprovalRow | undefined;
+  serviceView: string | null;
+  itemKey: string | null;
+  detailRow: ApprovalRow | undefined;
+  attachments: RequestAttachment[];
+}
+
+/** A file's bytes, for the download endpoint. */
+export interface AttachmentContent {
+  fileName: string;
+  contentType: string;
+  /** Base64 — the same encoding the submit endpoints accept for uploads. */
+  contentBase64: string;
+}
+
 /**
  * Port: approvals summary/detail/decision/my-requests (ops 20, 21, 22, 23).
  * The reads are scoped by the caller's username — the legacy services take
@@ -71,7 +99,9 @@ export interface ApprovalsRepository {
    * while PNDNG_QID_V stores the login, and one response reads both.
    */
   getSummary(keys: readonly string[], lang: Lang): Promise<ApprovalsSummary>;
-  getDetails(approvalId: string, lang: Lang): Promise<ApprovalRow[]>;
+  /** op 21 — notification row + the payload the employee submitted + its files. */
+  getDetails(approvalId: string, lang: Lang): Promise<RequestDetailSource>;
+  getAttachmentContent(attachedDocumentId: string): Promise<AttachmentContent | undefined>;
   decide(cmd: DecisionCommand): Promise<SubmitResult>;
   requestInfo(cmd: RequestInfoCommand): Promise<SubmitResult>;
   getMyRequests(keys: readonly string[], lang: Lang): Promise<MyRequests>;
