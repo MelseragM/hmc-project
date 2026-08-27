@@ -84,6 +84,7 @@ export const envValidationSchema = Joi.object({
   JWT_ISSUER: Joi.string().default('sanaad'),
   JWT_AUDIENCE: Joi.string().default('sanaad-b2e'),
   JWT_EXPIRES_IN: Joi.string().default('1h'),
+  JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
   AUTH_DISABLED: Joi.boolean().default(false),
   // TESTING ONLY: static /auth/login payload with full user data embedded in
   // the JWT (`userdata` claim). Never enable in production.

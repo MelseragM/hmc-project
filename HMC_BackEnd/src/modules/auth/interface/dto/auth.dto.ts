@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Role } from '@core/auth/auth-user.interface';
 import { FunctionStatus } from '../../domain/auth-identity';
 import { ClientContextDto } from './client-context.dto';
@@ -39,6 +39,11 @@ export class LoginResponseDto {
 
   @ApiPropertyOptional({ example: '1h' })
   expiresIn?: string;
+
+  @ApiPropertyOptional({
+    description: 'Refresh token (typ=refresh) for POST /auth/token/refresh — one-time use.',
+  })
+  refreshtoken?: string;
 
   @ApiPropertyOptional({ example: 'username' })
   employeeusername?: string;
@@ -86,4 +91,41 @@ export class StatusMessageDto {
 
   @ApiPropertyOptional({ example: 'OTP Validated successfully' })
   message?: string;
+}
+
+/** Refresh-token exchange request. */
+export class RefreshTokenRequestDto {
+  @ApiProperty({ description: 'The refresh token issued by login (or a previous refresh).' })
+  @IsString()
+  @IsNotEmpty()
+  refreshtoken!: string;
+}
+
+/** Refresh-token exchange response (Sanaad convention: HTTP 200, status=error on failure). */
+export class RefreshTokenResponseDto {
+  @ApiProperty({ example: 'success' })
+  status!: string;
+
+  @ApiPropertyOptional({ description: 'New JWT access token (issued on success).' })
+  token?: string;
+
+  @ApiPropertyOptional({ example: 'Bearer' })
+  tokenType?: string;
+
+  @ApiPropertyOptional({ example: '1h' })
+  expiresIn?: string;
+
+  @ApiPropertyOptional({ description: 'New refresh token (the used one is revoked).' })
+  refreshtoken?: string;
+
+  @ApiPropertyOptional({ description: 'Present on failure.' })
+  message?: string;
+}
+
+/** Logout request — the refresh token is optional but recommended so the pair dies together. */
+export class LogoutRequestDto {
+  @ApiPropertyOptional({ description: 'Refresh token to revoke together with the access token.' })
+  @IsOptional()
+  @IsString()
+  refreshtoken?: string;
 }

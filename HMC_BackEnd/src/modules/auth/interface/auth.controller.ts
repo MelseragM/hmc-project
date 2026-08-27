@@ -10,7 +10,10 @@ import { MpinService } from '../application/mpin.service';
 import {
   LoginRequestDto,
   LoginResponseDto,
+  LogoutRequestDto,
   MeResponseDto,
+  RefreshTokenRequestDto,
+  RefreshTokenResponseDto,
   StatusMessageDto,
 } from './dto/auth.dto';
 import {
@@ -97,6 +100,41 @@ export class AuthController {
   @ApiOkResponse({ type: StatusMessageDto })
   resetMpin(@Body() dto: ResetMpinRequestDto): Promise<StatusMessageDto> {
     return this.mpin.resetMpin(dto);
+  }
+
+  /**
+   * Public on purpose: refresh happens when the ACCESS token is already
+   * expired, so no bearer auth can be required here. The refresh token itself
+   * is fully verified (signature, expiry, typ=refresh, revocation) inside
+   * AuthService.refresh, and is rotated (one-time use).
+   */
+  @Public()
+  @SkipEnvelope()
+  @HttpCode(200)
+  @Post('token/refresh')
+  @ApiOperation({
+    summary: 'Exchange a refresh token for a new access + refresh pair',
+    operationId: 'auth_refreshToken',
+  })
+  @ApiOkResponse({ type: RefreshTokenResponseDto })
+  refreshToken(@Body() dto: RefreshTokenRequestDto): Promise<RefreshTokenResponseDto> {
+    return this.auth.refresh(dto);
+  }
+
+  @ApiBearerAuth()
+  @SkipEnvelope()
+  @HttpCode(200)
+  @Post('logout')
+  @ApiOperation({
+    summary: 'Logout — revoke the current access token (and optionally the refresh token)',
+    operationId: 'auth_logout',
+  })
+  @ApiOkResponse({ type: StatusMessageDto })
+  logout(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: LogoutRequestDto,
+  ): Promise<StatusMessageDto> {
+    return this.auth.logout(user, dto);
   }
 
   @ApiBearerAuth()

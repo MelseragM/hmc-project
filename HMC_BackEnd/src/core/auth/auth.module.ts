@@ -6,6 +6,7 @@ import { AuthConfig } from '../config/configuration';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
+import { TokenRevocationService } from './token-revocation.service';
 
 /**
  * Global auth building blocks: JWT verification, JwtAuthGuard, RolesGuard.
@@ -27,7 +28,7 @@ import { RolesGuard } from './roles.guard';
       },
     }),
   ],
-  providers: [JwtStrategy, JwtAuthGuard, RolesGuard],
-  exports: [JwtModule, PassportModule, JwtAuthGuard, RolesGuard],
+  providers: [JwtStrategy, JwtAuthGuard, RolesGuard, TokenRevocationService],
+  exports: [JwtModule, PassportModule, JwtAuthGuard, RolesGuard, TokenRevocationService],
 })
 export class AuthModule {}
