@@ -76,6 +76,24 @@ const trimRows = (rows?: Record<string, unknown>[]): Record<string, unknown>[] =
   );
 
 /**
+ * Add `used_value`: the period name to send BACK, whatever the display language.
+ *
+ * These cursors carry `PERIOD_NAME` plus its Arabic twin, and the
+ * ResponseInterceptor collapses the pair — so with `lang=ar` the `PERIOD_NAME`
+ * field itself holds `يناير  2026`. A client that echoes what it displayed then
+ * sends Arabic into `payperiod`/`payslipperiod`, and the procedures only match
+ * the canonical English name.
+ *
+ * Capturing it here, before localization runs, gives the client one stable
+ * value it can always return — the same `used_value` contract the LOV endpoints
+ * already use.
+ */
+function withPeriodValue<T extends Record<string, unknown>>(row: T): T {
+  const period = row.PERIOD_NAME ?? row.period;
+  return typeof period === 'string' ? { ...row, used_value: period.trim() } : row;
+}
+
+/**
  * Payroll is served by Oracle program units (GET_PAYSLIP_PERIODS,
  * CHK_PAYROLL_CNT, PAYSLIP_PR) that return their rows through a REF CURSOR.
  *
@@ -90,8 +108,8 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
     super(ora, schema);
   }
 
-  getPeriods(username: string, lang: Lang): Promise<PayslipPeriod[]> {
-    return this.callRowsProc<PayslipPeriod>(
+  async getPeriods(username: string, lang: Lang): Promise<PayslipPeriod[]> {
+    const rows = await this.callRowsProc<PayslipPeriod>(
       ORACLE_OBJECTS.GET_PAYSLIP_PERIODS,
       PERIODS_PARAMS,
       {
@@ -100,6 +118,7 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       },
       'p_get_periods',
     );
+    return rows.map(withPeriodValue);
   }
 
   async checkCount(
@@ -116,7 +135,7 @@ export class PayslipOracleRepository extends BaseOracleRepository implements Pay
       },
       'p_get_pay_assignment_details',
     );
-    return { count: rows.length, rows };
+    return { count: rows.length, rows: rows.map(withPeriodValue) };
   }
 
   async generate(query: GeneratePayslipQuery): Promise<PayslipDocument> {
