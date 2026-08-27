@@ -59,6 +59,12 @@ export class LovMapper {
     'meaningar',
     'flex_value_meaning_ar',
     'flexvaluemeaningar',
+    // Some value-set views carry the label in FLEX_VALUE itself and its Arabic
+    // twin in FLEX_VALUE_AR, with no *_MEANING column at all
+    // (EMPLOYMENT_STATUS_V, CANCEL_REPAYMENT_METHODS_V). Without this the
+    // Arabic label was dropped and `lang=ar` answered in English.
+    'flex_value_ar',
+    'flexvaluear',
     'leave_reason_ar',
     'description_ar',
     'valuear',

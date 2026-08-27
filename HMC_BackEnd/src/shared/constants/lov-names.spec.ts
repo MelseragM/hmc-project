@@ -1,4 +1,5 @@
 import { ORACLE_OBJECTS } from './oracle-objects';
+import { LovMapper } from '@lookups/infrastructure/oracle/lov.mapper';
 import { LOV_OBJECT, resolveLovObject } from './lov-names';
 
 /**
@@ -31,6 +32,23 @@ describe('LOV registry', () => {
     for (const [name, object] of Object.entries(LOV_OBJECT)) {
       expect({ name, known: known.has(object) }).toEqual({ name, known: true });
     }
+  });
+
+  it('reads the Arabic label of a view whose columns are FLEX_VALUE/FLEX_VALUE_AR', () => {
+    // EMPLOYMENT_STATUS_V has no *_MEANING column: the label IS the flex value
+    // and its twin is FLEX_VALUE_AR. Probing only `flex_value_meaning_ar` left
+    // meaningAr empty, so lang=ar would have answered in English.
+    const item = LovMapper.toItem(
+      { FLEX_VALUE: 'Hamad Medical Corporation', FLEX_VALUE_AR: 'مؤسسة حمد الطبية' },
+      'ar',
+    );
+    expect(item).toMatchObject({
+      code: 'Hamad Medical Corporation',
+      meaning: 'Hamad Medical Corporation',
+      meaningAr: 'مؤسسة حمد الطبية',
+      // submits bind used_value, which must stay English in both languages
+      used_value: 'Hamad Medical Corporation',
+    });
   });
 
   it('still rejects a name that is not a LOV at all', () => {
