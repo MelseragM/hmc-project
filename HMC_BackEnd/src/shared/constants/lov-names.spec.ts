@@ -4,16 +4,17 @@ import { LOV_OBJECT, resolveLovObject } from './lov-names';
 /**
  * The LOV registry maps a PUBLIC name to an Oracle object. When the two drift
  * apart the read fails with ORA-00942 and the client only sees a generic
- * HTTP 500 — which is exactly how EMPLOYMENT_STATUS_LOV stayed broken until a
- * mobile developer reported it. These tests pin the cases that are not simply
- * "public name minus the XXHMC_SND_ prefix".
+ * HTTP 500 — which is exactly how employment status stayed broken until a
+ * mobile developer reported it. These tests pin the cases where the public name
+ * is not simply the object minus its `XXHMC_SND_` prefix.
  */
 describe('LOV registry', () => {
-  it('resolves EMPLOYMENT_STATUS_LOV to the view that exists (…_V, not …_LOV)', () => {
-    // Verified against the database: XXHMC_SND_EMPLOYMENT_STATUS_V holds the
-    // three dependent employment statuses; XXHMC_SND_EMPLOYMENT_STATUS_LOV
-    // does not exist.
-    expect(resolveLovObject('EMPLOYMENT_STATUS_LOV')).toBe('XXHMC_SND_EMPLOYMENT_STATUS_V');
+  it('exposes employment status under the name Oracle actually uses', () => {
+    // The view is XXHMC_SND_EMPLOYMENT_STATUS_V (verified in the database: it
+    // holds the three dependent employment statuses). The `…_LOV` spelling does
+    // not exist in Oracle, so it must not be offered either.
+    expect(resolveLovObject('EMPLOYMENT_STATUS_V')).toBe('XXHMC_SND_EMPLOYMENT_STATUS_V');
+    expect(resolveLovObject('EMPLOYMENT_STATUS_LOV')).toBeUndefined();
   });
 
   it('keeps the other names whose object does not share their spelling', () => {
@@ -30,13 +31,6 @@ describe('LOV registry', () => {
     for (const [name, object] of Object.entries(LOV_OBJECT)) {
       expect({ name, known: known.has(object) }).toEqual({ name, known: true });
     }
-  });
-
-  it('accepts the view spelling of employment status as well', () => {
-    // Clients read the object list and try the _V name; both must resolve.
-    expect(resolveLovObject('EMPLOYMENT_STATUS_V')).toBe(
-      resolveLovObject('EMPLOYMENT_STATUS_LOV'),
-    );
   });
 
   it('still rejects a name that is not a LOV at all', () => {

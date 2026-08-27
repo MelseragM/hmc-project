@@ -68,12 +68,12 @@ export const LOV_OBJECT: Readonly<Record<string, string>> = Object.freeze({
   // shared
   YES_NO_LOV: ORACLE_OBJECTS.YES_NO_LOV,
   RFMI_USER_LOV: ORACLE_OBJECTS.RFMI_USER_LOV,
-  EMPLOYMENT_STATUS_LOV: ORACLE_OBJECTS.EMPLOYMENT_STATUS_LOV,
-  // The Oracle object is XXHMC_SND_EMPLOYMENT_STATUS_V, and clients reading the
-  // object list naturally try that spelling (as ABSENCE_AMEND_TYPE_V above
-  // already does). Accept both rather than answering "Unknown LOV name" to a
-  // name that is, in fact, the right view.
-  EMPLOYMENT_STATUS_V: ORACLE_OBJECTS.EMPLOYMENT_STATUS_LOV,
+  // Named after the object, like ABSENCE_AMEND_TYPE_V above: the view is
+  // XXHMC_SND_EMPLOYMENT_STATUS_V, not …_LOV. The `EMPLOYMENT_STATUS_LOV`
+  // spelling is deliberately NOT registered — it pointed at a non-existent
+  // object and answered HTTP 500 for its whole life, so nothing can depend on
+  // it, and keeping both spellings would just hide which one matches Oracle.
+  EMPLOYMENT_STATUS_V: ORACLE_OBJECTS.EMPLOYMENT_STATUS_V,
 });
 
 export type LovName = keyof typeof LOV_OBJECT;
