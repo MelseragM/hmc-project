@@ -91,6 +91,13 @@ export interface AuthConfig {
   jwtExpiresIn: string;
   disabled: boolean;
   /**
+   * TESTING ONLY (AUTH_STATIC_LOGIN): /auth/login skips MPIN/directory/DB and
+   * returns a fixed AIBRAHIM39 payload whose FULL user data (employee fields +
+   * functionaccesslist) is also embedded in the signed JWT (`userdata` claim).
+   * Off by default; never enable in production.
+   */
+  staticLogin: boolean;
+  /**
    * Users-DB view/table holding the login `functionaccesslist` (module name/
    * code/status per function). The documented legacy query is
    * `SELECT FunctionName, FunctionCode, Description, StatusCode FROM
@@ -438,6 +445,7 @@ export default (): RootConfig => ({
     jwtAudience: process.env.JWT_AUDIENCE ?? 'sanaad-b2e',
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
     disabled: toBool(process.env.AUTH_DISABLED),
+    staticLogin: toBool(process.env.AUTH_STATIC_LOGIN),
     functionAccessView: process.env.FUNCTION_ACCESS_VIEW ?? 'HMC_Sanad_AppMaster_VW',
     functionAccessAppId: Number(process.env.FUNCTION_ACCESS_APP_ID ?? 1),
   },

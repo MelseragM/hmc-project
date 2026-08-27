@@ -11,6 +11,7 @@ import { FUNCTION_ACCESS_PORT, FunctionAccessPort } from '../domain/ports/functi
 import { EmployeeIdentity, FunctionAccess, FunctionStatus } from '../domain/auth-identity';
 import { LoginRequestDto, LoginResponseDto, MeResponseDto } from '../interface/dto/auth.dto';
 import { DEV_FUNCTION_ACCESS, devIdentity } from './dev-fallback';
+import { STATIC_FUNCTION_ACCESS, STATIC_LOGIN_IDENTITY } from './static-login.data';
 
 /**
  * API-5 Login + current-identity. Verifies the MPIN (MpinStorePort), resolves the
@@ -19,11 +20,19 @@ import { DEV_FUNCTION_ACCESS, devIdentity } from './dev-fallback';
  * AUTH_DISABLED=true an explicit dev bypass skips MPIN verification and returns
  * a static identity/function list; with AUTH_DISABLED=false the real journey
  * runs in every environment (MPIN → directory → function access).
+ *
+ * AUTH_STATIC_LOGIN=true (testing only, takes precedence): login returns the
+ * fixed AIBRAHIM39 payload (static-login.data.ts) and the FULL user data —
+ * employee fields + functionaccesslist — is embedded in the signed JWT as a
+ * `userdata` claim so the client can read everything from the token alone.
+ * Note the JWT is signed (tamper-proof), not encrypted: its payload is
+ * base64-readable by design.
  */
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly devBypass: boolean;
+  private readonly staticLogin: boolean;
   private readonly expiresIn: string;
 
   constructor(
@@ -35,6 +44,7 @@ export class AuthService {
     config: ConfigService,
   ) {
     this.devBypass = config.get<boolean>('auth.disabled', false);
+    this.staticLogin = config.getOrThrow<AuthConfig>('auth').staticLogin;
     this.expiresIn = config.getOrThrow<AuthConfig>('auth').jwtExpiresIn;
   }
 
@@ -49,7 +59,13 @@ export class AuthService {
     let identity: EmployeeIdentity;
     let functionList: FunctionAccess[];
 
-    if (this.devBypass) {
+    if (this.staticLogin) {
+      this.logger.warn(
+        `AUTH_STATIC_LOGIN: static login payload for "${dto.username}" (no MPIN/directory/DB).`,
+      );
+      identity = STATIC_LOGIN_IDENTITY;
+      functionList = STATIC_FUNCTION_ACCESS;
+    } else if (this.devBypass) {
       this.logger.warn(`DEV bypass: login for "${dto.username}" WITHOUT MPIN verification.`);
       identity = devIdentity(dto.username);
       functionList = DEV_FUNCTION_ACCESS;
@@ -85,6 +101,19 @@ export class AuthService {
       name: identity.employeeName,
       dept: identity.department,
       company: identity.company,
+      // Static-login testing: the FULL user data travels inside the token so
+      // the client can decode everything from the JWT alone.
+      ...(this.staticLogin && {
+        userdata: {
+          employeeusername: identity.username,
+          employeenumber: identity.employeeNumber,
+          employeename: identity.employeeName,
+          employeenamear: identity.employeeNameAr,
+          employeedepartment: identity.department,
+          employeecompany: identity.company,
+          functionaccesslist: functionList,
+        },
+      }),
     });
 
     this.audit.lifecycle(AuthLifecycleEvent.LOGIN_SUCCESS, { ...ctx, status: 'success' });

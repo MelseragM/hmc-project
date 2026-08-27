@@ -1,11 +1,31 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
 import { AppModule } from './app.module';
-import { AppConfig } from '@core/config/configuration';
+import { AppConfig, DiagnosticsConfig } from '@core/config/configuration';
+
+/**
+ * With DIAGNOSTICS_ENABLED=false the diagnostics/logs/DB-test routes return
+ * 404 (DiagnosticsEnabledGuard), so drop them from the OpenAPI document too —
+ * Swagger must not advertise endpoints that do not exist.
+ */
+function stripDiagnosticsPaths(document: OpenAPIObject, apiPrefix: string): void {
+  const base = `/${apiPrefix}`.replace(/\/+$/, '');
+  const gatedPrefixes = [`${base}/diagnostics`, `${base}/api-logs`];
+  const gatedExact = new Set([
+    `${base}/health/db`,
+    `${base}/health/users-db`,
+    `${base}/health/motc-sms-db`,
+  ]);
+  for (const path of Object.keys(document.paths)) {
+    if (gatedExact.has(path) || gatedPrefixes.some((p) => path === p || path.startsWith(`${p}/`))) {
+      delete document.paths[path];
+    }
+  }
+}
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -34,6 +54,9 @@ async function bootstrap(): Promise<void> {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+  if (!config.getOrThrow<DiagnosticsConfig>('diagnostics').enabled) {
+    stripDiagnosticsPaths(document, appCfg.apiPrefix);
+  }
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });

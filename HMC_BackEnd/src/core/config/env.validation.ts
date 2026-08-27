@@ -85,6 +85,9 @@ export const envValidationSchema = Joi.object({
   JWT_AUDIENCE: Joi.string().default('sanaad-b2e'),
   JWT_EXPIRES_IN: Joi.string().default('1h'),
   AUTH_DISABLED: Joi.boolean().default(false),
+  // TESTING ONLY: static /auth/login payload with full user data embedded in
+  // the JWT (`userdata` claim). Never enable in production.
+  AUTH_STATIC_LOGIN: Joi.boolean().default(false),
 
   // Cerner
   CERNER_BASE_URL: Joi.string().uri().allow('').default(''),
