@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { Role } from '@core/auth/auth-user.interface';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { AuditService } from '@core/audit/audit.service';
@@ -25,7 +25,7 @@ function makeService(overrides: Partial<typeof AUTH_CFG> = {}) {
   const authCfg = { ...AUTH_CFG, ...overrides };
   const jwt = new JwtService({
     secret: authCfg.jwtSecret,
-    signOptions: { expiresIn: authCfg.jwtExpiresIn },
+    signOptions: { expiresIn: authCfg.jwtExpiresIn as JwtSignOptions['expiresIn'] },
   });
   const mpinStore = { verify: jest.fn().mockResolvedValue(true) } as unknown as MpinStorePort;
   const ldap = {
