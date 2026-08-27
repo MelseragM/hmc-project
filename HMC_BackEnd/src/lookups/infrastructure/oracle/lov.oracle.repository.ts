@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
@@ -11,6 +11,7 @@ import {
   PERSON_ID_COLUMN,
   USERNAME_KEY_CANDIDATES,
 } from '@shared/constants/oracle-columns';
+import { extractOraCode, ORA_OBJECT_NOT_FOUND } from '@shared/constants/error-codes';
 import { LovReadOptions, LovRepository } from '../../domain/lov.repository';
 import { LovMapper } from './lov.mapper';
 
@@ -36,6 +37,7 @@ import { LovMapper } from './lov.mapper';
 const EMPLOYEE_SCOPING_CANDIDATES = [EMP_KEY_COLUMN, 'emp_num', PERSON_ID_COLUMN] as const;
 @Injectable()
 export class LovOracleRepository implements LovRepository {
+  private static readonly logger = new Logger(LovOracleRepository.name);
   private readonly cache = new Map<string, { expiresAt: number; items: LovItem[] }>();
   private readonly pending = new Map<string, Promise<LovItem[]>>();
   private readonly cacheTtlMs: number;
@@ -113,10 +115,23 @@ export class LovOracleRepository implements LovRepository {
       binds.offset = options.offset ?? 0;
       binds.limit = limit;
     }
-    const rows = await this.ora.query<Record<string, any>>(
-      `SELECT * FROM ${object}${where}${pagination}`,
-      binds,
-    );
+    // A LOV name that resolves to an object the database does not have used to
+    // surface as a bare HTTP 500 "A database operation could not be completed",
+    // which says nothing about the cause: EMPLOYMENT_STATUS_LOV pointed at
+    // XXHMC_SND_EMPLOYMENT_STATUS_LOV while the view is …_STATUS_V, and the
+    // mismatch went unnoticed until a client reported it. Name the object in
+    // the log so the next one is obvious from a single line.
+    const rows = await this.ora
+      .query<Record<string, any>>(`SELECT * FROM ${object}${where}${pagination}`, binds)
+      .catch((err: unknown) => {
+        if (extractOraCode((err as Error)?.message) === ORA_OBJECT_NOT_FOUND) {
+          LovOracleRepository.logger.error(
+            `LOV object ${object} does not exist in the database (ORA-00942) — the LOV registry ` +
+              'points at a name Oracle does not know. Check lov-names.ts / oracle-objects.ts.',
+          );
+        }
+        throw err;
+      });
     return LovMapper.toItems(rows, lang);
   }
 

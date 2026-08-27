@@ -8,6 +8,8 @@
 
 /** `ORA-01403: no data found` → treated as empty result, not an error. */
 export const ORA_NO_DATA_FOUND = 1403;
+/** "table or view does not exist" — a name we hold does not exist in Oracle. */
+export const ORA_OBJECT_NOT_FOUND = 942;
 
 /** Map of well-known ORA codes → HTTP status. Extend as codes are captured. */
 export const ORA_HTTP_STATUS: Readonly<Record<number, number>> = Object.freeze({

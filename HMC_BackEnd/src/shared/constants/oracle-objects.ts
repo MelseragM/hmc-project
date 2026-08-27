@@ -95,7 +95,14 @@ export const ORACLE_OBJECTS = {
   DEP_PLACE_LOV: o('DEP_PLACE_LOV'),
   EDU_STAGE_LOV: o('EDU_STAGE_LOV'),
   EMP_MARITAL_LOV: o('EMP_MARITAL_LOV'),
-  EMPLOYMENT_STATUS_LOV: o('EMPLOYMENT_STATUS_LOV'),
+  /**
+   * Employment status of a dependent (add/update dependent screens).
+   * The object is `XXHMC_SND_EMPLOYMENT_STATUS_V` — unlike its siblings it does
+   * NOT end in `_LOV`, and pointing at the `_LOV` spelling made every call fail
+   * with ORA-00942, surfaced to the client as a bare HTTP 500. The public LOV
+   * name stays `EMPLOYMENT_STATUS_LOV`; only the object it resolves to changed.
+   */
+  EMPLOYMENT_STATUS_LOV: o('EMPLOYMENT_STATUS_V'),
   EXIT_COPIES_LOV: o('EXIT_COPIES_LOV'),
   LEAVE_BAL_PLAN_LOV: o('LEAVE_BAL_PLAN_LOV'),
   LETTER_COUNTRY_LOV: o('LETTER_COUNTRY_LOV'),
