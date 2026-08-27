@@ -1,5 +1,4 @@
 import { ORACLE_OBJECTS } from './oracle-objects';
-import { LovMapper } from '@lookups/infrastructure/oracle/lov.mapper';
 import { LOV_OBJECT, resolveLovObject } from './lov-names';
 
 /**
@@ -32,58 +31,6 @@ describe('LOV registry', () => {
     for (const [name, object] of Object.entries(LOV_OBJECT)) {
       expect({ name, known: known.has(object) }).toEqual({ name, known: true });
     }
-  });
-
-  // Every Sanaad view names its Arabic column after the English one plus
-  // `_AR`, but the mapper used to recognise them by name and the list covered
-  // barely half the LOVs — the rest answered lang=ar in English. Each row here
-  // is a real column layout taken from the database.
-  it.each([
-    // label is the code itself, no *_MEANING column at all
-    [
-      'EMPLOYMENT_STATUS_V',
-      { FLEX_VALUE: 'Not Employed', FLEX_VALUE_AR: 'غير موظف' },
-      { code: 'Not Employed', meaning: 'Not Employed', meaningAr: 'غير موظف' },
-    ],
-    [
-      'EMP_MARITAL_LOV',
-      { MARITAL_STATUS: 'Divorced', MARITAL_STATUS_AR: 'مطلق' },
-      { code: 'Divorced', meaning: 'Divorced', meaningAr: 'مطلق' },
-    ],
-    [
-      'PHONE_TYPE_V',
-      {
-        LOOKUP_CODE: 'XXHMC_EMG_INQTR',
-        TYPE_OF_PHONE: 'Emergency contact number Inside Qatar',
-        TYPE_OF_PHONE_AR: 'رقم اتصال للطوارئ داخل قطر',
-      },
-      {
-        code: 'XXHMC_EMG_INQTR',
-        meaning: 'Emergency contact number Inside Qatar',
-        meaningAr: 'رقم اتصال للطوارئ داخل قطر',
-      },
-    ],
-    [
-      'DEP_LOOKUP_LOV',
-      { CODE: 'C', D_DATA: 'Child', D_DATA_AR: 'ابن', D_DATA_TYPE: 'CONTACT' },
-      { code: 'C', meaning: 'Child', meaningAr: 'ابن', type: 'CONTACT' },
-    ],
-    // a *_MEANING pair still wins over the code column's own twin
-    [
-      'YES_NO_LOV',
-      {
-        FLEX_VALUE: 'Yes',
-        FLEX_VALUE_MEANING: 'Yes',
-        FLEX_VALUE_MEANING_AR: 'نعم',
-      },
-      { code: 'Yes', meaning: 'Yes', meaningAr: 'نعم' },
-    ],
-  ])('reads the Arabic label of %s', (_view, row, expected) => {
-    // used_value must stay English in both languages: submits bind it
-    expect(LovMapper.toItem(row, 'ar')).toMatchObject({
-      ...expected,
-      used_value: expected.meaning,
-    });
   });
 
   it('still rejects a name that is not a LOV at all', () => {

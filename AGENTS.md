@@ -77,14 +77,18 @@ Related runtime behaviour:
   URL-decoded, English fallback when the Arabic twin is empty) and the `*Ar`
   twin is removed from the response for both languages. A key only counts as a
   twin when its base key exists in the same object, so `YEAR`/`calendar` are
-  never collapsed. `LovMapper` feeds that layer and derives the Arabic column
-  as `<label column>_AR` rather than recognising column names: the documented
-  vocabularies covered barely half the LOV views, and the rest (`D_DATA_AR`,
-  `MARITAL_STATUS_AR`, `TYPE_OF_PHONE_AR`, `FLEX_VALUE_AR`, ...) silently
-  dropped their Arabic, so `lang=ar` answered in English. Four LOVs still read
-  English because the view itself stores English in the Arabic column
+  never collapsed.
+- **Localization is deliberately out of scope for now** — it is planned as one
+  pass over the whole project at the end, so do not commit Arabic-label fixes
+  with feature work. Known open items, measured 2026-08-27 and parked in
+  `tools/arabic-lov-mapper.patch` (local, untracked): `LovMapper` recognises
+  Arabic columns by name and the list covers about half the LOV views, so 15 of
+  them (`D_DATA_AR` on the dependent screen, `MARITAL_STATUS_AR`,
+  `TYPE_OF_PHONE_AR`, `FLEX_VALUE_AR`, ...) answer `lang=ar` in English;
+  deriving the column as `<label column>_AR` fixes all of them. A further four
   (`BEREAV_RELAT_V`, `EDU_STAGE_LOV`, `SCHOOL_NAME_LOV`,
-  `ACAD_YR_STRT_END_LOV`) — a data issue for the DB team, not the mapper.
+  `ACAD_YR_STRT_END_LOV`) store English in their Arabic column — a DB-team data
+  fix, not a code one.
 - A LOV whose Oracle object does not exist fails with ORA-00942 and surfaces as
   a bare HTTP 500, with nothing pointing at the name — that is how
   `EMPLOYMENT_STATUS_LOV` stayed broken until a mobile developer reported it

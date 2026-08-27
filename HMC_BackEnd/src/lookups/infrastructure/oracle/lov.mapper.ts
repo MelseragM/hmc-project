@@ -91,18 +91,9 @@ export class LovMapper {
   static toItem(row: Record<string, any>, _lang: Lang): LovItem {
     const codeColumn = this.firstColumn(row, this.CODE_COLUMNS);
     const code = codeColumn ? str(row, codeColumn) : undefined;
-    const meaningColumn =
-      this.firstColumn(row, this.MEANING_COLUMNS) ?? this.fallbackLabelColumn(row, codeColumn);
-    const meaning = meaningColumn ? str(row, meaningColumn) : undefined;
-    // Sanaad names an Arabic column after its English twin plus `_AR`, so the
-    // twin is derived from the label column instead of being listed by name:
-    // the vocabularies below cover barely half of the LOV views, and the rest
-    // (MARITAL_STATUS_AR, TYPE_OF_PHONE_AR, D_DATA_AR, FLEX_VALUE_AR, ...)
-    // silently lost their Arabic and answered `lang=ar` in English.
-    const meaningAr =
-      this.arTwin(row, meaningColumn) ??
-      this.arTwin(row, codeColumn) ??
-      this.firstArString(row, this.MEANING_AR_COLUMNS);
+    const meaning =
+      this.firstString(row, this.MEANING_COLUMNS) ?? this.fallbackLabel(row, codeColumn);
+    const meaningAr = this.firstArString(row, this.MEANING_AR_COLUMNS);
     const type = this.firstString(row, this.TYPE_COLUMNS);
 
     return {
@@ -121,26 +112,16 @@ export class LovMapper {
     return rows.map((r) => this.toItem(r, lang));
   }
 
-  /** Arabic twin of a column, by the `<COLUMN>_AR` convention every view follows. */
-  private static arTwin(row: Record<string, any>, column: string | undefined): string | undefined {
-    if (!column) return undefined;
-    for (const suffix of ['_ar', 'ar']) {
-      const value = strAr(row, `${column}${suffix}`);
-      if (value !== undefined && value !== '') return value;
-    }
-    return undefined;
-  }
-
   /**
-   * Label column for a LOV whose columns are not in the documented
-   * vocabularies: the first descriptive column that is neither the code
-   * column, an id, nor a technical column.
+   * Label for a LOV whose columns are not in the documented vocabularies: the
+   * first descriptive column that is neither the code column, an id, nor a
+   * technical column.
    */
-  private static fallbackLabelColumn(
+  private static fallbackLabel(
     row: Record<string, any>,
     codeColumn: string | undefined,
   ): string | undefined {
-    return Object.keys(row).find((k) => {
+    const key = Object.keys(row).find((k) => {
       const lower = k.toLowerCase();
       if (codeColumn && lower === codeColumn.toLowerCase()) return false;
       if (this.TECHNICAL_COLUMNS.has(lower)) return false;
@@ -151,6 +132,7 @@ export class LovMapper {
       if (lower.endsWith('_ar') || this.MEANING_AR_COLUMNS.includes(lower)) return false;
       return col(row, k) != null;
     });
+    return key ? str(row, key) : undefined;
   }
 
   private static firstColumn(row: Record<string, any>, names: string[]): string | undefined {
