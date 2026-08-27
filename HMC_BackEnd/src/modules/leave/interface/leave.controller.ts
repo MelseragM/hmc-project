@@ -229,25 +229,33 @@ export class LeaveController {
     return { items: await this.service.relatedLeave2Lov(q.username) };
   }
 
+  /**
+   * The values POST /leave/cancel accepts. LEAVE_CANCEL_V is scoped by
+   * PERSON_ID and has no username column, so a `username` filter matched
+   * nothing and this returned an empty list for every caller — which is why
+   * clients fell back to building the value from GET /leaves and got 404s.
+   * Same shape as op 62 below.
+   */
   @Get('lov/cancel')
   @ApiOperation({ summary: 'op 61 — Leave cancel LOV', operationId: 'leave_cancelLov' })
   @ApiOkResponse({ type: LovResponseDto })
-  @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
-  async cancelLov(@Query() q: LovUserQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.cancelLov(q.username, q.lang) };
+  async cancelLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
+    return { items: await this.service.cancelLov(LeaveController.lovKey(q), q.lang) };
   }
 
   @Get('lov/amend')
   @ApiOperation({ summary: 'op 62 — Leave amend LOV', operationId: 'leave_amendLov' })
   @ApiOkResponse({ type: LovResponseDto })
-  @ApiReadOkResponse({ example: LEAVE_EMPTY_ITEMS_EXAMPLE })
   async amendLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
-    // LEAVE_AMEND_V is scoped by PERSON_ID (DB team, 2026-08-24:
-    // `WHERE person_id = 26023`) — the LOV reader's employee-scoping fallback
-    // filters that column, so pass person_id as the filter value; the legacy
-    // username/enum spellings remain accepted.
+    return { items: await this.service.amendLov(LeaveController.lovKey(q), q.lang) };
+  }
+
+  /** person_id is what filters these views; the legacy spellings are fallbacks. */
+  private static lovKey(q: LeaveAmendLovQueryDto): string {
     const key = q.person_id ?? q.username ?? q.enum;
-    if (!key) throw new BadRequestException('person_id, username or enum query parameter is required.');
-    return { items: await this.service.amendLov(key, q.lang) };
+    if (!key) {
+      throw new BadRequestException('person_id, username or enum query parameter is required.');
+    }
+    return key;
   }
 }

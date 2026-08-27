@@ -142,10 +142,19 @@ defineOptionalStringFields(ApplyLeaveRequestDto, [
 ]);
 
 /**
- * op 62 — GET /leave/lov/amend. LEAVE_AMEND_V is scoped by PERSON_ID (confirmed
- * by the DB team: `SELECT * FROM XXHMC_SND_LEAVE_AMEND_V WHERE person_id = 26023`),
- * so the caller should pass `person_id`; `username`/`enum` remain accepted for
- * legacy payloads and are used as the filter value when person_id is absent.
+ * ops 61/62 — GET /leave/lov/amend and /leave/lov/cancel.
+ *
+ * Both views (`XXHMC_SND_LEAVE_AMEND_V`, `XXHMC_SND_LEAVE_CANCEL_V`) expose
+ * PERSON_ID and no username column, so `person_id` is the parameter that
+ * actually filters; `username`/`enum` are accepted for legacy payloads and used
+ * as the filter value when `person_id` is absent.
+ *
+ * These lists are not cosmetic: each procedure resolves its input against the
+ * matching view (`XXHMC_SND_HR_LEAV_CANCEL_PR` line 163 does
+ * `SELECT id FROM xx_leave_cancel_v WHERE value = p_leave_to_cancel`), so the
+ * `used_value` returned here is the ONLY text the submit will accept. Anything
+ * assembled by hand — for instance from `GET /leaves`, whose dates read
+ * `12-03-2026` rather than `12-MAR-2026` — raises "no data found".
  */
 export class LeaveAmendLovQueryDto extends LangQueryDto {
   @ApiPropertyOptional({ example: '26023', description: 'Oracle PERSON_ID (preferred — the view is person-scoped).' })

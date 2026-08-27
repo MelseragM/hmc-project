@@ -22,26 +22,35 @@ import {
 } from '../../domain/leave.repository';
 import { LeaveApplyBinds } from './leave-apply.binds';
 
-/** HR_LEAV_AMEND_PR input params (Sanaad spec — LEAVEAMEND body). */
+/*
+ * The two lists below mirror the declared signatures (ALL_ARGUMENTS, verified
+ * 2026-08-27; confirmed by the DB team): `p_leave_type` first, then
+ * `p_user_name`, 25 IN params and 3 OUT.
+ *
+ * Neither procedure declares `p_language` — we used to append it, and it was
+ * silently dropped because `callSubmitProc` resolves the real argument list
+ * from the data dictionary and binds by name, but the list then misdescribed
+ * the contract. Arabic still comes back through `p_error_msg_ar`.
+ */
+
+/** HR_LEAV_AMEND_PR — 25 IN + 3 OUT. */
 const LEAVE_AMEND_PARAMS = [
-  'p_user_name',
   'p_leave_type',
+  'p_user_name',
   'p_leave_to_amend',
   'p_new_end_date',
   'p_comments',
   ...BaseOracleRepository.attachmentParams(),
-  'p_language',
 ] as const;
 
-/** HR_LEAV_CANCEL_PR input params (Sanaad spec — LEAVECANCEL body). */
+/** HR_LEAV_CANCEL_PR — 25 IN + 3 OUT. */
 const LEAVE_CANCEL_PARAMS = [
-  'p_user_name',
   'p_leave_type',
+  'p_user_name',
   'p_leave_to_cancel',
   'p_reason_for_cancel',
   'p_remarks',
   ...BaseOracleRepository.attachmentParams(),
-  'p_language',
 ] as const;
 
 /** RET_FRM_LEAV_PR input params (Sanaad spec — ReturnFromLeaveSubmit body). */
@@ -245,9 +254,14 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
     return this.readByUsername(LeaveOracleRepository.RFL_LOV_VIEW[kind], username);
   }
 
-  /** Merge the posted p_* body with the enforced user + resolved language. */
+  /**
+   * Merge the posted `p_*` body with the enforced caller. No `p_language`:
+   * none of the leave procedures declares one (checked across CANCEL, AMEND,
+   * RET_FRM_LEAV, LEAV_OF_ABSEN_NEW and LEAVE_BALANCE), so it only produced a
+   * bind that was thrown away. The Arabic message arrives in `p_error_msg_ar`.
+   */
   private values(cmd: LeaveMutationCommand): Record<string, unknown> {
-    return { ...cmd.fields, p_language: toOracleLanguage(cmd.lang), p_user_name: cmd.username };
+    return { ...cmd.fields, p_user_name: cmd.username };
   }
 
   async getEmploymentContext(
