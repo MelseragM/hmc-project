@@ -13,6 +13,13 @@ export enum ErrorCategory {
   DATABASE_ERROR = 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
   TIMEOUT = 'TIMEOUT',
+  /**
+   * Request body over the configured limit (BODY_LIMIT). Its own category
+   * because it used to land in APPLICATION_ERROR → 500, which read as a server
+   * bug: an oversized attachment is the client's to fix, and saying so is what
+   * makes it fixable.
+   */
+  PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE',
   APPLICATION_ERROR = 'APPLICATION_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   /**
@@ -34,6 +41,9 @@ export const CATEGORY_MESSAGE: Readonly<Record<ErrorCategory, string>> = Object.
     'A database operation could not be completed. Please contact support if the problem persists.',
   [ErrorCategory.EXTERNAL_SERVICE_ERROR]: 'An external service is currently unavailable.',
   [ErrorCategory.TIMEOUT]: 'The request took too long to process. Please try again.',
+  [ErrorCategory.PAYLOAD_TOO_LARGE]:
+    'The request is too large. Attachments are sent as base64, which makes them about a third ' +
+    'bigger than the file — compress the file and try again.',
   [ErrorCategory.APPLICATION_ERROR]: 'An unexpected application error occurred.',
   [ErrorCategory.UNKNOWN_ERROR]: 'An unexpected error occurred.',
   [ErrorCategory.SCHEMA_MISMATCH]: 'Success.',
@@ -50,6 +60,9 @@ export const CATEGORY_MESSAGE_AR: Readonly<Record<ErrorCategory, string>> = Obje
     'تعذر إتمام عملية قاعدة البيانات. يرجى التواصل مع الدعم الفني إذا استمرت المشكلة.',
   [ErrorCategory.EXTERNAL_SERVICE_ERROR]: 'الخدمة الخارجية غير متاحة حاليًا.',
   [ErrorCategory.TIMEOUT]: 'استغرق الطلب وقتًا طويلاً. يرجى المحاولة مرة أخرى.',
+  [ErrorCategory.PAYLOAD_TOO_LARGE]:
+    'حجم الطلب كبير جدًا. المرفقات تُرسل بترميز base64 مما يزيد حجمها بنحو الثلث — ' +
+    'يرجى ضغط الملف وإعادة المحاولة.',
   [ErrorCategory.APPLICATION_ERROR]: 'حدث خطأ غير متوقع في التطبيق.',
   [ErrorCategory.UNKNOWN_ERROR]: 'حدث خطأ غير متوقع.',
   [ErrorCategory.SCHEMA_MISMATCH]: 'تم بنجاح.',
@@ -65,6 +78,7 @@ export const CATEGORY_STATUS: Readonly<Record<ErrorCategory, number>> = Object.f
   [ErrorCategory.DATABASE_ERROR]: 500,
   [ErrorCategory.EXTERNAL_SERVICE_ERROR]: 503,
   [ErrorCategory.TIMEOUT]: 408,
+  [ErrorCategory.PAYLOAD_TOO_LARGE]: 413,
   [ErrorCategory.APPLICATION_ERROR]: 500,
   [ErrorCategory.UNKNOWN_ERROR]: 500,
   // Not used for an error response — AllExceptionsFilter special-cases this
