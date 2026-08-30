@@ -87,8 +87,19 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
         `Oracle pool created (min=${this.cfg.poolMin}, max=${this.cfg.poolMax}) → ${this.cfg.dsn}`,
       );
     } catch (err) {
-      this.logger.error(`Failed to create Oracle pool: ${(err as Error).message}`);
-      throw err;
+      // Deliberately NOT rethrown. Rethrowing here aborts the Nest bootstrap,
+      // so one bad DSN or password took the entire API down — including the
+      // auth journey, which does not touch Oracle at all (2026-08-30 outage:
+      // the host answered a bare HTML 503 because no process was listening).
+      // Note the asymmetry this removes: missing credentials already degraded
+      // gracefully above, while *wrong* ones killed the process.
+      // Without a pool the degraded path is already complete: getPool() raises
+      // OracleUnavailableException (clean per-request 503) and /health reports
+      // oracle.reachable = false, which also makes the cause obvious.
+      this.logger.error(
+        `Failed to create Oracle pool: ${(err as Error).message} — starting without it; ` +
+          'Oracle-backed endpoints will answer 503 until the configuration is fixed.',
+      );
     }
   }
 
@@ -128,8 +139,21 @@ export class OracleService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /** A usable pool exists. Callers gate real queries on this. */
   isEnabled(): boolean {
     return this.pool !== undefined;
+  }
+
+  /**
+   * We were CONFIGURED to use Oracle, whether or not the pool came up.
+   *
+   * Kept separate from isEnabled() so /health can tell "switched off on
+   * purpose" apart from "configured but broken" — both used to report
+   * enabled:false, reachable:false, which is why the 2026-08-30 outage was
+   * diagnosed from the outside instead of from /health.
+   */
+  isConfigured(): boolean {
+    return !this.cfg.disabled && Boolean(this.cfg.user) && Boolean(this.cfg.dsn);
   }
 
   private getPool(): oracledb.Pool {

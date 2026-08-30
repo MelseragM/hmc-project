@@ -20,26 +20,43 @@ export class HealthController {
   @SkipEnvelope()
   @Get()
   async check() {
-    const oracleEnabled = this.oracle.isEnabled();
     let oracleReachable = false;
-    if (oracleEnabled) {
+    if (this.oracle.isEnabled()) {
       try {
         oracleReachable = await this.oracle.ping();
       } catch {
         oracleReachable = false;
       }
     }
-    const usersDbEnabled = this.usersDb.isEnabled();
-    const usersDbReachable = usersDbEnabled ? await this.usersDb.ping() : false;
-    const motcSmsDbEnabled = this.motcSmsDb.isEnabled();
-    const motcSmsDbReachable = motcSmsDbEnabled ? await this.motcSmsDb.ping() : false;
+    const usersDbReachable = this.usersDb.isEnabled() ? await this.usersDb.ping() : false;
+    const motcSmsDbReachable = this.motcSmsDb.isEnabled()
+      ? await this.motcSmsDb.ping()
+      : false;
     return {
       status: 'ok',
       uptime: Math.round(process.uptime()),
-      oracle: { enabled: oracleEnabled, reachable: oracleReachable },
-      usersDb: { enabled: usersDbEnabled, reachable: usersDbReachable },
-      motcSmsDb: { enabled: motcSmsDbEnabled, reachable: motcSmsDbReachable },
+      oracle: this.describe(this.oracle.isConfigured(), oracleReachable),
+      usersDb: this.describe(this.usersDb.isConfigured(), usersDbReachable),
+      motcSmsDb: this.describe(this.motcSmsDb.isConfigured(), motcSmsDbReachable),
       timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * `enabled` answers "are we configured to use it", NOT "did the pool come
+   * up" — those two were conflated, so a database that was switched off and
+   * one that was broken produced the identical `enabled:false,
+   * reachable:false`. `status` states which of the three it is, so an outage
+   * can be read straight off /health:
+   *   disabled    — switched off on purpose
+   *   unreachable — configured, but the pool never came up (check the config)
+   *   ok          — connected
+   */
+  private describe(configured: boolean, reachable: boolean) {
+    return {
+      enabled: configured,
+      reachable,
+      status: !configured ? 'disabled' : reachable ? 'ok' : 'unreachable',
     };
   }
 

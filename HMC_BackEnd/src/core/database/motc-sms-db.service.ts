@@ -71,8 +71,13 @@ export class MotcSmsDbService implements OnModuleInit, OnModuleDestroy {
       );
       await this.verifyConnectivity();
     } catch (err) {
-      this.logger.error(`Failed to create MOTC SMS DB pool: ${(err as Error).message}`);
-      throw err;
+      // Not rethrown — see the note in OracleService.onModuleInit. getPool()
+      // already raises MssqlUnavailableException per request and /health
+      // reports motcSmsDb.reachable = false.
+      this.logger.error(
+        `Failed to create MOTC SMS DB pool: ${(err as Error).message} — starting without it; ` +
+          'OTP send/validate will answer 503 until the configuration is fixed.',
+      );
     }
   }
 
@@ -100,8 +105,19 @@ export class MotcSmsDbService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /** A usable pool exists. Callers gate real queries on this. */
   isEnabled(): boolean {
     return this.pool !== undefined;
+  }
+
+  /** Configured to be used, pool up or not — see OracleService.isConfigured. */
+  isConfigured(): boolean {
+    return (
+      !this.cfg.disabled &&
+      Boolean(this.cfg.host) &&
+      Boolean(this.cfg.database) &&
+      Boolean(this.cfg.user)
+    );
   }
 
   private getPool(): sql.ConnectionPool {
