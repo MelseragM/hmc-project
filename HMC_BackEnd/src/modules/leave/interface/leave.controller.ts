@@ -246,14 +246,18 @@ export class LeaveController {
   @ApiOperation({ summary: 'op 61 — Leave cancel LOV', operationId: 'leave_cancelLov' })
   @ApiOkResponse({ type: LovResponseDto })
   async cancelLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.cancelLov(LeaveController.lovKey(q), q.lang) };
+    return {
+      items: await this.service.cancelLov(LeaveController.lovKey(q), q.lang, q.leave_type),
+    };
   }
 
   @Get('lov/amend')
   @ApiOperation({ summary: 'op 62 — Leave amend LOV', operationId: 'leave_amendLov' })
   @ApiOkResponse({ type: LovResponseDto })
   async amendLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
-    return { items: await this.service.amendLov(LeaveController.lovKey(q), q.lang) };
+    return {
+      items: await this.service.amendLov(LeaveController.lovKey(q), q.lang, q.leave_type),
+    };
   }
 
   /** person_id is what filters these views; the legacy spellings are fallbacks. */

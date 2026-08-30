@@ -168,11 +168,14 @@ export class LovOracleRepository implements LovRepository {
 
   /**
    * The leave-type column of a type-scoped LOV (ABSENCE_REASON_V exposes
-   * `LEAVE_TYPE`), resolved from the data dictionary like the other filters
-   * so a leaveType passed for an unscoped LOV is ignored instead of failing.
+   * `LEAVE_TYPE`; LEAVE_CANCEL_V / LEAVE_AMEND_V carry the type in `NAME` —
+   * ops 61/62 `?leave_type=`), resolved from the data dictionary like the
+   * other filters so a leaveType passed for an unscoped LOV is ignored
+   * instead of failing. `NAME` is last on purpose: it only applies when the
+   * view has no dedicated leave-type column.
    */
   private async leaveTypeColumnOf(object: string): Promise<string | undefined> {
-    for (const candidate of ['LEAVE_TYPE', 'ABSENCE_TYPE']) {
+    for (const candidate of ['LEAVE_TYPE', 'ABSENCE_TYPE', 'NAME']) {
       if (await this.schema.hasColumn(object, candidate)) return candidate;
     }
     return undefined;

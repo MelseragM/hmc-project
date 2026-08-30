@@ -188,6 +188,15 @@ export class LeaveAmendLovQueryDto extends LangQueryDto {
   @IsOptional()
   @IsString()
   enum?: string;
+
+  @ApiPropertyOptional({
+    example: 'Casual Leave',
+    description:
+      'Filter by leave type — equality match on the view\'s NAME column (case-insensitive). Omit for all types.',
+  })
+  @IsOptional()
+  @IsString()
+  leave_type?: string;
 }
 
 /** op 13 — GET /leave/lov/reasons `?lang=&leave_type=` (ABSENCE_REASON_V). */

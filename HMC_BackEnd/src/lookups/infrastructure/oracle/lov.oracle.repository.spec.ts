@@ -93,6 +93,30 @@ describe('LovOracleRepository', () => {
     ]);
   });
 
+  it('filters on NAME when the view has no dedicated leave-type column (LEAVE_CANCEL_V, ops 61/62)', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValue([{ NAME: 'Casual Leave', VALUE: 'Casual Leave|19-APR-2026|19-APR-2026' }]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) =>
+        Promise.resolve(['NAME', 'PERSON_ID'].includes(c.toUpperCase())),
+      );
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_LEAVE_CANCEL_V', 'en', '26023', {
+      leaveType: 'Casual Leave',
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('UPPER(NAME) = :leaveType'),
+      expect.objectContaining({ u: '26023', leaveType: 'CASUAL LEAVE' }),
+    );
+  });
+
   it('falls back to the employee-number column when the view has no user column (LEAVE_AMEND_V)', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const ora = { query } as unknown as OracleService;
