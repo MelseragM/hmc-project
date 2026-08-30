@@ -22,21 +22,19 @@ const SUBMIT_DATE_MSG = 'must be dd-Mon-yyyy or yyyy-MM-dd.';
 /**
  * op 9 — `?username&lang&accurlpln&effectivedate`.
  *
- * The API is keyed by USERNAME (client request 2026-08-27); the backend
- * resolves it to the numeric Oracle PERSON_ID via EMPLOYMENT_DETAILS_V because
- * LEAVE_BALANCE_PR's `p_user_name` parameter actually expects PERSON_ID
- * (confirmed live). `person_id` is still accepted as a legacy fallback so
- * existing callers keep working; when both are sent, `person_id` wins (no
- * resolution round-trip needed).
+ * Keyed by USERNAME, bound to LEAVE_BALANCE_PR's `p_user_name` exactly as
+ * received (client request 2026-08-30 — no PERSON_ID resolution). `person_id`
+ * is still accepted as a legacy alias; whichever is present is what gets
+ * bound (username wins when both are sent).
  */
 export class LeaveBalanceQueryDto extends LangQueryDto {
-  @ApiPropertyOptional({ example: 'AIBRAHIM39', description: 'Oracle username (resolved to PERSON_ID internally). Required unless person_id is sent.' })
+  @ApiPropertyOptional({ example: 'AIBRAHIM39', description: 'Oracle username, bound to p_user_name as-is. Required unless person_id is sent.' })
   @ValidateIf((o: LeaveBalanceQueryDto) => !o.person_id)
   @IsString()
   @IsNotEmpty({ message: 'username (or the legacy person_id) is required.' })
   username?: string;
 
-  @ApiPropertyOptional({ example: '852709', description: 'LEGACY — numeric Oracle PERSON_ID; prefer username.' })
+  @ApiPropertyOptional({ example: '852709', description: 'LEGACY alias — bound to p_user_name as-is when username is absent.' })
   @IsOptional()
   @IsString()
   person_id?: string;

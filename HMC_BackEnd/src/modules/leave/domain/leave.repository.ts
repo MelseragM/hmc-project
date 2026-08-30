@@ -23,9 +23,9 @@ export interface LeaveDuration {
 }
 
 export interface LeaveBalanceQuery {
-  /** Oracle username — resolved to PERSON_ID via EMPLOYMENT_DETAILS_V. */
+  /** Oracle username — bound to p_user_name exactly as received. */
   username?: string;
-  /** Legacy direct PERSON_ID; skips the username resolution when present. */
+  /** Legacy alias (?person_id=) — bound as-is when username is absent. */
   personId?: string;
   lang: Lang;
   accrualPlan?: string;

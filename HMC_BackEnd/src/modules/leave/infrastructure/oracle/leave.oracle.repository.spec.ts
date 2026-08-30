@@ -120,56 +120,46 @@ describe('LeaveOracleRepository — the leave procedures take no p_language', ()
 });
 
 /**
- * op 9 is keyed by USERNAME on the API (client request 2026-08-27), but
- * LEAVE_BALANCE_PR's `p_user_name` actually expects the numeric PERSON_ID
- * (confirmed live) — so the repository resolves it via EMPLOYMENT_DETAILS_V.
+ * op 9 binds `p_user_name` to the identifier EXACTLY as it came from the
+ * request (client request 2026-08-30) — no PERSON_ID resolution round-trip.
  */
-describe('LeaveOracleRepository — getBalance resolves username → PERSON_ID', () => {
-  function make(personRows: Record<string, unknown>[] = [{ PERSON_ID: 26023 }]) {
-    const query = jest.fn().mockResolvedValue(personRows);
+describe('LeaveOracleRepository — getBalance binds the request value as-is', () => {
+  function make() {
+    const query = jest.fn();
     const callCursor = jest.fn().mockResolvedValue([{ LEAVE_TYPE: 'Annual', BALANCE: 10 }]);
     const ora = { query, callCursor } as unknown as OracleService;
     const schema = {
       resolveParams: jest.fn().mockResolvedValue([]),
-      resolveKeyColumn: jest.fn().mockResolvedValue('user_name'),
     } as unknown as OracleSchemaService;
     return { repository: new LeaveOracleRepository(ora, schema), query, callCursor };
   }
 
   const QUERY = { username: 'AIBRAHIM39', lang: 'en' as const, effectiveDate: 'ALL' };
 
-  it('looks the username up in EMPLOYMENT_DETAILS_V and binds the PERSON_ID', async () => {
+  it('binds ?username= to p_user_name untouched, with no extra reads', async () => {
     const { repository, query, callCursor } = make();
 
     const rows = await repository.getBalance(QUERY);
 
     expect(rows).toHaveLength(1);
-    expect(query.mock.calls[0][0]).toContain('EMPLOYMENT_DETAILS_V');
-    expect(callCursor.mock.calls[0][1]).toMatchObject({ p_user_name: '26023' });
+    expect(query).not.toHaveBeenCalled();
+    expect(callCursor.mock.calls[0][1]).toMatchObject({ p_user_name: 'AIBRAHIM39' });
   });
 
-  it('caches the resolution per username', async () => {
-    const { repository, query } = make();
-
-    await repository.getBalance(QUERY);
-    await repository.getBalance(QUERY);
-
-    expect(query).toHaveBeenCalledTimes(1);
-  });
-
-  it('a legacy person_id skips the lookup entirely', async () => {
-    const { repository, query, callCursor } = make();
+  it('binds the legacy ?person_id= the same way when username is absent', async () => {
+    const { repository, callCursor } = make();
 
     await repository.getBalance({ ...QUERY, username: undefined, personId: '852709' });
 
-    expect(query).not.toHaveBeenCalled();
     expect(callCursor.mock.calls[0][1]).toMatchObject({ p_user_name: '852709' });
   });
 
-  it('404s when the username has no EMPLOYMENT_DETAILS_V row', async () => {
-    const { repository } = make([]);
+  it('username wins when both identifiers are sent', async () => {
+    const { repository, callCursor } = make();
 
-    await expect(repository.getBalance(QUERY)).rejects.toMatchObject({ status: 404 });
+    await repository.getBalance({ ...QUERY, personId: '852709' });
+
+    expect(callCursor.mock.calls[0][1]).toMatchObject({ p_user_name: 'AIBRAHIM39' });
   });
 
   it('400s when neither username nor person_id is supplied', async () => {
