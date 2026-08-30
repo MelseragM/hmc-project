@@ -114,6 +114,19 @@ Diagnostics endpoints for investigating a failure:
 Submit endpoints accept the specification's `p_*` payload directly; parameter
 lookup tolerates the `p_` prefix being present on only one side.
 
+**Request body limit is 15mb, set in BOTH `main.ts` files** (`BODY_LIMIT`
+constant — deliberately not env-driven: it follows the payload shape, not the
+environment). Attachments arrive as base64 inside the JSON body and op 65 takes
+ten of them, so Express's 100kb default capped an upload at ~73kb of actual
+file — a 2 MB photo became a 2.7 MB body and was refused. The gateway parses
+the body before proxying, so the smaller of the two limits is what applies:
+keep them equal. body-parser's rejection is an http-errors object, not an
+`HttpException`, so both projects match it structurally (`type ===
+'entity.too.large'` / status 413) and answer **413** with a "compress the file"
+message; previously it fell through to 500 "Internal server error" and read as
+a server bug. Oracle needs nothing here — every `P_ATTACHMENT*` parameter is a
+`BLOB`, not a `VARCHAR2`.
+
 ## Users/Sanaad SQL Server DB (auth cycle + healthcheck)
 
 A second database next to Oracle: the legacy Sanaad SQL Server, pooled by the
@@ -199,9 +212,11 @@ Run from `HMC_Gateway/`.
 
 Notes:
 
-- Unlike `HMC_BackEnd`, this is a brand-new project with no CRLF debt — keep it
-  that way; run Prettier normally (not the "don't `--fix`" caveat that applies
-  to the backend's existing working copy).
+- The working copy now has the same CRLF debt as `HMC_BackEnd` (checked out on
+  Windows), so `prettier --check` and ESLint flag every file with `Delete ␍`
+  — 1438 findings, all line endings. Do NOT run `--write`/`--fix` across the
+  project; check only the files you touched, e.g. by comparing
+  `prettier.format()` output against the file with `\r\n` normalized away.
 - `test/mock-backend.ts` is a minimal `http` stand-in for `HMC_BackEnd` used by
   `test/gateway.e2e-spec.ts`; it mints a real JWT with the same secret the
   gateway is configured with so the proxy/auth-guard path can be exercised

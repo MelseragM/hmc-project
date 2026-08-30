@@ -32,8 +32,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<RequestLike>();
 
-    const httpStatus =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const httpStatus = this.resolveStatus(exception);
     const message = this.resolveMessage(exception, httpStatus);
 
     const line = `${httpStatus} ${req?.method ?? ''} ${req?.url ?? ''} cid=${req?.correlationId ?? '-'} :: ${message}`;
@@ -50,7 +49,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
   }
 
+  /**
+   * body-parser rejects an over-limit body with an http-errors object, which
+   * is a plain Error rather than an HttpException — so it used to fall to 500
+   * "Internal server error". Since submits carry base64 attachments, that is a
+   * routine client mistake and 500 sends the caller looking for a server bug.
+   * Matched structurally (`type`/`status`) so it survives a body-parser bump.
+   */
+  private isPayloadTooLarge(exception: unknown): boolean {
+    const err = exception as { type?: unknown; status?: unknown; statusCode?: unknown };
+    return err?.type === 'entity.too.large' || err?.status === 413 || err?.statusCode === 413;
+  }
+
+  private resolveStatus(exception: unknown): number {
+    if (exception instanceof HttpException) return exception.getStatus();
+    if (this.isPayloadTooLarge(exception)) return HttpStatus.PAYLOAD_TOO_LARGE;
+    return HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
   private resolveMessage(exception: unknown, httpStatus: number): string {
+    if (httpStatus === HttpStatus.PAYLOAD_TOO_LARGE) {
+      return (
+        'The request is too large. Attachments are sent as base64, which makes them about a ' +
+        'third bigger than the file — compress the file and try again.'
+      );
+    }
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       if (typeof response === 'string') return response;
