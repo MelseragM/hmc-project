@@ -1,11 +1,18 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
 import { AppModule } from './app.module';
 import { AppConfig, DiagnosticsConfig } from '@core/config/configuration';
+
+/**
+ * Max request body. Sized for a submit carrying several base64 attachments
+ * (op 65 accepts ten) — see the note in bootstrap().
+ */
+const BODY_LIMIT = '15mb';
 
 /**
  * With DIAGNOSTICS_ENABLED=false the diagnostics/logs/DB-test routes return
@@ -28,9 +35,27 @@ function stripDiagnosticsPaths(document: OpenAPIObject, apiPrefix: string): void
 }
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
   const appCfg = config.getOrThrow<AppConfig>('app');
+
+  /**
+   * Request body limit.
+   *
+   * Attachments are base64 inside the JSON body — op 65 takes up to ten — and
+   * base64 inflates a file by ~4/3. Express defaults to 100kb, so anything
+   * over ~73kb of file was rejected, and body-parser's error surfaced as a
+   * bare 500 "Internal server error" rather than 413, which made it look like
+   * a server bug instead of an oversized upload.
+   *
+   * Oracle is fine with large files: every P_ATTACHMENT* parameter is a BLOB,
+   * not a VARCHAR2, so there is no 32k ceiling to run into.
+   *
+   * Fixed here rather than env-driven: it is a property of the payload shape,
+   * not of the environment, and every deployment needs the same value.
+   */
+  app.useBodyParser('json', { limit: BODY_LIMIT });
+  app.useBodyParser('urlencoded', { limit: BODY_LIMIT, extended: true });
 
   // Security & performance hardening
   app.use(helmet());

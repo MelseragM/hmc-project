@@ -17,6 +17,18 @@ export interface ClassifiedError {
   serverSide: boolean;
 }
 
+/**
+ * body-parser / http-errors marks an over-limit body with `type`
+ * 'entity.too.large' and status 413. Matched structurally (not by class) so it
+ * holds whichever body-parser version Express pulls in.
+ */
+function isPayloadTooLarge(exception: unknown): boolean {
+  const err = exception as { type?: unknown; status?: unknown; statusCode?: unknown };
+  return (
+    err?.type === 'entity.too.large' || err?.status === 413 || err?.statusCode === 413
+  );
+}
+
 function of(category: ErrorCategory, overrides: Partial<ClassifiedError> = {}): ClassifiedError {
   const httpStatus = overrides.httpStatus ?? CATEGORY_STATUS[category];
   return {
@@ -55,6 +67,14 @@ export function classifyException(exception: unknown): ClassifiedError {
   }
   if (exception instanceof MssqlQueryError) return of(ErrorCategory.DATABASE_ERROR);
   if (exception instanceof HttpException) return classifyHttp(exception);
+  // body-parser rejects an oversized body with an http-errors instance, which
+  // is a plain Error (not an HttpException) — so it used to fall through to
+  // APPLICATION_ERROR and answer 500 "Internal server error". That reads as a
+  // server bug for what is really "your attachment is too big", and it is the
+  // reason an oversized upload was so hard to diagnose. Answer 413 instead.
+  if (isPayloadTooLarge(exception)) {
+    return of(ErrorCategory.PAYLOAD_TOO_LARGE, { serverSide: false });
+  }
   // A thrown Error that isn't an HttpException is an application bug.
   if (exception instanceof Error) return of(ErrorCategory.APPLICATION_ERROR);
   // Something non-Error was thrown (string, object, …).
