@@ -10,6 +10,7 @@ import {
   LEAVE_REPOSITORY,
   LeaveApplyCommand,
   LeaveBalance,
+  LeaveBalanceQuery,
   LeaveDuration,
   LeaveRepository,
 } from '../domain/leave.repository';
@@ -30,13 +31,8 @@ export class LeaveService {
   ) {}
 
   // ── Procedures ────────────────────────────────────────────
-  getBalance(
-    personId: string,
-    lang: Lang,
-    effectiveDate: string,
-    accrualPlan?: string,
-  ): Promise<LeaveBalance[]> {
-    return this.repo.getBalance({ personId, lang, accrualPlan, effectiveDate });
+  getBalance(query: LeaveBalanceQuery): Promise<LeaveBalance[]> {
+    return this.repo.getBalance(query);
   }
 
   apply(cmd: Omit<LeaveApplyCommand, 'username' | 'lang'>, user: AuthenticatedUser, lang: Lang) {

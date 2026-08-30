@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as oracledb from 'oracledb';
 import { OracleService } from '@core/database/oracle.service';
 import { OracleSchemaService } from '@core/database/oracle-schema.service';
@@ -8,6 +8,7 @@ import { toOracleLanguage } from '@shared/domain/lang';
 import { parseOracleDate } from '@shared/utils/date.util';
 import { col, dateStr, pruneUndefined, str, strAr } from '@shared/utils/mapper.util';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { USERNAME_KEY_CANDIDATES } from '@shared/constants/oracle-columns';
 import {
   LeaveApplyCommand,
   LeaveBalance,
@@ -86,6 +87,9 @@ const LEAVE_CALC_PARAMS = ['p_user_name', 'p_absence_type', 'p_start_date', 'p_e
  */
 @Injectable()
 export class LeaveOracleRepository extends BaseOracleRepository implements LeaveRepository {
+  /** USERNAME (upper-cased) → PERSON_ID, resolved once per process (op 9). */
+  private readonly personIdCache = new Map<string, string>();
+
   constructor(ora: OracleService, schema: OracleSchemaService) {
     super(ora, schema);
   }
@@ -93,8 +97,13 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
   /**
    * op 9 — leave balance. LEAVE_BALANCE_PR takes the user, effective date and
    * language and returns the accrual-plan balances through a REF CURSOR.
+   *
+   * The API is keyed by username (client request 2026-08-27), so the username
+   * is resolved to the numeric PERSON_ID via EMPLOYMENT_DETAILS_V first;
+   * a directly-supplied legacy person_id skips the lookup.
    */
   async getBalance(query: LeaveBalanceQuery): Promise<LeaveBalance[]> {
+    const username = await this.resolvePersonId(query.username ?? '');
     return this.callRowsProc<LeaveBalance>(
       ORACLE_OBJECTS.LEAVE_BALANCE_PR,
       LEAVE_BALANCE_PARAMS,
@@ -102,11 +111,36 @@ export class LeaveOracleRepository extends BaseOracleRepository implements Leave
         // LEAVE_BALANCE_PR's formal parameter is still named p_user_name, but
         // the value it actually expects (confirmed working) is the numeric
         // Oracle PERSON_ID, not a username/employee-number string.
-        p_user_name: query.personId,
+        p_user_name: username,
         p_effective_date: query.effectiveDate,
         p_language: toOracleLanguage(query.lang),
       },
     );
+  }
+
+  /**
+   * USERNAME → PERSON_ID via EMPLOYMENT_DETAILS_V (exposes both USER_NAME and
+   * PERSON_ID — real capture pinned in employee.examples.ts). Cached per
+   * process: a PERSON_ID never changes for a username.
+   */
+  private async resolvePersonId(username: string): Promise<string> {
+    const key = username.trim().toUpperCase();
+    if (!key) throw new BadRequestException('username (or the legacy person_id) is required.');
+    const cached = this.personIdCache.get(key);
+    if (cached) return cached;
+
+    const rows = await this.readByResolvedKey<{ PERSON_ID?: number | string }>(
+      ORACLE_OBJECTS.EMPLOYMENT_DETAILS_V,
+      username.trim(),
+      USERNAME_KEY_CANDIDATES,
+    );
+    const personId = rows[0]?.PERSON_ID;
+    if (personId === undefined || personId === null || String(personId).trim() === '') {
+      throw new NotFoundException(`No employee found for username "${username}".`);
+    }
+    const resolved = String(personId);
+    this.personIdCache.set(key, resolved);
+    return resolved;
   }
 
   /**

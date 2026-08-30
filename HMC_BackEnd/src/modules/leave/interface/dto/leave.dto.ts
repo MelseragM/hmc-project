@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
-import { PersonIdQueryDto } from '@shared/dto/common-query.dto';
 import { LangQueryDto } from '@shared/dto/lang-query.dto';
 import { EFFECTIVE_DATE_ALL } from '@shared/utils/date.util';
 import {
@@ -20,8 +19,28 @@ const DISPLAY_DATE = /^\d{2}-[A-Za-z]{3}-\d{4}$/;
 const SUBMIT_DATE = /^(\d{2}-[A-Za-z]{3}-\d{4}|\d{4}-\d{2}-\d{2})$/;
 const SUBMIT_DATE_MSG = 'must be dd-Mon-yyyy or yyyy-MM-dd.';
 
-/** op 9 — `?person_id&lang&accurlpln&effectivedate`. */
-export class LeaveBalanceQueryDto extends PersonIdQueryDto {
+/**
+ * op 9 — `?username&lang&accurlpln&effectivedate`.
+ *
+ * The API is keyed by USERNAME (client request 2026-08-27); the backend
+ * resolves it to the numeric Oracle PERSON_ID via EMPLOYMENT_DETAILS_V because
+ * LEAVE_BALANCE_PR's `p_user_name` parameter actually expects PERSON_ID
+ * (confirmed live). `person_id` is still accepted as a legacy fallback so
+ * existing callers keep working; when both are sent, `person_id` wins (no
+ * resolution round-trip needed).
+ */
+export class LeaveBalanceQueryDto extends LangQueryDto {
+  @ApiPropertyOptional({ example: 'AIBRAHIM39', description: 'Oracle username (resolved to PERSON_ID internally). Required unless person_id is sent.' })
+  @ValidateIf((o: LeaveBalanceQueryDto) => !o.person_id)
+  @IsString()
+  @IsNotEmpty({ message: 'username (or the legacy person_id) is required.' })
+  username?: string;
+
+  @ApiPropertyOptional({ example: '852709', description: 'LEGACY — numeric Oracle PERSON_ID; prefer username.' })
+  @IsOptional()
+  @IsString()
+  person_id?: string;
+
   @ApiPropertyOptional({ description: 'Accrual plan id.' })
   @IsOptional()
   @IsString()

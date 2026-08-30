@@ -49,7 +49,13 @@ export class LeaveController {
   @Get('balance')
   @ApiOperation({ summary: 'op 9 — Leave balance', operationId: 'leave_balance' })
   balance(@Query() q: LeaveBalanceQueryDto) {
-    return this.service.getBalance(q.person_id, q.lang, q.effectivedate, q.accurlpln);
+    return this.service.getBalance({
+      username: q.username,
+      personId: q.person_id,
+      lang: q.lang,
+      effectiveDate: q.effectivedate,
+      accrualPlan: q.accurlpln,
+    });
   }
 
   @Post('apply')
