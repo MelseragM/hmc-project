@@ -17,6 +17,8 @@ import {
   StatusMessageDto,
 } from './dto/auth.dto';
 import {
+  SendOtpRequestDto,
+  SendOtpResponseDto,
   UserValidateRequestDto,
   UserValidateResponseDto,
   ValidateOtpRequestDto,
@@ -50,6 +52,24 @@ export class AuthController {
   @ApiOkResponse({ type: UserValidateResponseDto })
   initiate(@Body() dto: UserValidateRequestDto): Promise<UserValidateResponseDto> {
     return this.onboarding.validateUser(dto);
+  }
+
+  /**
+   * Standalone OTP send: generates the code and stores it in the MOTC SMS
+   * push table (the gateway fires the SMS from their side). Same policy and
+   * requestid semantics as the OTP step inside /auth/initiate.
+   */
+  @Public()
+  @SkipEnvelope()
+  @HttpCode(200)
+  @Post('send-otp')
+  @ApiOperation({
+    summary: 'Send OTP — generate + store in MOTC_SMS_PushTable (SMS fired by the gateway)',
+    operationId: 'auth_sendOtp',
+  })
+  @ApiOkResponse({ type: SendOtpResponseDto })
+  sendOtp(@Body() dto: SendOtpRequestDto): Promise<SendOtpResponseDto> {
+    return this.onboarding.sendOtp(dto);
   }
 
   @Public()

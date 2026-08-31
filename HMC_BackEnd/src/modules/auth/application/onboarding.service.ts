@@ -8,6 +8,8 @@ import { OTP_PORT, OtpPort } from '../domain/ports/otp.port';
 import { MPIN_STORE_PORT, MpinStorePort } from '../domain/ports/mpin-store.port';
 import { EmployeeIdentity } from '../domain/auth-identity';
 import {
+  SendOtpRequestDto,
+  SendOtpResponseDto,
   UserValidateRequestDto,
   UserValidateResponseDto,
   ValidateOtpRequestDto,
@@ -94,6 +96,37 @@ export class OnboardingService {
       employeephonenumber: identity.phoneNumber,
       requestid,
     };
+  }
+
+  /**
+   * POST /auth/send-otp — standalone OTP send (client request 2026-08-31).
+   * Same machinery as API-2's OTP step: OtpPort.send generates the code and,
+   * with the default OTP_STORE=motc, INSERTs it into MOTC_SMS_PushTable
+   * (the insert IS the SMS — the gateway fires it from their side). The
+   * resend window / TTL / attempts policy applies unchanged, and the
+   * returned requestid (= MessageID) pairs with /auth/otp/validate.
+   */
+  async sendOtp(dto: SendOtpRequestDto): Promise<SendOtpResponseDto> {
+    const ctx = {
+      username: dto.username,
+      deviceImei: dto.imeinumber,
+      platform: dto.platform,
+      appVersion: dto.version,
+    };
+
+    const requestid = this.devBypass
+      ? randomUUID().replace(/-/g, '').toUpperCase()
+      : (
+          await this.otp.send({
+            username: dto.username,
+            phoneNumber: dto.phonenumber,
+            imei: dto.imeinumber,
+            purpose: 'ONBOARDING',
+          })
+        ).requestId;
+
+    this.audit.lifecycle(AuthLifecycleEvent.OTP_SENT, ctx);
+    return { status: 'success', requestid };
   }
 
   async validateOtp(dto: ValidateOtpRequestDto): Promise<StatusMessageDto> {

@@ -32,6 +32,19 @@ export class AuthController {
     return this.proxy.forward(req, res);
   }
 
+  /** Standalone OTP send (MOTC push-table insert) — throttled: SMS-spam surface. */
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @HttpCode(200)
+  @Post('send-otp')
+  @ApiOperation({
+    summary: 'Send OTP — generate + store in MOTC_SMS_PushTable',
+    operationId: 'auth_sendOtp',
+  })
+  sendOtp(@Req() req: Request, @Res() res: Response): Promise<void> {
+    return this.proxy.forward(req, res);
+  }
+
   @Public()
   @UseGuards(ThrottlerGuard)
   @HttpCode(200)

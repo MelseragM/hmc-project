@@ -37,6 +37,33 @@ export class UserValidateResponseDto {
   message?: string;
 }
 
+/**
+ * POST /auth/send-otp — standalone OTP send. Generates the OTP and stores it
+ * as a row in the MOTC SMS push table (`MOTC_SMS_PushTable`) — the government
+ * gateway picks pending rows up and fires the SMS from their side. The
+ * returned requestid (= MessageID) is what /auth/otp/validate expects.
+ */
+export class SendOtpRequestDto extends ClientContextDto {
+  @ApiProperty({ example: '55123456', description: 'Destination phone number (ToAddress).' })
+  @IsString()
+  @IsNotEmpty()
+  phonenumber!: string;
+}
+
+export class SendOtpResponseDto {
+  @ApiProperty({ example: 'success' })
+  status!: string;
+
+  @ApiPropertyOptional({
+    example: '12345',
+    description: 'Correlation id (push-table MessageID) — echo it on /auth/otp/validate.',
+  })
+  requestid?: string;
+
+  @ApiPropertyOptional({ description: 'Present on failure.' })
+  message?: string;
+}
+
 /** API-3 — Validate OTP request. */
 export class ValidateOtpRequestDto extends ClientContextDto {
   @ApiProperty({ example: '232323' })
