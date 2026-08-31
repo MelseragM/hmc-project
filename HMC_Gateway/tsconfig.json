@@ -9,7 +9,9 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "incremental": true,
+    // NOT incremental: nest-cli deleteOutDir wipes dist but the root-level
+    // .tsbuildinfo survives, so an incremental rebuild skips "unchanged" files
+    // and ships an incomplete dist (bit the backend 2026-08-24).
     "skipLibCheck": true,
     "strictNullChecks": true,
     "noImplicitAny": true,

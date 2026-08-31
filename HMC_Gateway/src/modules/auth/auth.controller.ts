@@ -81,4 +81,24 @@ export class AuthController {
   resetMpin(@Req() req: Request, @Res() res: Response): Promise<void> {
     return this.proxy.forward(req, res);
   }
+
+  /**
+   * @Public + throttled: refresh happens when the access token is already
+   * expired, so the gateway must not demand a valid bearer here. The backend
+   * fully verifies the refresh token (signature/expiry/typ/revocation) and
+   * rotates it. `/auth/logout` is intentionally NOT declared here — it
+   * requires a live bearer token and flows through the generic ProxyController
+   * like any other authenticated route.
+   */
+  @Public()
+  @UseGuards(ThrottlerGuard)
+  @HttpCode(200)
+  @Post('token/refresh')
+  @ApiOperation({
+    summary: 'Exchange a refresh token for a new access + refresh pair',
+    operationId: 'auth_refreshToken',
+  })
+  refreshToken(@Req() req: Request, @Res() res: Response): Promise<void> {
+    return this.proxy.forward(req, res);
+  }
 }

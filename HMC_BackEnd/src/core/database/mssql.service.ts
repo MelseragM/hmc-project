@@ -32,10 +32,17 @@ export interface MssqlDiagnostics {
 
 /**
  * Single `mssql` connection pool for the Users/Sanaad SQL Server database —
- * the second database wired into the app (sibling of OracleService, same
- * disabled/missing-credentials boot semantics). Backs the auth cycle
- * (HMC_Sanad_DeviceRegn_tbl, HMC_RHAP_OTP_tbl) and the API-1 healthcheck
- * tables (HMC_Sanad_AppDownTime_tbl / HMC_Sanad_App_Update_tbl).
+ * the second database wired into the app (sibling of OracleService). Backs
+ * the auth cycle (HMC_Sanad_DeviceRegn_tbl, HMC_RHAP_OTP_tbl) and the API-1
+ * healthcheck tables (HMC_Sanad_AppDownTime_tbl / HMC_Sanad_App_Update_tbl).
+ *
+ * Pool lifecycle (client request 2026-08-31): the pool is created DIRECTLY —
+ * `USERS_DB_DISABLED` is no longer honored — eagerly at boot and, when that
+ * fails or the DB is down, retried lazily on the next query (single-flight,
+ * so concurrent requests share one attempt). A boot-time failure never
+ * crashes the app; a later successful attempt heals without a restart. The
+ * only unrecoverable state is missing configuration, and the error then
+ * names the exact env vars.
  *
  * Exposes parameterized primitives only — all values go through named
  * `@params`, never string interpolation.
@@ -44,6 +51,8 @@ export interface MssqlDiagnostics {
 export class MssqlService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MssqlService.name);
   private pool: sql.ConnectionPool | undefined;
+  /** In-flight creation attempt — shared so concurrent queries don't stampede. */
+  private creating: Promise<sql.ConnectionPool> | undefined;
   private readonly cfg: UsersDbConfig;
   /** Monotonic counter so each call's log lines can be correlated. */
   private callSeq = 0;
@@ -56,45 +65,74 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit(): Promise<void> {
-    if (this.cfg.disabled) {
-      this.logger.warn('USERS_DB_DISABLED=true — Users DB pool not created.');
-      return;
-    }
-    if (!this.cfg.host || !this.cfg.database || !this.cfg.user) {
-      this.logger.warn(
-        'Users DB host/database/user missing — pool not created. Auth-cycle DB calls will fail.',
-      );
-      return;
-    }
+    // Eager attempt so the boot log states the pool's fate — but never fatal:
+    // a wrong host/password must not take Oracle-backed endpoints down, and
+    // ensurePool() retries on first use anyway.
     try {
-      this.pool = await new sql.ConnectionPool({
-        server: this.cfg.host,
-        port: this.cfg.port,
-        database: this.cfg.database,
-        user: this.cfg.user,
-        password: this.cfg.password,
-        pool: { min: this.cfg.poolMin, max: this.cfg.poolMax },
-        options: {
-          encrypt: this.cfg.encrypt,
-          trustServerCertificate: this.cfg.trustServerCertificate,
-        },
-        requestTimeout: this.cfg.requestTimeoutMs,
-        connectionTimeout: this.cfg.connectTimeoutMs,
-      }).connect();
-      this.pool.on('error', (err) => this.logger.error(`Users DB pool error: ${err.message}`));
+      await this.ensurePool();
+    } catch (err) {
+      this.logger.error(
+        `Users DB pool not created at boot: ${(err as Error).message} — ` +
+          'auth-cycle DB calls will retry the connection on demand.',
+      );
+    }
+  }
+
+  /** USERS_DB_* env vars without which no connection is possible. */
+  private missingConfig(): string[] {
+    const missing: string[] = [];
+    if (!this.cfg.host) missing.push('USERS_DB_HOST');
+    if (!this.cfg.database) missing.push('USERS_DB_NAME');
+    if (!this.cfg.user) missing.push('USERS_DB_USER');
+    return missing;
+  }
+
+  /**
+   * The pool, created on demand. Throws MssqlUnavailableException (→ 503)
+   * with the precise reason when it cannot be.
+   */
+  private async ensurePool(): Promise<sql.ConnectionPool> {
+    if (this.pool) return this.pool;
+    if (this.creating) return this.creating;
+
+    const missing = this.missingConfig();
+    if (missing.length) {
+      throw new MssqlUnavailableException(
+        `The users database is not configured — set ${missing.join(', ')} in the environment.`,
+      );
+    }
+
+    this.creating = new sql.ConnectionPool({
+      server: this.cfg.host,
+      port: this.cfg.port,
+      database: this.cfg.database,
+      user: this.cfg.user,
+      password: this.cfg.password,
+      pool: { min: this.cfg.poolMin, max: this.cfg.poolMax },
+      options: {
+        encrypt: this.cfg.encrypt,
+        trustServerCertificate: this.cfg.trustServerCertificate,
+      },
+      requestTimeout: this.cfg.requestTimeoutMs,
+      connectionTimeout: this.cfg.connectTimeoutMs,
+    }).connect();
+
+    try {
+      const pool = await this.creating;
+      pool.on('error', (err) => this.logger.error(`Users DB pool error: ${err.message}`));
+      this.pool = pool;
       this.logger.log(
         `Users DB pool created (min=${this.cfg.poolMin}, max=${this.cfg.poolMax}) → ${this.cfg.host}:${this.cfg.port}/${this.cfg.database}`,
       );
       await this.verifyConnectivity();
+      return pool;
     } catch (err) {
-      // Not rethrown — see the note in OracleService.onModuleInit. A wrong
-      // Users DB host/password must not take Oracle-backed endpoints down with
-      // it. getPool() already raises MssqlUnavailableException per request and
-      // /health reports usersDb.reachable = false.
-      this.logger.error(
-        `Failed to create Users DB pool: ${(err as Error).message} — starting without it; ` +
-          'auth-cycle DB calls will answer 503 until the configuration is fixed.',
+      this.logger.error(`Failed to create Users DB pool: ${(err as Error).message}`);
+      throw new MssqlUnavailableException(
+        `The users database is currently unavailable: ${(err as Error).message}`,
       );
+    } finally {
+      this.creating = undefined;
     }
   }
 
@@ -133,19 +171,7 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
 
   /** Configured to be used, pool up or not — see OracleService.isConfigured. */
   isConfigured(): boolean {
-    return (
-      !this.cfg.disabled &&
-      Boolean(this.cfg.host) &&
-      Boolean(this.cfg.database) &&
-      Boolean(this.cfg.user)
-    );
-  }
-
-  private getPool(): sql.ConnectionPool {
-    if (!this.pool) {
-      throw new MssqlUnavailableException('The users database is currently unavailable.');
-    }
-    return this.pool;
+    return this.missingConfig().length === 0;
   }
 
   /** Parameterized SELECT — returns mapped rows. */
@@ -177,7 +203,7 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
     const started = Date.now();
     const label = this.describeSql(statement);
     this.logger.log(`[mssql#${id}] → ${label} params=${this.formatParams(params)}`);
-    const request = this.getPool().request();
+    const request = (await this.ensurePool()).request();
     for (const [key, value] of Object.entries(params)) {
       request.input(key, value as sql.ISqlType | unknown);
     }
@@ -207,11 +233,10 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
     return compact.length > 60 ? `${compact.slice(0, 57)}...` : compact;
   }
 
-  /** Lightweight readiness check for the /health endpoint. */
+  /** Lightweight readiness check for the /health endpoint (creates the pool on demand). */
   async ping(): Promise<boolean> {
-    if (!this.pool) return false;
     try {
-      await this.pool.request().query('SELECT 1 AS ok');
+      await (await this.ensurePool()).request().query('SELECT 1 AS ok');
       return true;
     } catch {
       return false;
@@ -242,20 +267,20 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
       checkedAt: new Date().toISOString(),
     };
 
-    if (this.cfg.disabled) {
-      diag.error = { message: 'USERS_DB_DISABLED=true — Users DB pool not created.' };
-      return diag;
-    }
-    if (!this.pool) {
-      diag.error = {
-        message: 'Users DB host/database/user missing — pool not initialized.',
-      };
+    // Bring the pool up on demand (lazy creation) so /health/users-db reports
+    // the REAL blocker: missing env vars or the exact connect error.
+    let pool: sql.ConnectionPool;
+    try {
+      pool = await this.ensurePool();
+      diag.enabled = true;
+    } catch (err) {
+      diag.error = { message: (err as Error).message };
       return diag;
     }
 
     const start = Date.now();
     try {
-      const result = await this.pool.request().query<{ version: string; dbTime: Date }>(
+      const result = await pool.request().query<{ version: string; dbTime: Date }>(
         'SELECT @@VERSION AS version, SYSDATETIMEOFFSET() AS dbTime',
       );
       diag.latencyMs = Date.now() - start;
@@ -266,10 +291,10 @@ export class MssqlService implements OnModuleInit, OnModuleDestroy {
         dbTime: String(row?.dbTime ?? 'unknown'),
       };
       diag.pool = {
-        size: this.pool.size,
-        available: this.pool.available,
-        borrowed: this.pool.borrowed,
-        pending: this.pool.pending,
+        size: pool.size,
+        available: pool.available,
+        borrowed: pool.borrowed,
+        pending: pool.pending,
       };
       this.logger.log(`Users DB diagnose OK (${diag.latencyMs}ms)`);
     } catch (err) {

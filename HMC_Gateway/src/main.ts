@@ -14,7 +14,7 @@ import { AppConfig } from '@core/config/configuration';
  * applies — leaving this at Express's 100kb default would refuse an
  * attachment-carrying submit here, before the backend ever saw it.
  */
-const BODY_LIMIT = '15mb';
+const BODY_LIMIT = '25mb';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

@@ -152,6 +152,11 @@ export interface UsersDbConfig {
   encrypt: boolean;
   /** Accept the server cert without CA validation (self-signed instances). */
   trustServerCertificate: boolean;
+  /**
+   * IGNORED since 2026-08-31 (client request): the Users DB pool is always
+   * created directly — eagerly at boot, retried lazily on first use. Kept only
+   * so existing .env/compose files with USERS_DB_DISABLED don't break parsing.
+   */
   disabled: boolean;
   /**
    * Enables POST /diagnostics/users-db/sql (ad-hoc SELECT console). Ignored in
