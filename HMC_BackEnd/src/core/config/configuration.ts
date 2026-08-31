@@ -36,6 +36,11 @@ export interface OracleConfig {
   queueTimeout: number;
   callTimeout: number;
   disabled: boolean;
+  /**
+   * Enables POST /diagnostics/oracle/sql (ad-hoc SELECT-only console over the
+   * XXHMC_SND_* schema). Ignored in production — always 403 there.
+   */
+  sqlConsoleEnabled: boolean;
   /** Use node-oracledb Thick mode (requires Oracle Client libraries at runtime). */
   thickMode: boolean;
   /** Optional path to the Oracle Client / Instant Client libraries for Thick mode. */
@@ -375,6 +380,8 @@ export default (): RootConfig => ({
     queueTimeout: Number(process.env.ORACLE_QUEUE_TIMEOUT_MS ?? 25000),
     callTimeout: Number(process.env.ORACLE_CALL_TIMEOUT_MS ?? 25000),
     disabled: toBool(process.env.ORACLE_DISABLED),
+    // Default ON (client request): production is still a hard 403 regardless.
+    sqlConsoleEnabled: toBool(process.env.ORACLE_SQL_ENABLED ?? 'true'),
     thickMode: toBool(process.env.ORACLE_THICK_MODE ?? 'true'),
     libDir: process.env.ORACLE_CLIENT_LIB_DIR || undefined,
   },

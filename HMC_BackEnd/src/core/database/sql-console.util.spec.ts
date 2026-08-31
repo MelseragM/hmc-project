@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { assertReadOnlySelect } from './sql-console.util';
+import { assertOracleReadOnlySelect, assertReadOnlySelect } from './sql-console.util';
 
 describe('assertReadOnlySelect', () => {
   const ok = (sql: string) => expect(assertReadOnlySelect(sql)).toBe(sql.trim());
@@ -72,5 +72,29 @@ describe('assertReadOnlySelect', () => {
     rejected("SELECT 'unterminated");
     rejected('SELECT 1 /* unterminated');
     rejected('SELECT [unterminated FROM t');
+  });
+});
+
+describe('assertOracleReadOnlySelect', () => {
+  const ok = (sql: string) => expect(assertOracleReadOnlySelect(sql)).toBe(sql.trim());
+  const rejected = (sql: string) =>
+    expect(() => assertOracleReadOnlySelect(sql)).toThrow(BadRequestException);
+
+  it('accepts a SELECT with Oracle named binds', () => {
+    ok('SELECT * FROM XXHMC_SND_LEAVE_CANCEL_V WHERE PERSON_ID = :pid');
+  });
+
+  it('rejects FOR UPDATE (row locks are not read-only)', () => {
+    rejected('SELECT * FROM XXHMC_SND_ABSENCE_V WHERE user_name = :u FOR UPDATE');
+    rejected('SELECT * FROM XXHMC_SND_ABSENCE_V for   update NOWAIT');
+  });
+
+  it("does not false-positive on 'for update' inside a string literal", () => {
+    ok("SELECT * FROM XXHMC_SND_ABSENCE_V WHERE note = 'pending for update'");
+  });
+
+  it('still rejects DML like the shared check', () => {
+    rejected('DELETE FROM XXHMC_SND_ABSENCE_V');
+    rejected('SELECT * FROM t; DROP TABLE t');
   });
 });

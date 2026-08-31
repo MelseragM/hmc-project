@@ -106,7 +106,13 @@ export class OracleMetadataService {
     const object = (name ?? '').trim().toUpperCase();
     // A package member (PKG.PROC) is described by its package name.
     const root = object.split('.')[0];
-    if (!isKnownOracleObject(root)) {
+    // Accept anything in the central allow-list PLUS any XXHMC_SND_-prefixed
+    // identifier: the Sanaad schema contains views the app has not (yet)
+    // registered, and describing them is exactly what the diagnostics surface
+    // is for. Names are only ever used as BIND VALUES (never interpolated),
+    // so the identifier check is about intent, not injection.
+    const isSanaadName = /^XXHMC_SND_[A-Z0-9_$#]*$/.test(root);
+    if (!isKnownOracleObject(root) && !isSanaadName) {
       throw new BadRequestException(`Unknown Oracle object: ${name}`);
     }
     return object;

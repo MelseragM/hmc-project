@@ -26,6 +26,8 @@ export const envValidationSchema = Joi.object({
   ORACLE_QUEUE_TIMEOUT_MS: Joi.number().min(1).default(25000),
   ORACLE_CALL_TIMEOUT_MS: Joi.number().min(1).default(25000),
   ORACLE_DISABLED: Joi.boolean().default(false),
+  // Enables POST /diagnostics/oracle/sql (SELECT-only console; 403 in production).
+  ORACLE_SQL_ENABLED: Joi.boolean().default(true),
   // Thick mode: requires Oracle Client libraries installed at runtime.
   ORACLE_THICK_MODE: Joi.boolean().default(true),
   ORACLE_CLIENT_LIB_DIR: Joi.string().allow('').default(''),

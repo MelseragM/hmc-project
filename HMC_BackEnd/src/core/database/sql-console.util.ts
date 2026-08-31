@@ -64,6 +64,23 @@ export function sanitizeSqlForInspection(text: string): string {
 }
 
 /**
+ * Oracle flavor of `assertReadOnlySelect` (POST /diagnostics/oracle/sql):
+ * same single-SELECT/CTE rule plus Oracle-specific rejections — `FOR UPDATE`
+ * takes row locks (not read-only) and doesn't exist in T-SQL, so the shared
+ * denylist doesn't cover it.
+ */
+export function assertOracleReadOnlySelect(text: string): string {
+  const original = assertReadOnlySelect(text);
+  const sanitized = sanitizeSqlForInspection(original);
+  if (/\bfor\s+update\b/i.test(sanitized)) {
+    throw new BadRequestException(
+      'FOR UPDATE takes row locks — the console is read-only SELECT.',
+    );
+  }
+  return original;
+}
+
+/**
  * Throws BadRequestException unless `text` is a single read-only SELECT/CTE.
  * Returns the original text (trimmed) for execution when it passes.
  */

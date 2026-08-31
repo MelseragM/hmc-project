@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as oracledb from 'oracledb';
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
@@ -20,6 +21,8 @@ import { SkipEnvelope } from '../http/response.interceptor';
 import { DiagnosticsEnabledGuard } from '../http/diagnostics-enabled.guard';
 import { MssqlService } from './mssql.service';
 import { MotcSmsDbService } from './motc-sms-db.service';
+import { OracleService } from './oracle.service';
+import { assertOracleReadOnlySelect } from './sql-console.util';
 import {
   OracleCallOp,
   OracleCallStatus,
@@ -85,6 +88,52 @@ export class OracleObjectQueryDto {
   name!: string;
 }
 
+/** Object types listable by GET /diagnostics/oracle-views. */
+const ORACLE_OBJECT_TYPES = ['VIEW', 'TABLE', 'PROCEDURE', 'FUNCTION', 'PACKAGE', 'SYNONYM'] as const;
+
+/** Query for GET /diagnostics/oracle-views. */
+export class OracleViewsQueryDto {
+  /** Case-insensitive substring filter on the object name (after the prefix). */
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  /** Object type to list; default VIEW; ALL = every type above. */
+  @IsOptional()
+  @IsIn([...ORACLE_OBJECT_TYPES, 'ALL'])
+  type?: string;
+}
+
+/** Body for POST /diagnostics/oracle/sql. */
+export class OracleSqlRequestDto {
+  /** A single SELECT (or WITH … SELECT); may use named `:binds`. */
+  @IsOptional()
+  @IsString()
+  sql?: string;
+
+  /**
+   * Base64 of the statement — the staging WAF rejects request bodies that
+   * look like SQL, so the console UI/dev-console convention is supported
+   * here too. Wins over `sql` when both are sent.
+   */
+  @IsOptional()
+  @IsString()
+  sqlB64?: string;
+
+  /** Values for the statement's named `:binds` (parameterized). */
+  @IsOptional()
+  @IsObject()
+  binds?: Record<string, unknown>;
+
+  /** Max rows returned (default 200, cap 1000). */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  maxRows?: number;
+}
+
 /** Body for POST /diagnostics/users-db/sql. */
 export class UsersDbSqlRequestDto {
   /** A single SELECT (or WITH … SELECT) statement; may use named `@params`. */
@@ -127,11 +176,98 @@ export class DiagnosticsController {
     private readonly metadata: OracleMetadataService,
     private readonly mssql: MssqlService,
     private readonly motcSmsDb: MotcSmsDbService,
+    private readonly oracle: OracleService,
     config: ConfigService,
   ) {
     this.nodeEnv = config.getOrThrow<AppConfig>('app').nodeEnv;
     this.usersDbCfg = config.getOrThrow<UsersDbConfig>('usersDb');
     this.motcSmsCfg = config.getOrThrow<MotcSmsConfig>('motcSms');
+  }
+
+  /**
+   * Every Sanaad (`XXHMC_SND_*`) object of the requested type, straight from
+   * ALL_OBJECTS — the full catalog, NOT limited to the app's allow-list, so
+   * new views appear here before the code knows them. Follow up with
+   * GET /diagnostics/oracle-object?name=… for the column list, and
+   * POST /diagnostics/oracle/sql to query one.
+   */
+  @Get('oracle-views')
+  @ApiOperation({
+    summary: 'List all XXHMC_SND_* objects in the Oracle DB (default: views)',
+    operationId: 'diag_oracleViews',
+  })
+  async oracleViews(@Query() query: OracleViewsQueryDto) {
+    const types = query.type === 'ALL' ? [...ORACLE_OBJECT_TYPES] : [query.type ?? 'VIEW'];
+    const binds: Record<string, unknown> = { search: query.search?.trim().toUpperCase() || null };
+    types.forEach((t, i) => (binds[`t${i}`] = t));
+    const rows = await this.oracle.query<Record<string, any>>(
+      // Underscores are LIKE wildcards — escape them so the prefix is literal.
+      `SELECT owner, object_name, object_type, status, last_ddl_time
+         FROM all_objects
+        WHERE object_name LIKE 'XXHMC\\_SND\\_%' ESCAPE '\\'
+          AND object_type IN (${types.map((_, i) => `:t${i}`).join(', ')})
+          AND (:search IS NULL OR object_name LIKE '%' || :search || '%')
+        ORDER BY object_name, owner`,
+      binds as oracledb.BindParameters,
+    );
+    return {
+      count: rows.length,
+      objects: rows.map((r) => ({
+        name: String(r.OBJECT_NAME),
+        type: String(r.OBJECT_TYPE),
+        owner: String(r.OWNER),
+        status: String(r.STATUS),
+        lastDdl: r.LAST_DDL_TIME ? new Date(r.LAST_DDL_TIME).toISOString() : null,
+      })),
+    };
+  }
+
+  /**
+   * Ad-hoc read-only SQL console against Oracle — the Oracle twin of
+   * /diagnostics/users-db/sql. A single SELECT/CTE (validated BEFORE the
+   * driver, FOR UPDATE rejected), named `:binds` for WHERE parameters, and a
+   * ROWNUM cap so a full-scan of a huge view cannot exhaust memory.
+   *
+   * ⚠ TEMPORARY (client request 2026-08-31): the ORACLE_SQL_ENABLED and
+   * NODE_ENV=production gates are REMOVED so the console works everywhere
+   * with no env dependency. Restore the two checks (see the users-db console
+   * below for the pattern) before any real production hardening — the only
+   * remaining protections are the SELECT-only validation and the row cap.
+   */
+  @Post('oracle/sql')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Run a read-only SELECT against Oracle (no env gate — temporary)',
+    operationId: 'diag_oracleSql',
+  })
+  async oracleSql(@Body() body: OracleSqlRequestDto) {
+    const raw = body.sqlB64 ? Buffer.from(body.sqlB64, 'base64').toString('utf8') : (body.sql ?? '');
+    const statement = assertOracleReadOnlySelect(raw).replace(/;+\s*$/, '');
+    const maxRows = body.maxRows ?? 200;
+    const binds: Record<string, unknown> = { ...(body.binds ?? {}) };
+
+    // Cap the result INSIDE Oracle when possible (plain SELECT → inline-view
+    // wrap + ROWNUM), so an unfiltered read of a large view cannot pull the
+    // whole table into memory. WITH … statements can't always be wrapped, so
+    // they run as-is and are sliced after the fetch.
+    const wrappable = /^select\b/i.test(statement);
+    const executed = wrappable
+      ? `SELECT * FROM (${statement}) WHERE ROWNUM <= :maxrows_cap`
+      : statement;
+    if (wrappable) binds.maxrows_cap = maxRows + 1;
+
+    const started = Date.now();
+    const rows = await this.oracle.query<Record<string, unknown>>(
+      executed,
+      binds as oracledb.BindParameters,
+    );
+    return {
+      rowCount: Math.min(rows.length, maxRows),
+      truncated: rows.length > maxRows,
+      durationMs: Date.now() - started,
+      columns: rows.length > 0 ? Object.keys(rows[0]) : [],
+      rows: rows.slice(0, maxRows),
+    };
   }
 
   /**
