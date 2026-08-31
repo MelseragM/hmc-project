@@ -98,16 +98,22 @@ export class LeaveService {
   relatedLeave2Lov(username: string): Promise<Record<string, unknown>[]> {
     return this.repo.rflLov('related2', username);
   }
-  cancelLov(username: string, lang: Lang, leaveType?: string): Promise<LovItem[]> {
+  cancelLov(keys: string[], lang: Lang, leaveType?: string): Promise<LovItem[]> {
     const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
     return this.settle('LEAVE_CANCEL_V', t, [] as LovItem[], () =>
-      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_CANCEL_V, lang, username, { leaveType }),
+      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_CANCEL_V, lang, keys[0], {
+        leaveType,
+        scopeAlternatives: keys.slice(1),
+      }),
     );
   }
-  amendLov(username: string, lang: Lang, leaveType?: string): Promise<LovItem[]> {
+  amendLov(keys: string[], lang: Lang, leaveType?: string): Promise<LovItem[]> {
     const t = this.config.get<number>('app.aggregateReadTimeoutMs', 20000);
     return this.settle('LEAVE_AMEND_V', t, [] as LovItem[], () =>
-      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_AMEND_V, lang, username, { leaveType }),
+      this.lookups.getByObject(ORACLE_OBJECTS.LEAVE_AMEND_V, lang, keys[0], {
+        leaveType,
+        scopeAlternatives: keys.slice(1),
+      }),
     );
   }
 

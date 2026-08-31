@@ -84,15 +84,25 @@ export class LovOracleRepository implements LovRepository {
     username: string | undefined,
     options: LovReadOptions,
   ): Promise<LovItem[]> {
-    const keyColumn = username ? await this.userColumnOf(object) : undefined;
+    // One caller may be identified by several forms (username / employee
+    // number / PERSON_ID); match ANY of them against the view's scoping
+    // column so the client never has to know which form a given view uses.
+    const scopeValues = [
+      ...new Set(
+        [username, ...(options.scopeAlternatives ?? [])].filter(
+          (v): v is string => !!v && v.trim() !== '',
+        ),
+      ),
+    ];
+    const keyColumn = scopeValues.length ? await this.userColumnOf(object) : undefined;
     const searchColumn = options.search ? await this.searchColumnOf(object) : undefined;
     const typeColumn = options.dataType ? await this.typeColumnOf(object) : undefined;
     const leaveTypeColumn = options.leaveType ? await this.leaveTypeColumnOf(object) : undefined;
     const conditions: string[] = [];
     const binds: oracledb.BindParameters = {};
     if (keyColumn) {
-      conditions.push(`${keyColumn} = :u`);
-      binds.u = username;
+      conditions.push(`${keyColumn} IN (${scopeValues.map((_, i) => `:u${i}`).join(', ')})`);
+      scopeValues.forEach((v, i) => ((binds as Record<string, unknown>)[`u${i}`] = v));
     }
     if (searchColumn && options.search) {
       conditions.push(`UPPER(${searchColumn}) LIKE :search`);
@@ -103,8 +113,18 @@ export class LovOracleRepository implements LovRepository {
       binds.dataType = options.dataType.trim().toUpperCase();
     }
     if (leaveTypeColumn && options.leaveType) {
-      conditions.push(`UPPER(${leaveTypeColumn}) = :leaveType`);
-      binds.leaveType = options.leaveType.trim().toUpperCase();
+      // Dedicated LEAVE_TYPE/ABSENCE_TYPE columns hold the bare type name →
+      // exact match. The NAME fallback (LEAVE_CANCEL_V / LEAVE_AMEND_V) holds
+      // longer display strings → contains-match so `Casual Leave` still hits
+      // e.g. `Casual Leave|19-APR-2026|19-APR-2026`.
+      const value = options.leaveType.trim().toUpperCase();
+      if (leaveTypeColumn === 'NAME') {
+        conditions.push(`UPPER(${leaveTypeColumn}) LIKE :leaveType`);
+        binds.leaveType = `%${value}%`;
+      } else {
+        conditions.push(`UPPER(${leaveTypeColumn}) = :leaveType`);
+        binds.leaveType = value;
+      }
     }
     const where = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
     const limit = options.limit;

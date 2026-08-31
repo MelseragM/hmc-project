@@ -12,11 +12,21 @@ export interface LovReadOptions {
   limit?: number;
   dataType?: string;
   /**
-   * Equality filter on the LOV's leave-type column (ABSENCE_REASON_V exposes
-   * `LEAVE_TYPE`) — e.g. `Compassionate Leave` returns only that type's
-   * reasons. Ignored when the object has no such column.
+   * Filter on the LOV's leave-type column: equality on a dedicated
+   * `LEAVE_TYPE`/`ABSENCE_TYPE` column (ABSENCE_REASON_V), contains-match on
+   * the `NAME` fallback (LEAVE_CANCEL_V / LEAVE_AMEND_V hold display strings
+   * there). Ignored when the object has no such column.
    */
   leaveType?: string;
+  /**
+   * Additional identifier forms of the SAME caller (employee number /
+   * PERSON_ID / username), matched together with `username` via
+   * `key IN (...)` against whichever scoping column the view exposes. The
+   * same person is keyed differently per view (LEAVE_CANCEL_V/AMEND_V use
+   * PERSON_ID, others USER_NAME), so matching every supplied form spares the
+   * client from guessing which one a given view wants.
+   */
+  scopeAlternatives?: readonly (string | undefined)[];
 }
 
 export interface LovRepository {

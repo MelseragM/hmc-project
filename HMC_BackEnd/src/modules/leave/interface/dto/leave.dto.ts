@@ -192,7 +192,8 @@ export class LeaveAmendLovQueryDto extends LangQueryDto {
   @ApiPropertyOptional({
     example: 'Casual Leave',
     description:
-      'Filter by leave type — equality match on the view\'s NAME column (case-insensitive). Omit for all types.',
+      'Filter by leave type — case-insensitive CONTAINS match on the view\'s NAME column ' +
+      '(NAME holds display strings like "Casual Leave|19-APR-2026|19-APR-2026"). Omit for all rows.',
   })
   @IsOptional()
   @IsString()

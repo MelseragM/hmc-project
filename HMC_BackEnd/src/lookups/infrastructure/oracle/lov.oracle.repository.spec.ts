@@ -29,9 +29,9 @@ describe('LovOracleRepository', () => {
     expect(items).toEqual([expect.objectContaining({ meaning: 'Doha School' })]);
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining(
-        'WHERE user_name = :u AND UPPER(NAME) LIKE :search ORDER BY 1 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY',
+        'WHERE user_name IN (:u0) AND UPPER(NAME) LIKE :search ORDER BY 1 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY',
       ),
-      { u: 'V-TEST', search: '%DOHA%', offset: 100, limit: 100 },
+      { u0: 'V-TEST', search: '%DOHA%', offset: 100, limit: 100 },
     );
   });
 
@@ -109,12 +109,16 @@ describe('LovOracleRepository', () => {
 
     await repository.readLov('XXHMC_SND_LEAVE_CANCEL_V', 'en', '26023', {
       leaveType: 'Casual Leave',
+      scopeAlternatives: ['AIBRAHIM39'],
     });
 
+    // NAME holds display strings ("Casual Leave|19-APR-2026|…") → contains
+    // match; both caller identifiers are offered to the PERSON_ID column.
     expect(query).toHaveBeenCalledWith(
-      expect.stringContaining('UPPER(NAME) = :leaveType'),
-      expect.objectContaining({ u: '26023', leaveType: 'CASUAL LEAVE' }),
+      expect.stringContaining('UPPER(NAME) LIKE :leaveType'),
+      expect.objectContaining({ u0: '26023', u1: 'AIBRAHIM39', leaveType: '%CASUAL LEAVE%' }),
     );
+    expect((query.mock.calls[0] as unknown[])[0]).toContain('IN (:u0, :u1)');
   });
 
   it('falls back to the employee-number column when the view has no user column (LEAVE_AMEND_V)', async () => {
@@ -130,8 +134,28 @@ describe('LovOracleRepository', () => {
     await repository.readLov('XXHMC_SND_LEAVE_AMEND_V', 'en', '053613');
 
     expect(query).toHaveBeenCalledWith(
-      expect.stringContaining('WHERE employee_number = :u'),
-      { u: '053613' },
+      expect.stringContaining('WHERE employee_number IN (:u0)'),
+      { u0: '053613' },
+    );
+  });
+
+  it('keeps the exact match on a dedicated LEAVE_TYPE column (op 13 unchanged)', async () => {
+    const query = jest.fn().mockResolvedValue([]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'LEAVE_TYPE'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_ABSENCE_REASON_V', 'en', undefined, {
+      leaveType: 'Casual Leave',
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('UPPER(LEAVE_TYPE) = :leaveType'),
+      { leaveType: 'CASUAL LEAVE' },
     );
   });
 });

@@ -261,6 +261,15 @@ responses as examples.
   employee number — `WORKLISTS_V` returned 44 real rows for the username and
   none for `037400`/`053613`. `NOTYFY_APPR_V` (op 21 details) appears to hold
   only OPEN actionable notifications for the recipient.
+- ops 61/62 `GET /leave/lov/cancel|amend`: ALL caller identifiers sent
+  (`person_id`/`username`/`enum`) are matched together via `key IN (...)`
+  against whichever scoping column the view exposes (LEAVE_CANCEL_V/AMEND_V
+  key on PERSON_ID — a username-only call used to return an empty list).
+  Optional `?leave_type=` is a case-insensitive CONTAINS match on the view's
+  `NAME` column (NAME holds display strings with dates); a dedicated
+  `LEAVE_TYPE` column (op 13 ABSENCE_REASON_V) still gets an exact match.
+  Implemented generically in `LovOracleRepository` via
+  `LovReadOptions.scopeAlternatives`/`leaveType`.
 - op 67 `TICKET_REQ_PR.p_employee` must be the Oracle **PERSON_ID** (26023 for
   AIBRAHIM39): the employee number fails the
   `HMC_HR_PASSAGE_TICKET_EMPLOYEE_NAME` flexfield check and a name string

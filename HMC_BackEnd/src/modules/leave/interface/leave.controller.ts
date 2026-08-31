@@ -236,18 +236,19 @@ export class LeaveController {
   }
 
   /**
-   * The values POST /leave/cancel accepts. LEAVE_CANCEL_V is scoped by
-   * PERSON_ID and has no username column, so a `username` filter matched
-   * nothing and this returned an empty list for every caller — which is why
-   * clients fell back to building the value from GET /leaves and got 404s.
-   * Same shape as op 62 below.
+   * The values POST /leave/cancel accepts. The same person is keyed
+   * differently per view (LEAVE_CANCEL_V/AMEND_V expose PERSON_ID, others a
+   * username column), so EVERY identifier the caller sent (person_id,
+   * username, enum) is forwarded and matched with `IN (...)` against
+   * whichever scoping column the view really has — no more empty lists when
+   * the client sends the "wrong" form. Same shape as op 62 below.
    */
   @Get('lov/cancel')
   @ApiOperation({ summary: 'op 61 — Leave cancel LOV', operationId: 'leave_cancelLov' })
   @ApiOkResponse({ type: LovResponseDto })
   async cancelLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
     return {
-      items: await this.service.cancelLov(LeaveController.lovKey(q), q.lang, q.leave_type),
+      items: await this.service.cancelLov(LeaveController.lovKeys(q), q.lang, q.leave_type),
     };
   }
 
@@ -256,16 +257,16 @@ export class LeaveController {
   @ApiOkResponse({ type: LovResponseDto })
   async amendLov(@Query() q: LeaveAmendLovQueryDto): Promise<LovResponseDto> {
     return {
-      items: await this.service.amendLov(LeaveController.lovKey(q), q.lang, q.leave_type),
+      items: await this.service.amendLov(LeaveController.lovKeys(q), q.lang, q.leave_type),
     };
   }
 
-  /** person_id is what filters these views; the legacy spellings are fallbacks. */
-  private static lovKey(q: LeaveAmendLovQueryDto): string {
-    const key = q.person_id ?? q.username ?? q.enum;
-    if (!key) {
+  /** Every identifier form supplied by the caller (at least one required). */
+  private static lovKeys(q: LeaveAmendLovQueryDto): string[] {
+    const keys = [q.person_id, q.username, q.enum].filter((v): v is string => !!v);
+    if (!keys.length) {
       throw new BadRequestException('person_id, username or enum query parameter is required.');
     }
-    return key;
+    return keys;
   }
 }
