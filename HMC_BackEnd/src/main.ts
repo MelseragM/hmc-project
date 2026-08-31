@@ -12,7 +12,7 @@ import { AppConfig, DiagnosticsConfig } from '@core/config/configuration';
  * Max request body. Sized for a submit carrying several base64 attachments
  * (op 65 accepts ten) — see the note in bootstrap().
  */
-const BODY_LIMIT = '15mb';
+const BODY_LIMIT = '25mb';
 
 /**
  * With DIAGNOSTICS_ENABLED=false the diagnostics/logs/DB-test routes return

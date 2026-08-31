@@ -65,6 +65,11 @@ COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node package.json ./
 
+# Writable log directory for ApiLogFileWriter (API_LOG_DIR default logs/api).
+# /app itself is root-owned, so the non-root `node` user could not mkdir it at
+# runtime — every request logged "EACCES: permission denied, mkdir '/app/logs'".
+RUN mkdir -p /app/logs && chown -R node:node /app/logs
+
 USER node
 EXPOSE 443
 
