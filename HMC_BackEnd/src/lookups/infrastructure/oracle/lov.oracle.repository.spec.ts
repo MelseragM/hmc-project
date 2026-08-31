@@ -139,6 +139,28 @@ describe('LovOracleRepository', () => {
     );
   });
 
+  it('matches leave_type case-insensitively (lowercase input, any column case)', async () => {
+    const query = jest.fn().mockResolvedValue([]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'NAME'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_LEAVE_CANCEL_V', 'en', undefined, {
+      leaveType: '  casual leave ',
+    });
+
+    // Input is trimmed + upper-cased, and the column is wrapped in UPPER() —
+    // so the match is case-insensitive on both sides.
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('UPPER(NAME) LIKE :leaveType'),
+      { leaveType: '%CASUAL LEAVE%' },
+    );
+  });
+
   it('keeps the exact match on a dedicated LEAVE_TYPE column (op 13 unchanged)', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const ora = { query } as unknown as OracleService;
