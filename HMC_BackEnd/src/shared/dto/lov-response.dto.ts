@@ -32,6 +32,15 @@ export class LovItemDto implements LovItem {
       'Additive: `code`/`meaning`/`used_value` are unchanged.',
   })
   id?: string;
+
+  @ApiPropertyOptional({
+    example: 'English',
+    description:
+      'The row\'s DESCRIPTION, when it is not the label. On the letter-name LOV (op 16) it is ' +
+      'the ONE language that letter exists in — op 17 looks the letter up by name AND language, ' +
+      'so send this as `p_letter_language`. Not localized; it is a value to send back, not to display.',
+  })
+  description?: string;
 }
 
 export class LovResponseDto {

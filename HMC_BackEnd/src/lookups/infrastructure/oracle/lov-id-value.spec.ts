@@ -49,3 +49,37 @@ describe('LOV rows that carry a record id', () => {
     expect(item.used_value).toBe('Primary');
   });
 });
+
+/**
+ * op 17 looks a letter up by name AND language, and each letter exists in
+ * exactly one of them, so a mismatched pair raises ORA-01403 (a bare 404 until
+ * yesterday). LETTER_NAME_LOV holds that pairing in DESCRIPTION — which the
+ * mapper dropped, leaving clients to discover the combinations by trial.
+ */
+describe('LOV rows whose DESCRIPTION is data, not a label', () => {
+  it('publishes the language a letter must be requested in', () => {
+    const english = LovMapper.toItem(
+      {
+        FLEX_VALUE_MEANING: 'Bank letter with details with effective date',
+        DESCRIPTION: 'English',
+      },
+      'en',
+    );
+    const arabic = LovMapper.toItem(
+      { FLEX_VALUE_MEANING: 'Basic Salary Certificate', DESCRIPTION: 'Arabic' },
+      'en',
+    );
+
+    expect(english.description).toBe('English');
+    expect(arabic.description).toBe('Arabic');
+    // the label is untouched — this is additive
+    expect(english.used_value).toBe('Bank letter with details with effective date');
+  });
+
+  it('omits it when DESCRIPTION is simply the label', () => {
+    const item = LovMapper.toItem({ CODE: 'QA', DESCRIPTION: 'Qatar' }, 'en');
+
+    expect(item.meaning).toBe('Qatar');
+    expect(item).not.toHaveProperty('description');
+  });
+});

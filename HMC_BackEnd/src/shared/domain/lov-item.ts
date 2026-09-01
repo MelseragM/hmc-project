@@ -32,4 +32,18 @@ export interface LovItem {
    * read it.
    */
   id?: string;
+  /**
+   * The row's DESCRIPTION column, when it is not already the label.
+   *
+   * LETTER_NAME_LOV pairs each letter with the ONE language it exists in
+   * ('Bank letter with details with effective date' → English, 'Basic Salary
+   * Certificate' → Arabic), and op 17 looks the letter up by name AND
+   * language, so a mismatched pair raises ORA-01403. The mapper used to drop
+   * this column, leaving no way to know which language a letter takes — the
+   * combination had to be guessed one request at a time.
+   *
+   * Never localized (the Arabic twin is deliberately not emitted): it is a
+   * value clients send back, not text to display.
+   */
+  description?: string;
 }

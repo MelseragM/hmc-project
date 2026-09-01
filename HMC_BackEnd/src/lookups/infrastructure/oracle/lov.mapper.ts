@@ -108,6 +108,10 @@ export class LovMapper {
     const meaningAr = this.firstArString(row, this.MEANING_AR_COLUMNS);
     const type = this.firstString(row, this.TYPE_COLUMNS);
     const id = this.firstString(row, this.RECORD_ID_COLUMNS);
+    // Only when DESCRIPTION is carrying something other than the label — on
+    // LETTER_NAME_LOV it holds the one language that letter exists in, which
+    // op 17 must be given alongside the name.
+    const description = this.firstString(row, ['description']);
 
     return {
       code: code ?? meaning ?? '',
@@ -119,6 +123,7 @@ export class LovMapper {
       used_value: meaning ?? code ?? '',
       ...(type ? { type } : {}),
       ...(id ? { id } : {}),
+      ...(description && description !== meaning ? { description } : {}),
     };
   }
 
