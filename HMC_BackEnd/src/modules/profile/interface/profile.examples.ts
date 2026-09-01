@@ -152,6 +152,48 @@ export const PROFILE_NOTIFICATIONS_EXAMPLE = [
   },
 ];
 
+/**
+ * op 69 — GET /profile/notifications/summary?username=&notificationId=&lang= —
+ * the same raw WORKLISTS_V rows as /profile/notifications, scoped to one
+ * NOTIFICATION_ID (getworklistsummary).
+ */
+export const PROFILE_NOTIFICATION_SUMMARY_EXAMPLE = PROFILE_NOTIFICATIONS_EXAMPLE;
+
+/**
+ * op 70 — GET /profile/notifications/:id/history?itemType=&lang= — raw
+ * ACTION_HISTORY_V rows plus the query's `rownum sequence_num`
+ * (getworklistactionhistory). Row shape from the staging capture of the
+ * approvals history route (same repository read).
+ */
+export const PROFILE_NOTIFICATION_HISTORY_EXAMPLE = [
+  {
+    SEQUENCE_NUM: 1,
+    NOTIFICATION_ID: 0,
+    FROM_ROLE: 'AIBRAHIM39',
+    FROM_USER: '037400    - Amir Ibrahim',
+    TO_ROLE: null,
+    TO_USER: null,
+    ACTION_NAME: 'Submit',
+    ACTION_COMMENT: null,
+    ACTION_DATE: '2026-08-23T08:54:26.000Z',
+    ITEM_TYPE: 'HRSSA',
+    ITEM_KEY: '18875965',
+  },
+  {
+    SEQUENCE_NUM: 2,
+    NOTIFICATION_ID: 123859198,
+    FROM_ROLE: 'MIMRAN2',
+    FROM_USER: '048945    - Mohammed Imran',
+    TO_ROLE: null,
+    TO_USER: null,
+    ACTION_NAME: 'Pending',
+    ACTION_COMMENT: null,
+    ACTION_DATE: null,
+    ITEM_TYPE: 'HRSSA',
+    ITEM_KEY: '18875965',
+  },
+];
+
 /** op 63 — GET /profile/lov/marital-status?lang= */
 export const PROFILE_MARITAL_LOV_EXAMPLE = {
   items: [

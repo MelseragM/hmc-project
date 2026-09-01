@@ -32,6 +32,24 @@ export class ProfileService {
     return this.worklist.worklist(username, lang);
   }
 
+  /**
+   * Notification summary — op 69's getworklistsummary query: the same
+   * WORKLISTS_V role filter additionally scoped to one NOTIFICATION_ID
+   * (omitted = the full list, same as `notifications`).
+   */
+  notificationSummary(username: string, lang: Lang, notificationId?: string) {
+    return this.worklist.worklistSummary(username, lang, notificationId);
+  }
+
+  /**
+   * Notification action history — op 70's getworklistactionhistory query:
+   * `SELECT rownum sequence_num, v.* FROM ACTION_HISTORY_V v WHERE ITEM_TYPE =
+   * :type AND ITEM_KEY = :key` (type defaults to HRSSA).
+   */
+  notificationHistory(itemKey: string, lang: Lang, itemType?: string) {
+    return this.worklist.history(itemKey, lang, itemType);
+  }
+
   updatePersonal(
     fields: Record<string, unknown>,
     user: AuthenticatedUser,
