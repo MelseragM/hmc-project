@@ -57,7 +57,6 @@ export class EmployeeController {
   }
 
   @Get('supervisor/views')
-  @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 35 — Supervisor view', operationId: 'employee_supervisorViews' })
   @ApiReadOkResponse({ example: EMPLOYEE_SUPERVISOR_VIEWS_EXAMPLE })
   supervisorViews(@Query() q: SupervisorViewsQueryDto) {
@@ -66,7 +65,6 @@ export class EmployeeController {
 
   @Post('supervisor')
   @HttpCode(200)
-  @Roles(Role.SUPERVISOR)
   @ApiOperation({ summary: 'op 36 — Supervisor update', operationId: 'employee_supervisorUpdate' })
   @ApiBody(EMPLOYEE_SUPERVISOR_UPDATE_BODY)
   @ApiActionOkResponse({ example: EMPLOYEE_SUPERVISOR_UPDATE_EXAMPLE })
