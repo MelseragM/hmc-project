@@ -274,12 +274,21 @@ responses as examples.
 - op 56 `POST /leave/return`: `p_leave_details` is the leave's
   ABSENCE_ATTENDANCE_ID as a numeric string ('56949953'), NOT a composite —
   RET_FRM_LEAV_PR runs TO_NUMBER on it and every text form answers ORA-01722
-  (verified 2026-09-01). The op 55 LOV now returns that id as `used_value`
-  (`meaning` keeps the display string), so the usual "submits bind used_value"
-  rule holds. The three RFL LOVs (`return-details`/`related1`/`related2`) had
+  (verified 2026-09-01). The op 55 LOV publishes it as a new, additive `id`
+  field — `code`/`meaning`/`used_value` still carry the display string, so
+  clients that do not need the id see no change. The three RFL LOVs (`return-details`/`related1`/`related2`) had
   been answering ORA-00904/500 because `readByUsername` defaults to the column
   literal `username` while those views spell it `USER_NAME` — they resolve the
   column now, which is what makes the id reachable at all.
+- op 17 `POST /letters/apply` rejects a value it cannot look up, and the two
+  inputs a client could not previously obtain were the pair `p_letter_name` +
+  `p_letter_language` and `p_mobile_number`. Both come from op 16 now:
+  `name[].description` carries the ONE language that letter exists in
+  (LETTER_NAME_LOV.DESCRIPTION — the mapper used to drop it, so the pairing had
+  to be guessed), and `/letters/lov` passes the authenticated username
+  alongside `?enum=` because LETTER_MOBILE_NO_LOV keys on the login, not the
+  employee number, which is why `mobileNo` came back empty for a documented
+  call. `description` is additive and never localized.
 - ORA-01403 escaping a submit means a value WE sent did not resolve, so it maps
   to `UNRESOLVED_VALUE` → **422**, not 404. As 404 "resource not found" it hid
   the cause of op 17 failures: a bad letter/language pair, an unknown delivery
