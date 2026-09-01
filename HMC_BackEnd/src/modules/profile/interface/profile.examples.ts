@@ -124,6 +124,34 @@ export const PROFILE_GET_EXAMPLE = {
   ],
 };
 
+/**
+ * GET /profile/notifications?username=&lang= — raw WORKLISTS_V rows, ALL
+ * columns relayed as-is (SELECT *, no mapping). Captured live 2026-09-01.
+ */
+export const PROFILE_NOTIFICATIONS_EXAMPLE = [
+  {
+    NOTIFICATION_ID: 123859434,
+    FROM_USER: 'SYSADMIN',
+    TO_USER: '037400    - Amir Ibrahim',
+    SUBJECT:
+      'Return from Leave has been forwarded for approval to 037911    - Rizwan Aboobacker',
+    LANGUAGE: 'US',
+    BEGIN_DATE: '2026-09-01T11:06:32.000Z',
+    DUE_DATE: null,
+    STATUS: 'OPEN',
+    RECIPIENT_ROLE: 'AIBRAHIM39',
+    END_DATE: null,
+    TYPE: 'HR',
+    MORE_INFO_ROLE: null,
+    FROM_ROLE: 'SYSADMIN',
+    MESSAGE_TYPE: 'HRSSA',
+    ITEM_KEY: '18876168',
+    MESSAGE_NAME: 'HR_EMBD_NTFY_APPROVAL_FWD_MSG',
+    MAIL_STATUS: 'MAIL',
+    ORIGINAL_RECIPIENT: 'AIBRAHIM39',
+  },
+];
+
 /** op 63 — GET /profile/lov/marital-status?lang= */
 export const PROFILE_MARITAL_LOV_EXAMPLE = {
   items: [

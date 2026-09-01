@@ -14,6 +14,7 @@ import { UpdatePersonalRequestDto } from './dto/update-personal.request.dto';
 import {
   PROFILE_GET_EXAMPLE,
   PROFILE_MARITAL_LOV_EXAMPLE,
+  PROFILE_NOTIFICATIONS_EXAMPLE,
   PROFILE_UPDATE_PERSONAL_BODY,
   PROFILE_UPDATE_PERSONAL_EXAMPLE,
 } from './profile.examples';
@@ -54,6 +55,7 @@ export class ProfileController {
    */
   @Get('notifications')
   @ApiOperation({ summary: 'Notification list (WORKLISTS_V)', operationId: 'profile_notifications' })
+  @ApiReadOkResponse({ example: PROFILE_NOTIFICATIONS_EXAMPLE })
   notifications(@Query() q: LovUserQueryDto) {
     return this.service.notifications(q.username, q.lang);
   }
