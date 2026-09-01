@@ -13,12 +13,21 @@ import {
   ActionHistoryQueryDto,
   ApprovalDetailQueryDto,
   ApproveRejectRequestDto,
+  OwnScopeQueryDto,
   ReassignApprovalRequestDto,
   RequestInfoRequestDto,
   WorklistSummaryQueryDto,
 } from './dto/approvals.dto';
 
-/** Approvals/Worklist endpoints (ops 20-23, 68-71). APPROVER/SUPERVISOR only. */
+/**
+ * Approvals/Worklist endpoints (ops 20-23, 68-71).
+ *
+ * APPROVER/SUPERVISOR by default, with ops 20 and 23 exempt: they return only
+ * the caller's own rows, so identity is the filter and the role adds nothing —
+ * and while no identity adapter grants those roles, the class rule made them
+ * permanently unreachable. The routes that ACT on a request (decision,
+ * request-info, reassign) keep the role.
+ */
 @ApiTags('approvals')
 @ApiBearerAuth()
 @Roles(Role.APPROVER, Role.SUPERVISOR)
@@ -47,7 +56,7 @@ export class ApprovalsController {
   @Get()
   @ApiOperation({ summary: 'op 20 — Approvals summary', operationId: 'approvals_summary' })
   summary(
-    @Query() _q: ProfileQueryDto,
+    @Query() _q: OwnScopeQueryDto,
     @Lang() lang: LangCode,
     @CurrentUser() user: AuthenticatedUser,
   ) {
@@ -72,7 +81,7 @@ export class ApprovalsController {
   @Get('my-requests')
   @ApiOperation({ summary: 'op 23 — My requests', operationId: 'approvals_myRequests' })
   myRequests(
-    @Query() _q: ProfileQueryDto,
+    @Query() _q: OwnScopeQueryDto,
     @Lang() lang: LangCode,
     @CurrentUser() user: AuthenticatedUser,
   ) {

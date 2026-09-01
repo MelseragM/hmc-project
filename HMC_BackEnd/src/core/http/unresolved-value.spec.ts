@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { OracleQueryError } from '../database/oracle.error';
 import { classifyException } from './exception-classifier';
 import { ErrorCategory } from './error-category';
@@ -33,7 +34,6 @@ describe('a submitted value that Oracle could not resolve', () => {
   });
 
   it('leaves a genuine 404 alone', () => {
-    const { NotFoundException } = require('@nestjs/common');
     const classified = classifyException(new NotFoundException('no such route'));
 
     expect(classified.httpStatus).toBe(404);
