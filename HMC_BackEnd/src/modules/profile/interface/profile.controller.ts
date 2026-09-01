@@ -46,6 +46,18 @@ export class ProfileController {
     return this.service.updatePersonal(body, user, lang);
   }
 
+  /**
+   * Notification list (WORKLISTS_V, getworklist query). Same data as op 68
+   * `GET /approvals/worklist`, but reachable by every authenticated user —
+   * the approvals route is APPROVER/SUPERVISOR-only while notifications
+   * (FYI, RFMI answers) go to regular employees too.
+   */
+  @Get('notifications')
+  @ApiOperation({ summary: 'Notification list (WORKLISTS_V)', operationId: 'profile_notifications' })
+  notifications(@Query() q: LovUserQueryDto) {
+    return this.service.notifications(q.username, q.lang);
+  }
+
   @Get('lov/marital-status')
   @ApiOperation({ summary: 'op 63 — Marital status LOV', operationId: 'profile_maritalLov' })
   @ApiOkResponse({ type: LovResponseDto })
