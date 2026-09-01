@@ -23,6 +23,15 @@ export class LovItemDto implements LovItem {
     description: 'Grouping type, returned by the multi-type LOVs (e.g. DEP_LOOKUP_LOV).',
   })
   type?: string;
+
+  @ApiPropertyOptional({
+    example: '56949953',
+    description:
+      "The row's record id, present only where a submit binds the id instead of the label — " +
+      'today the return-from-leave LOV (op 55), whose id goes to op 56 `p_leave_details`. ' +
+      'Additive: `code`/`meaning`/`used_value` are unchanged.',
+  })
+  id?: string;
 }
 
 export class LovResponseDto {

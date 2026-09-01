@@ -274,9 +274,9 @@ responses as examples.
 - op 56 `POST /leave/return`: `p_leave_details` is the leave's
   ABSENCE_ATTENDANCE_ID as a numeric string ('56949953'), NOT a composite —
   RET_FRM_LEAV_PR runs TO_NUMBER on it and every text form answers ORA-01722
-  (verified 2026-09-01). The op 55 LOV now returns that id as `used_value`
-  (`meaning` keeps the display string), so the usual "submits bind used_value"
-  rule holds. The three RFL LOVs (`return-details`/`related1`/`related2`) had
+  (verified 2026-09-01). The op 55 LOV publishes it as a new, additive `id`
+  field — `code`/`meaning`/`used_value` still carry the display string, so
+  clients that do not need the id see no change. The three RFL LOVs (`return-details`/`related1`/`related2`) had
   been answering ORA-00904/500 because `readByUsername` defaults to the column
   literal `username` while those views spell it `USER_NAME` — they resolve the
   column now, which is what makes the id reachable at all.

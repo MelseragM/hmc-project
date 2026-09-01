@@ -21,4 +21,15 @@ export interface LovItem {
    * its `DATATYPE` column.
    */
   type?: string;
+  /**
+   * The row's own record id, when the view carries one and a submit needs it.
+   *
+   * Only the return-from-leave LOVs have this today: RET_FRM_LEAV_PR runs
+   * TO_NUMBER on `p_leave_details`, so op 56 binds ABSENCE_ATTENDANCE_ID and
+   * every text form answers ORA-01722. It is a SEPARATE field rather than a
+   * different `used_value` so existing clients see no change — `used_value`
+   * stays the English label everywhere, and only the callers that need the id
+   * read it.
+   */
+  id?: string;
 }

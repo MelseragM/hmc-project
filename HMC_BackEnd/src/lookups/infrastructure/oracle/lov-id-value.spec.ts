@@ -2,40 +2,50 @@ import { LovMapper } from './lov.mapper';
 
 /**
  * RET_FRM_LEAV_PR runs TO_NUMBER on p_leave_details, so op 56 needs the leave's
- * ABSENCE_ATTENDANCE_ID — every text form answers ORA-01722. The op 55 LOV used
- * to expose only the display string, which left the id unreachable and the
- * endpoint uncallable. `used_value` now carries the id so the rule "submits
- * bind used_value" holds here too; the label stays in `meaning` for the picker.
+ * ABSENCE_ATTENDANCE_ID — every text form answers ORA-01722. The op 55 LOV
+ * exposed only the display string, which left the id unreachable and the
+ * endpoint uncallable.
+ *
+ * The id is published as its own `id` field rather than by changing
+ * `used_value`: clients already read `used_value` on every LOV, and moving it
+ * under them to fix one endpoint would be a silent breaking change. These
+ * cases pin both halves — the id is there, and nothing else moved.
  */
-describe('LOV rows that carry a submit id', () => {
+describe('LOV rows that carry a record id', () => {
   const RFL_ROW = {
     USER_NAME: 'AIBRAHIM39',
     LEAVE: 'Casual Leave|Leave Start Date : 19-APR-2026 and Leave End Date : 19-APR-2026',
     ABSENCE_ATTENDANCE_ID: 56949953,
   };
 
-  it('binds the id and displays the label', () => {
-    const item = LovMapper.toItem(RFL_ROW, 'en');
-
-    expect(item.used_value).toBe('56949953');
-    expect(item.code).toBe('56949953');
-    expect(item.meaning).toContain('Casual Leave');
+  it('publishes the id op 56 has to bind', () => {
+    expect(LovMapper.toItem(RFL_ROW, 'en').id).toBe('56949953');
   });
 
-  it('leaves ordinary LOVs on the label', () => {
+  it('leaves the fields clients already read untouched', () => {
+    const item = LovMapper.toItem(RFL_ROW, 'en');
+
+    expect(item.used_value).toBe(RFL_ROW.LEAVE);
+    expect(item.code).toBe(RFL_ROW.LEAVE);
+    expect(item.meaning).toBe(RFL_ROW.LEAVE);
+  });
+
+  it('adds nothing to a LOV that has no record id', () => {
     const item = LovMapper.toItem({ CODE: 'M', MEANING: 'Qatar Mobile Number' }, 'en');
 
+    expect(item).not.toHaveProperty('id');
     expect(item.used_value).toBe('Qatar Mobile Number');
     expect(item.code).toBe('M');
   });
 
-  it('does not treat every id column as the value', () => {
-    // FLEX_VALUE_ID is already a documented CODE column, not a submit value
+  it('does not mistake a value-set id for a record id', () => {
+    // FLEX_VALUE_ID is a documented CODE column, not a submit id
     const item = LovMapper.toItem(
       { FLEX_VALUE_ID: '315540', FLEX_VALUE_MEANING: 'Primary' },
       'en',
     );
 
+    expect(item).not.toHaveProperty('id');
     expect(item.used_value).toBe('Primary');
   });
 });

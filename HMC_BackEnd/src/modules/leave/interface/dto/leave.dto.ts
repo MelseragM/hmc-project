@@ -327,9 +327,10 @@ export class LeaveReturnRequestDto {
    * argument. An earlier note here described a short composite; that was the
    * shape that stopped overflowing VARCHAR2(60), not the shape that resolves.
    *
-   * Read it from GET /leave/lov/return → `used_value` (the id; `meaning`
-   * carries the display text). Success additionally requires the caller to
-   * have submitted the Policy Awareness questionnaire.
+   * Read it from GET /leave/lov/return → `id`. That field was added for this
+   * (`code`/`meaning`/`used_value` still carry the display string, so nothing
+   * changed for clients that do not need the id). Success additionally
+   * requires the caller to have submitted the Policy Awareness questionnaire.
    */
   @RequiredString('56949953')
   p_leave_details!: string;

@@ -89,15 +89,16 @@ export class LovMapper {
   ]);
 
   /**
-   * Views whose submit binds a surrogate id, not the label. The
-   * return-from-leave views pair a display string with
-   * ABSENCE_ATTENDANCE_ID, and RET_FRM_LEAV_PR runs TO_NUMBER on
-   * `p_leave_details` — sending the label raises ORA-01722, so the id has to
-   * be what `used_value` carries. Keeping the rule "submits bind used_value"
-   * true everywhere is worth more than the label round-tripping here; the
-   * label is still in `meaning`, which is what a picker shows.
+   * Record ids surfaced as their own `id` field, for views whose submit binds
+   * the id rather than the label: RET_FRM_LEAV_PR runs TO_NUMBER on
+   * `p_leave_details`, so op 56 needs ABSENCE_ATTENDANCE_ID and any text form
+   * answers ORA-01722.
+   *
+   * Deliberately additive — `code`/`meaning`/`used_value` keep the values they
+   * always had, so a client that does not know about `id` behaves exactly as
+   * before.
    */
-  private static readonly ID_AS_VALUE_COLUMNS = ['absence_attendance_id'];
+  private static readonly RECORD_ID_COLUMNS = ['absence_attendance_id'];
 
   static toItem(row: Record<string, any>, _lang: Lang): LovItem {
     const codeColumn = this.firstColumn(row, this.CODE_COLUMNS);
@@ -106,17 +107,18 @@ export class LovMapper {
       this.firstString(row, this.MEANING_COLUMNS) ?? this.fallbackLabel(row, codeColumn);
     const meaningAr = this.firstArString(row, this.MEANING_AR_COLUMNS);
     const type = this.firstString(row, this.TYPE_COLUMNS);
-    const idValue = this.firstString(row, this.ID_AS_VALUE_COLUMNS);
+    const id = this.firstString(row, this.RECORD_ID_COLUMNS);
 
     return {
-      code: idValue ?? code ?? meaning ?? '',
+      code: code ?? meaning ?? '',
       meaning: meaning ?? code ?? '',
       meaningAr,
       // Always the English label: `meaning` is localized (swapped for the
       // Arabic twin) by the ResponseInterceptor on lang=ar, while `used_value`
       // has no *Ar twin and therefore survives untouched — submits bind it.
-      used_value: idValue ?? meaning ?? code ?? '',
+      used_value: meaning ?? code ?? '',
       ...(type ? { type } : {}),
+      ...(id ? { id } : {}),
     };
   }
 
