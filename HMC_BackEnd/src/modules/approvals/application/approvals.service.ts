@@ -127,8 +127,16 @@ export class ApprovalsService {
     return this.repo.requestInfo({ username: user.username, lang, approvalId, ...dto });
   }
 
-  myRequests(identifier: string, lang: Lang, user?: AuthenticatedUser): Promise<MyRequests> {
-    return this.repo.getMyRequests(ApprovalsService.keysOf(identifier, user), lang);
+  /**
+   * op 23 — the CALLER's own requests. Scoped to the authenticated identity
+   * only: the endpoint is open to every employee (it is their own data), so a
+   * client-supplied identifier must not be able to widen it to someone else's
+   * rows. Both forms of the caller are still sent, because the two views
+   * behind the response store different ones.
+   */
+  myRequests(user: AuthenticatedUser, lang: Lang = 'en'): Promise<MyRequests> {
+    const keys = [...new Set([user.username, user.employeeNumber].filter(Boolean))] as string[];
+    return this.repo.getMyRequests(keys, lang);
   }
 }
 

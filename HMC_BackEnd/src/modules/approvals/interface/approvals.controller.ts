@@ -37,10 +37,29 @@ export class ApprovalsController {
     return this.approvals.summary(q.enum, q.lang, user);
   }
 
+  /**
+   * "What I submitted" — an employee's OWN requests and their approval
+   * status. That is not approver data, so it does not take the approver role
+   * the rest of this controller requires: the empty `@Roles()` overrides the
+   * class decorator (RolesGuard resolves handler over class). Nothing in the
+   * system grants APPROVER/SUPERVISOR today, so under the class rule this
+   * endpoint was unreachable for everyone — including the person whose own
+   * requests it lists.
+   *
+   * `enum` stays accepted for payload compatibility but is IGNORED: the rows
+   * are scoped to the authenticated caller. Honouring a client-supplied
+   * identifier on an employee-open endpoint would let anyone read another
+   * employee's requests by passing their number.
+   */
+  @Roles()
   @Get('my-requests')
   @ApiOperation({ summary: 'op 23 — My requests', operationId: 'approvals_myRequests' })
-  myRequests(@Query() q: ProfileQueryDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.approvals.myRequests(q.enum, q.lang, user);
+  myRequests(
+    @Query() _q: ProfileQueryDto,
+    @Lang() lang: LangCode,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.approvals.myRequests(user, lang);
   }
 
   @Get('worklist')

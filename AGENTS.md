@@ -280,6 +280,17 @@ responses as examples.
   been answering ORA-00904/500 because `readByUsername` defaults to the column
   literal `username` while those views spell it `USER_NAME` — they resolve the
   column now, which is what makes the id reachable at all.
+- **Nothing in the system grants APPROVER or SUPERVISOR.** Every identity
+  adapter hard-codes `roles: [Role.EMPLOYEE]` (LDAP, Users DB, Entra, the dev
+  fallback and the static login), and `AuthService` defaults to the same, so
+  `@Roles(Role.APPROVER, Role.SUPERVISOR)` is unreachable for every user — not
+  just untested. The approvals views hold real rows meanwhile (8 for `037400`
+  in MY_REQEST_SUMMARY_V, 31 for approver `027303` in APPROVE_SUMRY_V), so a
+  403 there is the guard, never missing data. `GET /approvals/my-requests` is
+  exempt (`@Roles()` on the handler) because it lists the CALLER's own
+  requests; its `?enum=` is accepted but ignored so an employee-open route
+  cannot be pointed at someone else. The rest still needs a real role source —
+  deriving it from those views at login is the obvious candidate.
 - op 17 `POST /letters/apply` rejects a value it cannot look up, and the two
   inputs a client could not previously obtain were the pair `p_letter_name` +
   `p_letter_language` and `p_mobile_number`. Both come from op 16 now:
