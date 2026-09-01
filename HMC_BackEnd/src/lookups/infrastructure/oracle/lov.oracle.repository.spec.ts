@@ -161,6 +161,39 @@ describe('LovOracleRepository', () => {
     );
   });
 
+  it('filters a person-scoped view by PERSON_ID when personId is passed (CONTRACT_YEARS_V)', async () => {
+    const query = jest.fn().mockResolvedValue([{ CONTRACT_YEAR: '2026' }]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest
+      .fn()
+      .mockImplementation((_o: string, c: string) => Promise.resolve(c.toUpperCase() === 'PERSON_ID'));
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_CONTRACT_YEARS_V', 'en', undefined, {
+      personId: ' 852709 ',
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE person_id = :personId'),
+      { personId: '852709' },
+    );
+  });
+
+  it('ignores personId when the view has no PERSON_ID column', async () => {
+    const query = jest.fn().mockResolvedValue([]);
+    const ora = { query } as unknown as OracleService;
+    const hasColumn = jest.fn().mockResolvedValue(false);
+    const schema = { hasColumn } as unknown as OracleSchemaService;
+    const config = { get: jest.fn().mockReturnValue(300000) } as unknown as ConfigService;
+    const repository = new LovOracleRepository(ora, schema, config);
+
+    await repository.readLov('XXHMC_SND_YES_NO_LOV', 'en', undefined, { personId: '852709' });
+
+    expect(query).toHaveBeenCalledWith(expect.not.stringContaining('WHERE'), {});
+  });
+
   it('keeps the exact match on a dedicated LEAVE_TYPE column (op 13 unchanged)', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const ora = { query } as unknown as OracleService;

@@ -95,6 +95,10 @@ export class LovOracleRepository implements LovRepository {
       ),
     ];
     const keyColumn = scopeValues.length ? await this.userColumnOf(object) : undefined;
+    const personIdColumn =
+      options.personId && (await this.schema.hasColumn(object, PERSON_ID_COLUMN))
+        ? PERSON_ID_COLUMN
+        : undefined;
     const searchColumn = options.search ? await this.searchColumnOf(object) : undefined;
     const typeColumn = options.dataType ? await this.typeColumnOf(object) : undefined;
     const leaveTypeColumn = options.leaveType ? await this.leaveTypeColumnOf(object) : undefined;
@@ -103,6 +107,10 @@ export class LovOracleRepository implements LovRepository {
     if (keyColumn) {
       conditions.push(`${keyColumn} IN (${scopeValues.map((_, i) => `:u${i}`).join(', ')})`);
       scopeValues.forEach((v, i) => ((binds as Record<string, unknown>)[`u${i}`] = v));
+    }
+    if (personIdColumn && options.personId) {
+      conditions.push(`${personIdColumn} = :personId`);
+      binds.personId = options.personId.trim();
     }
     if (searchColumn && options.search) {
       conditions.push(`UPPER(${searchColumn}) LIKE :search`);
