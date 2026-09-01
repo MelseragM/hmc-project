@@ -84,7 +84,14 @@ export function classifyException(exception: unknown): ClassifiedError {
 /** Oracle/PL-SQL errors: map a few well-known codes, everything else is a generic DB error. */
 function classifyOracle(ex: OracleQueryError): ClassifiedError {
   const code = ex.oraCode;
-  if (code === ORA_NO_DATA_FOUND) return of(ErrorCategory.NOT_FOUND);
+  // ORA-01403 only escapes from a SELECT INTO inside a procedure, i.e. one of
+  // the values we submitted did not resolve — the endpoint and the record are
+  // both fine. Answering 404 "The requested resource was not found" therefore
+  // pointed at the wrong thing: op 17 rejected a bad letter/language pair, an
+  // unknown delivery location and a mobile that is not the employee's ALL as
+  // 404, with nothing to say which field was at fault. It is a rejected input,
+  // so report it as one.
+  if (code === ORA_NO_DATA_FOUND) return of(ErrorCategory.UNRESOLVED_VALUE);
   // unique/integrity constraint or a custom ORA-20xxx business raise → business rule conflict
   if (
     code === 1 ||

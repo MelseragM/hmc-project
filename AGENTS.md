@@ -265,6 +265,26 @@ responses as examples.
   (`person_id`/`username`/`enum`) are matched together via `key IN (...)`
   against whichever scoping column the view exposes (LEAVE_CANCEL_V/AMEND_V
   key on PERSON_ID — a username-only call used to return an empty list).
+  Identifiers that cannot match the column's TYPE are dropped first
+  (`OracleSchemaService.isNumericColumn`): Oracle coerces the other side of the
+  comparison, so one username in `person_id IN (...)` raised ORA-01722 and lost
+  the whole predicate — `?person_id=26023&username=…` answered 0 rows where
+  `?person_id=26023` alone answered 15, i.e. sending more identifiers made the
+  result worse. Pinned in `lov-scope-types.spec.ts`.
+- op 56 `POST /leave/return`: `p_leave_details` is the leave's
+  ABSENCE_ATTENDANCE_ID as a numeric string ('56949953'), NOT a composite —
+  RET_FRM_LEAV_PR runs TO_NUMBER on it and every text form answers ORA-01722
+  (verified 2026-09-01). The op 55 LOV now returns that id as `used_value`
+  (`meaning` keeps the display string), so the usual "submits bind used_value"
+  rule holds. The three RFL LOVs (`return-details`/`related1`/`related2`) had
+  been answering ORA-00904/500 because `readByUsername` defaults to the column
+  literal `username` while those views spell it `USER_NAME` — they resolve the
+  column now, which is what makes the id reachable at all.
+- ORA-01403 escaping a submit means a value WE sent did not resolve, so it maps
+  to `UNRESOLVED_VALUE` → **422**, not 404. As 404 "resource not found" it hid
+  the cause of op 17 failures: a bad letter/language pair, an unknown delivery
+  location and a mobile that is not the employee's were indistinguishable, and
+  the only way to tell was the Oracle log.
   Optional `?leave_type=` is a case-insensitive CONTAINS match on the view's
   `NAME` column (NAME holds display strings with dates); a dedicated
   `LEAVE_TYPE` column (op 13 ABSENCE_REASON_V) still gets an exact match.
