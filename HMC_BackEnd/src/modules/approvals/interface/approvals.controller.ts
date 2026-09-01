@@ -29,12 +29,29 @@ export class ApprovalsController {
     private readonly worklist: WorklistService,
   ) {}
 
+  /**
+   * What is waiting for the CALLER's approval — APPROVE_SUMRY_V and
+   * PNDNG_QID_V are both filtered on the APPROVER side, so this is an
+   * approver's inbox, not a list of the caller's own requests (that is
+   * `my-requests` below).
+   *
+   * Scoped by identity rather than gated by role. The role gate made it a
+   * permanent 403 — nothing in the system assigns APPROVER/SUPERVISOR — while
+   * the identity filter already gives each caller exactly their own rows: an
+   * employee who approves nothing sees an empty list, and a real approver sees
+   * their queue. `enum` is accepted for payload compatibility but IGNORED;
+   * honouring it on an open route would let anyone read another approver's
+   * inbox by passing their number.
+   */
+  @Roles()
   @Get()
   @ApiOperation({ summary: 'op 20 — Approvals summary', operationId: 'approvals_summary' })
-  summary(@Query() q: ProfileQueryDto, @CurrentUser() user: AuthenticatedUser) {
-    // `enum` accepts either the login or the employee number: the two views
-    // behind this response store different forms of the same person.
-    return this.approvals.summary(q.enum, q.lang, user);
+  summary(
+    @Query() _q: ProfileQueryDto,
+    @Lang() lang: LangCode,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.approvals.summary(user, lang);
   }
 
   /**

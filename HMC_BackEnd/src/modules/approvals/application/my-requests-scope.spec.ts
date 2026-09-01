@@ -21,8 +21,9 @@ describe('op 23 — my requests scoping', () => {
 
   function make() {
     const getMyRequests = jest.fn().mockResolvedValue({ requests: [], pendingQid: [] });
-    const repo = { getMyRequests } as unknown as ApprovalsRepository;
-    return { service: new ApprovalsService(repo), getMyRequests };
+    const getSummary = jest.fn().mockResolvedValue({ approvals: [], pendingQid: [] });
+    const repo = { getMyRequests, getSummary } as unknown as ApprovalsRepository;
+    return { service: new ApprovalsService(repo), getMyRequests, getSummary };
   }
 
   it('queries both forms of the caller — the two views store different ones', async () => {
@@ -53,5 +54,19 @@ describe('op 23 — my requests scoping', () => {
     );
 
     expect(getMyRequests).toHaveBeenCalledWith(['037400'], 'en');
+  });
+
+  /**
+   * op 20 is an APPROVER inbox (both its views filter on the approver side),
+   * and it is open to any employee for the same reason op 23 is — the role
+   * gate was a permanent 403. So it needs the same protection: an employee who
+   * approves nothing gets an empty list, and cannot ask for someone else's.
+   */
+  it('scopes the approval inbox to the caller too', async () => {
+    const { service, getSummary } = make();
+
+    await service.summary(CALLER, 'en');
+
+    expect(getSummary).toHaveBeenCalledWith(['AIBRAHIM39', '037400'], 'en');
   });
 });

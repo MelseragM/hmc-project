@@ -54,17 +54,21 @@ export class ApprovalsService {
   constructor(@Inject(APPROVALS_REPOSITORY) private readonly repo: ApprovalsRepository) {}
 
   /**
-   * `identifier` is whatever the client sent (`enum`) — login or employee
-   * number. `user` adds the authenticated identity, so the views that store the
-   * other form still match without the client having to know which is which.
+   * op 20 — what is waiting for the CALLER's approval. Scoped to the
+   * authenticated identity, like op 23: the route is open to any employee, so
+   * a client-supplied identifier must not be able to widen it to another
+   * approver's queue.
    */
-  summary(identifier: string, lang: Lang, user?: AuthenticatedUser): Promise<ApprovalsSummary> {
-    return this.repo.getSummary(ApprovalsService.keysOf(identifier, user), lang);
+  summary(user: AuthenticatedUser, lang: Lang = 'en'): Promise<ApprovalsSummary> {
+    return this.repo.getSummary(ApprovalsService.keysOf(user), lang);
   }
 
-  /** Caller identifiers in every form the approvals views may store. */
-  private static keysOf(identifier: string, user?: AuthenticatedUser): string[] {
-    return [...new Set([identifier, user?.username, user?.employeeNumber].filter(Boolean))] as string[];
+  /**
+   * The caller in every form the approvals views may store — they disagree
+   * about whether that is the login or the employee number.
+   */
+  private static keysOf(user: AuthenticatedUser): string[] {
+    return [...new Set([user.username, user.employeeNumber].filter(Boolean))] as string[];
   }
 
   /**
@@ -135,8 +139,7 @@ export class ApprovalsService {
    * behind the response store different ones.
    */
   myRequests(user: AuthenticatedUser, lang: Lang = 'en'): Promise<MyRequests> {
-    const keys = [...new Set([user.username, user.employeeNumber].filter(Boolean))] as string[];
-    return this.repo.getMyRequests(keys, lang);
+    return this.repo.getMyRequests(ApprovalsService.keysOf(user), lang);
   }
 }
 
