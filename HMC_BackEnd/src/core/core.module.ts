@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { OracleModule } from './database/oracle.module';
 import { MssqlModule } from './database/mssql.module';
+import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
@@ -44,6 +45,7 @@ import { DevConsoleModule } from './dev-console/dev-console.module';
     EventEmitterModule.forRoot(),
     OracleModule,
     MssqlModule,
+    EmailModule,
     AuthModule,
     AuditModule,
     ApiLogsModule,

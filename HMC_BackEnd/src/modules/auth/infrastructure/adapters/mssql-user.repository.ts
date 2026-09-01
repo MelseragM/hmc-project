@@ -59,6 +59,7 @@ export class MssqlUserRepository implements LdapUserPort {
     'staffno',
     'employeeid',
   ];
+  private static readonly EMAIL_COLUMNS = ['emailid', 'emailaddress', 'email', 'mailid', 'mail'];
 
   constructor(private readonly db: MssqlService) {}
 
@@ -91,6 +92,7 @@ export class MssqlUserRepository implements LdapUserPort {
       employeeNumber: row ? pick(row, MssqlUserRepository.EMPNO_COLUMNS) : undefined,
       employeeName: (row && pick(row, MssqlUserRepository.NAME_COLUMNS)) ?? query.username,
       phoneNumber: row ? pick(row, MssqlUserRepository.PHONE_COLUMNS) : undefined,
+      email: row ? pick(row, MssqlUserRepository.EMAIL_COLUMNS) : undefined,
       isEmployee: true,
       isNewUser: !row || pick(row, ['mpin']) === undefined,
       roles: [Role.EMPLOYEE],

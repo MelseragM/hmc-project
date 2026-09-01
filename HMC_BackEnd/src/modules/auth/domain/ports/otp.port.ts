@@ -3,6 +3,8 @@ export type OtpPurpose = 'ONBOARDING' | 'FORGOT_MPIN';
 export interface SendOtpCommand {
   username: string;
   phoneNumber?: string;
+  /** Fallback channel: used when the user has no phone number but has email. */
+  email?: string;
   imei: string;
   purpose: OtpPurpose;
 }

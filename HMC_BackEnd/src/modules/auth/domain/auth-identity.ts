@@ -37,6 +37,8 @@ export interface EmployeeIdentity {
   department?: string;
   company?: string;
   phoneNumber?: string;
+  /** Corporate email — the OTP fallback channel when there is no mobile. */
+  email?: string;
   /** Whether the account is a valid employee eligible to use Sanaad. */
   isEmployee: boolean;
   /** First-time user (no MPIN yet) vs existing user. */

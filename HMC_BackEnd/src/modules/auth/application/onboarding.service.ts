@@ -80,6 +80,7 @@ export class OnboardingService {
           await this.otp.send({
             username: dto.username,
             phoneNumber: identity.phoneNumber,
+            email: identity.email,
             imei: dto.imeinumber,
             purpose: 'ONBOARDING',
           })
@@ -120,6 +121,7 @@ export class OnboardingService {
           await this.otp.send({
             username: dto.username,
             phoneNumber: dto.phonenumber,
+            email: dto.email,
             imei: dto.imeinumber,
             purpose: 'ONBOARDING',
           })
