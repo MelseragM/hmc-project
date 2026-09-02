@@ -1,10 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MssqlService } from '@core/database/mssql.service';
+import { MssqlQueryError } from '@core/database/mssql.error';
 import { DeviceToken, DevicePlatform } from '../../domain/device-token';
 import { DeviceTokenStorePort } from '../../domain/ports/device-token-store.port';
 
 /** Kept next to `HMC_Sanad_DeviceRegn_tbl`, keyed the same way. */
 const TABLE = 'HMC_Sanad_DeviceToken_tbl';
+
+/** SQL Server "Invalid object name" — i.e. the table has not been created. */
+const INVALID_OBJECT_NAME = 208;
 
 /**
  * FCM tokens in the Sanaad SQL Server, alongside the device-binding table this
@@ -96,13 +100,27 @@ export class MssqlDeviceTokenRepository implements DeviceTokenStorePort {
     });
   }
 
-  /** Run `work`, downgrading a missing table (or a down pool) to a warning. */
+  /**
+   * Run `work`, downgrading every failure to a warning.
+   *
+   * Registering for push is an accessory to using the app, and the two
+   * foreseeable failures here are both deployment states rather than bugs: the
+   * table not created yet, and the Users DB pool being down. Neither should
+   * turn a login — or a leave request — into a 500.
+   *
+   * The missing table is matched on the SQL Server error NUMBER; the message
+   * is only a fallback, since it is localized on some servers.
+   */
   private async guard<T>(operation: string, work: () => Promise<T>): Promise<T | undefined> {
     try {
       return await work();
     } catch (err) {
-      const message = (err as Error).message ?? '';
-      if (/Invalid object name/i.test(message)) {
+      const message = (err as Error)?.message ?? '';
+      const missingTable =
+        (err instanceof MssqlQueryError && err.sqlErrorNumber === INVALID_OBJECT_NAME) ||
+        /invalid object name/i.test(message);
+
+      if (missingTable) {
         if (!MssqlDeviceTokenRepository.warned) {
           MssqlDeviceTokenRepository.warned = true;
           MssqlDeviceTokenRepository.log.warn(
