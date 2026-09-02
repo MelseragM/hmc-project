@@ -2,6 +2,11 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ApprovalsService } from './approvals.service';
 import { ApprovalsRepository } from '../domain/approvals.repository';
 import { AuthenticatedUser, Role } from '@core/auth/auth-user.interface';
+import { ConfigService } from '@nestjs/config';
+
+/** A non-production environment, where an explicit ?enum= is honoured. */
+const nonProduction = () =>
+  ({ getOrThrow: () => ({ nodeEnv: 'development' }) }) as unknown as ConfigService;
 
 /**
  * op 21 and the attachment download resolve a request by ID ALONE — no caller
@@ -35,7 +40,7 @@ describe('request ownership', () => {
       }),
       ...over,
     } as unknown as ApprovalsRepository;
-    return { service: new ApprovalsService(repo), repo };
+    return { service: new ApprovalsService(repo, nonProduction()), repo };
   }
 
   describe('op 21 details', () => {

@@ -56,11 +56,11 @@ export class ApprovalsController {
   @Get()
   @ApiOperation({ summary: 'op 20 — Approvals summary', operationId: 'approvals_summary' })
   summary(
-    @Query() _q: OwnScopeQueryDto,
+    @Query() q: OwnScopeQueryDto,
     @Lang() lang: LangCode,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.approvals.summary(user, lang);
+    return this.approvals.summary(user, lang, q.enum ?? q.username);
   }
 
   /**
@@ -81,11 +81,11 @@ export class ApprovalsController {
   @Get('my-requests')
   @ApiOperation({ summary: 'op 23 — My requests', operationId: 'approvals_myRequests' })
   myRequests(
-    @Query() _q: OwnScopeQueryDto,
+    @Query() q: OwnScopeQueryDto,
     @Lang() lang: LangCode,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.approvals.myRequests(user, lang);
+    return this.approvals.myRequests(user, lang, q.enum ?? q.username);
   }
 
   @Get('worklist')
@@ -119,30 +119,32 @@ export class ApprovalsController {
   @Roles()
   details(
     @Param('id') id: string,
-    @Query() q: ApprovalDetailQueryDto,
+    @Query() q: OwnScopeQueryDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.approvals.details(id, q.lang, user);
+    return this.approvals.details(id, q.lang, user, q.enum ?? q.username);
   }
 
-  /** Download one of the files listed by `:id/details` → `attachments[].url`. */
-  @Get('attachments/:documentId')
-  @ApiOperation({
-    summary: 'op 21b — Download a request attachment',
-    operationId: 'approvals_attachment',
-  })
   /**
+   * Download one of the files listed by `:id/details` → `attachments[].url`.
+   *
    * Open alongside `:id/details`, which advertises these URLs — gating one and
    * not the other would ship a download button that always fails. The document
    * id identifies only the file, so the service resolves the request it belongs
    * to and requires the caller to own it.
    */
   @Roles()
+  @Get('attachments/:documentId')
+  @ApiOperation({
+    summary: 'op 21b — Download a request attachment',
+    operationId: 'approvals_attachment',
+  })
   attachment(
     @Param('documentId') documentId: string,
+    @Query() q: OwnScopeQueryDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.approvals.attachment(documentId, user);
+    return this.approvals.attachment(documentId, user, q.enum ?? q.username);
   }
 
   @Post(':id/decision')

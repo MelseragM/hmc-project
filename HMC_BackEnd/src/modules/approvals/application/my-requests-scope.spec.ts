@@ -1,6 +1,11 @@
 import { ApprovalsService } from './approvals.service';
 import { ApprovalsRepository } from '../domain/approvals.repository';
 import { AuthenticatedUser, Role } from '@core/auth/auth-user.interface';
+import { ConfigService } from '@nestjs/config';
+
+/** A non-production environment, where an explicit ?enum= is honoured. */
+const nonProduction = () =>
+  ({ getOrThrow: () => ({ nodeEnv: 'development' }) }) as unknown as ConfigService;
 
 /**
  * op 23 lists what the CALLER submitted — their own data, not approver data —
@@ -23,7 +28,7 @@ describe('op 23 — my requests scoping', () => {
     const getMyRequests = jest.fn().mockResolvedValue({ requests: [], pendingQid: [] });
     const getSummary = jest.fn().mockResolvedValue({ approvals: [], pendingQid: [] });
     const repo = { getMyRequests, getSummary } as unknown as ApprovalsRepository;
-    return { service: new ApprovalsService(repo), getMyRequests, getSummary };
+    return { service: new ApprovalsService(repo, nonProduction()), getMyRequests, getSummary };
   }
 
   it('queries both forms of the caller — the two views store different ones', async () => {

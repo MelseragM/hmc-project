@@ -312,6 +312,17 @@ responses as examples.
   leaves `employeeNumber` unset — a placeholder like '000000' matches no view
   while looking like an answer; adapters resolve the real one from the
   username.
+- **Pointing the approvals reads at someone else (non-production only).** Ops
+  20, 21, 21b and 23 honour a client-supplied `?enum=`/`?username=` as an
+  ADDITIONAL scope when `NODE_ENV !== 'production'`, and ignore it inside
+  production — the same rule the SQL consoles use, so there is no extra switch
+  to set or to leak. That is how a tester gets real rows without an approver
+  account: `GET /approvals?enum=027303` returns that approver's 33, and
+  `:id/details` will open one of their requests because the ownership check is
+  widened by the same value. In production the parameter is dropped, because
+  honouring it would let any employee read another's requests — and read a
+  detail view whose notification ids are sequential — by passing their number.
+  `act-as-scope.spec.ts` is that boundary.
 - ops 21 and 21b (`GET /approvals/:id/details`, `attachments/:documentId`) are
   open to any employee — that is how they open their own request — but they
   resolve a request by ID ALONE, with no caller in the query, and the
