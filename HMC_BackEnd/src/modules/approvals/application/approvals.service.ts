@@ -1,6 +1,7 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Lang } from '@shared/domain/lang';
 import { SubmitResult } from '@shared/domain/submit-result';
+import { ERROR_MESSAGES } from '@shared/constants/error-codes';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import {
   APPROVALS_REPOSITORY,
@@ -81,7 +82,16 @@ export class ApprovalsService {
    * map, for validation/filtering, and `attachments` carries a download path
    * per file.
    */
-  async details(approvalId: string, lang: Lang): Promise<RequestDetailResponse> {
+  async details(
+    approvalId: string,
+    lang: Lang,
+    user: AuthenticatedUser,
+  ): Promise<RequestDetailResponse> {
+    // The route is open to every employee (it is how they see their own
+    // request), and the read below resolves purely by notification id — so
+    // ownership is checked here. Without it, sequential ids would expose every
+    // request in the organisation.
+    await this.assertOwns(approvalId, user);
     const src = await this.repo.getDetails(approvalId, lang);
     const header = src.header ?? {};
     const { fields, values } = buildRequestFields(src.serviceView, src.detailRow);
@@ -107,10 +117,28 @@ export class ApprovalsService {
     };
   }
 
-  async attachment(attachedDocumentId: string): Promise<AttachmentContent> {
+  async attachment(
+    attachedDocumentId: string,
+    user: AuthenticatedUser,
+  ): Promise<AttachmentContent> {
+    // Same exposure as details(), one step worse: this returns the file
+    // itself. The document id identifies the file and nothing else, so the
+    // request it belongs to is resolved and checked first.
+    const itemKey = await this.repo.itemKeyOfAttachment(attachedDocumentId);
+    if (!itemKey || !(await this.repo.isItemOwnedBy(itemKey, ApprovalsService.keysOf(user)))) {
+      throw new ForbiddenException(ERROR_MESSAGES.FORBIDDEN);
+    }
+
     const file = await this.repo.getAttachmentContent(attachedDocumentId);
     if (!file) throw new NotFoundException(`Attachment ${attachedDocumentId} was not found.`);
     return file;
+  }
+
+  /** 403 unless the caller is the request's requestor or its approver. */
+  private async assertOwns(approvalId: string, user: AuthenticatedUser): Promise<void> {
+    if (!(await this.repo.isOwnedBy(approvalId, ApprovalsService.keysOf(user)))) {
+      throw new ForbiddenException(ERROR_MESSAGES.FORBIDDEN);
+    }
   }
 
   decide(

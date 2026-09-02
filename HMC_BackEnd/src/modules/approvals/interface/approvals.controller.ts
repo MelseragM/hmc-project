@@ -109,8 +109,20 @@ export class ApprovalsController {
 
   @Get(':id/details')
   @ApiOperation({ summary: 'op 21 — Approval detail', operationId: 'approvals_details' })
-  details(@Param('id') id: string, @Query() q: ApprovalDetailQueryDto) {
-    return this.approvals.details(id, q.lang);
+  /**
+   * How an employee opens one of their own requests, so it is not approver-only
+   * either. The read resolves by notification id with no caller in the query,
+   * and the ids are sequential — so the service checks that the caller is the
+   * request's requestor or its approver, and answers 403 otherwise. That check
+   * is what replaces the role gate; do not remove one without the other.
+   */
+  @Roles()
+  details(
+    @Param('id') id: string,
+    @Query() q: ApprovalDetailQueryDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.approvals.details(id, q.lang, user);
   }
 
   /** Download one of the files listed by `:id/details` → `attachments[].url`. */
@@ -119,8 +131,18 @@ export class ApprovalsController {
     summary: 'op 21b — Download a request attachment',
     operationId: 'approvals_attachment',
   })
-  attachment(@Param('documentId') documentId: string) {
-    return this.approvals.attachment(documentId);
+  /**
+   * Open alongside `:id/details`, which advertises these URLs — gating one and
+   * not the other would ship a download button that always fails. The document
+   * id identifies only the file, so the service resolves the request it belongs
+   * to and requires the caller to own it.
+   */
+  @Roles()
+  attachment(
+    @Param('documentId') documentId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.approvals.attachment(documentId, user);
   }
 
   @Post(':id/decision')

@@ -130,6 +130,59 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
   }
 
   /**
+   * Is this notification the caller's own — as its requestor OR its approver?
+   *
+   * op 21 and the attachment download resolve a request by NOTIFICATION ID
+   * alone, with no caller in the query, and the ids are sequential
+   * (123859430, 123859432, 123859449…). The role gate was the only thing
+   * standing between that and an employee walking the range to read every
+   * request in the organisation — salary certificates, QIDs, sick-leave
+   * reasons, uploaded documents. So opening those routes needs this check to
+   * take the gate's place.
+   */
+  async isOwnedBy(approvalId: string, keys: readonly string[]): Promise<boolean> {
+    const header = await this.findRequestHead(approvalId);
+    if (!header) return false;
+
+    const scoped = (await this.scopeKeys(keys)).map((k) => k.trim().toUpperCase());
+    return ['REQUESTOR_USER_NAME', 'APPROVER_USER_NAME', 'USER_NAME', 'EMPLOYEE_NUMBER']
+      .map((column) => str(header, column)?.trim().toUpperCase())
+      .some((value) => !!value && scoped.includes(value));
+  }
+
+  /** The ITEM_KEY an attachment belongs to, so its request can be checked. */
+  async itemKeyOfAttachment(attachedDocumentId: string): Promise<string | undefined> {
+    const rows = await this.query<Record<string, unknown>>(
+      `SELECT ${ITEM_KEY_COLUMN} FROM ${ORACLE_OBJECTS.HR_ATTACHMENTS_V}
+        WHERE attached_document_id = :id`,
+      { id: attachedDocumentId },
+    );
+    return str(rows[0] ?? {}, ITEM_KEY_COLUMN.toUpperCase());
+  }
+
+  /** Is a request identified by ITEM_KEY (not notification id) the caller's? */
+  async isItemOwnedBy(itemKey: string, keys: readonly string[]): Promise<boolean> {
+    const scoped = (await this.scopeKeys(keys)).map((k) => k.trim().toUpperCase());
+    for (const object of [
+      ORACLE_OBJECTS.MY_REQEST_SUMMARY_V,
+      ORACLE_OBJECTS.APPROVE_SUMRY_V,
+      ORACLE_OBJECTS.NOTYFY_APPR_V,
+    ]) {
+      const rows = await this.query<ApprovalRow>(
+        `SELECT * FROM ${object} WHERE ${ITEM_KEY_COLUMN} = :k`,
+        { k: itemKey },
+      );
+      const owned = rows.some((row) =>
+        ['REQUESTOR_USER_NAME', 'APPROVER_USER_NAME', 'USER_NAME', 'EMPLOYEE_NUMBER']
+          .map((column) => str(row, column)?.trim().toUpperCase())
+          .some((value) => !!value && scoped.includes(value)),
+      );
+      if (owned) return true;
+    }
+    return false;
+  }
+
+  /**
    * op 21 — everything about one request, keyed by the notification id the
    * summary rows carry.
    *
