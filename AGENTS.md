@@ -205,6 +205,26 @@ have (`NotificationsService.notifyUser(username, message)`).
 - Tokens FCM reports as permanently dead (`UNREGISTERED`,
   `INVALID_REGISTRATION_TOKEN`, `INVALID_ARGUMENT`) are pruned after a send; a
   merely failed send is transient and must NOT cost a device its registration.
+- **What triggers one.** `NotificationTriggerInterceptor` is global and watches
+  every POST: an interceptor rather than a call in each feature, because
+  submits live in ten modules and the eleventh would be forgotten. It fires
+  only on business success (`successflag === 'S'`, not HTTP 200), and the work
+  is NOT awaited — the caller never waits for Oracle or FCM, and a rejection is
+  swallowed.
+  - a decision (`/approvals/:id/decision`) notifies the REQUESTOR of the
+    outcome;
+  - any other submit notifies the APPROVER. This one is **best-effort**: the
+    procedures return only `successflag`, so the new request is found by
+    reading the submitter's newest row in MY_REQEST_SUMMARY_V, and Oracle
+    writes that row asynchronously. When it is not there yet nobody is
+    notified — the approver still sees it in their worklist.
+- The summary views hold a person as their EMPLOYEE NUMBER while device tokens
+  are keyed by LOGIN, so `OracleRequestLookupRepository` translates via
+  PERSONAL_DETAILS_V (cached). Anything non-numeric is already a login.
+- `RequestLookupPort` is declared in the notifications domain rather than
+  reusing the approvals repository, so the dependency points inward — approvals
+  would otherwise need to know notifications exist, and a later "notify from
+  approvals" would close the cycle.
 
 ## App integrity (Firebase App Check)
 

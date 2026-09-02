@@ -1,10 +1,15 @@
 import { Logger, Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { App } from 'firebase-admin/app';
 import { FIREBASE_APP } from '@core/firebase/firebase-app';
 import { NotificationsService } from './application/notifications.service';
+import { RequestNotifier } from './application/request-notifier.service';
 import { DEVICE_TOKEN_STORE_PORT } from './domain/ports/device-token-store.port';
 import { PUSH_SENDER_PORT, PushSenderPort } from './domain/ports/push-sender.port';
+import { REQUEST_LOOKUP_PORT } from './domain/ports/request-lookup.port';
 import { MssqlDeviceTokenRepository } from './infrastructure/adapters/mssql-device-token.repository';
+import { OracleRequestLookupRepository } from './infrastructure/adapters/oracle-request-lookup.repository';
+import { NotificationTriggerInterceptor } from './interface/notification-trigger.interceptor';
 import {
   FirebasePushSender,
   NoopPushSender,
@@ -27,8 +32,14 @@ import { NotificationsController } from './interface/notifications.controller';
   controllers: [NotificationsController],
   providers: [
     NotificationsService,
+    RequestNotifier,
     MssqlDeviceTokenRepository,
+    OracleRequestLookupRepository,
     { provide: DEVICE_TOKEN_STORE_PORT, useExisting: MssqlDeviceTokenRepository },
+    { provide: REQUEST_LOOKUP_PORT, useExisting: OracleRequestLookupRepository },
+    // Global: submits live in ten modules, and the rule for notifying about
+    // one belongs in a single place rather than in each of them.
+    { provide: APP_INTERCEPTOR, useClass: NotificationTriggerInterceptor },
     {
       provide: PUSH_SENDER_PORT,
       // FirebaseModule always provides the token; the value is undefined when
