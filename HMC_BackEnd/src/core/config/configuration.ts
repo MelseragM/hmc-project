@@ -314,6 +314,36 @@ export interface EntraConfig {
   timeoutMs: number;
 }
 
+/**
+ * Firebase Admin — push notifications (FCM), and later App Check verification.
+ * Both are served by the same service-account credential.
+ *
+ * The credential is a PRIVATE KEY and never lives in the repository. It is read
+ * once at boot from FIREBASE_SERVICE_ACCOUNT (the JSON itself, raw or base64 —
+ * convenient for containers) or FIREBASE_SERVICE_ACCOUNT_PATH (a file on the
+ * host), inline winning if both are set. Same shape as LDAP_CA_CERT above, so
+ * there is no second convention to learn.
+ *
+ * Unset means push is DISABLED, not broken: the module binds a no-op sender and
+ * the API keeps working. A half-configured deployment must not take the
+ * notifications endpoints — or anything that emits one — down with it.
+ */
+export interface FirebaseConfig {
+  /** Parsed service account, or undefined when push is not configured. */
+  serviceAccount?: FirebaseServiceAccount;
+  /** `sanaadprd` — read from the credential; exposed for logging/diagnostics. */
+  projectId?: string;
+  /** Whether a usable credential was resolved at boot. */
+  enabled: boolean;
+}
+
+/** The fields of a Google service account this project uses. */
+export interface FirebaseServiceAccount {
+  project_id: string;
+  client_email: string;
+  private_key: string;
+}
+
 export interface RootConfig {
   app: AppConfig;
   oracle: OracleConfig;
@@ -329,9 +359,55 @@ export interface RootConfig {
   otp: OtpConfig;
   ldap: LdapConfig;
   entra: EntraConfig;
+  firebase: FirebaseConfig;
 }
 
 const toBool = (v: unknown): boolean => v === true || v === 'true';
+
+/**
+ * Resolve the Firebase service account: inline JSON (FIREBASE_SERVICE_ACCOUNT,
+ * raw or base64 so it survives being a single-line env var) wins over a file
+ * path (FIREBASE_SERVICE_ACCOUNT_PATH).
+ *
+ * Never throws and never logs the credential: this runs before the Nest Logger
+ * exists, and an unreadable or malformed key means push is off, not that the
+ * API fails to boot.
+ */
+function loadFirebaseServiceAccount(): FirebaseServiceAccount | undefined {
+  const inline = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const path = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+
+  let raw: string | undefined;
+  if (inline) {
+    // A base64 blob has no braces; raw JSON does.
+    raw = inline.trim().startsWith('{')
+      ? inline
+      : Buffer.from(inline, 'base64').toString('utf8');
+  } else if (path) {
+    try {
+      raw = fs.readFileSync(path, 'utf8');
+    } catch (err) {
+      console.warn(
+        `[configuration] Could not read FIREBASE_SERVICE_ACCOUNT_PATH="${path}": ${(err as Error).message}`,
+      );
+      return undefined;
+    }
+  }
+  if (!raw) return undefined;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<FirebaseServiceAccount>;
+    if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
+      console.warn('[configuration] Firebase service account is missing required fields.');
+      return undefined;
+    }
+    // `\n` survives an env var only escaped; the SDK needs real newlines.
+    return { ...parsed, private_key: parsed.private_key.replace(/\\n/g, '\n') } as FirebaseServiceAccount;
+  } catch {
+    console.warn('[configuration] Firebase service account is not valid JSON.');
+    return undefined;
+  }
+}
 
 /**
  * Resolve the LDAPS CA certificate: an inline PEM (LDAP_CA_CERT, `\n`
@@ -522,4 +598,8 @@ export default (): RootConfig => ({
     lookupAttribute: process.env.ENTRA_LOOKUP_ATTRIBUTE ?? 'userPrincipalName',
     timeoutMs: Number(process.env.ENTRA_TIMEOUT_MS ?? 10000),
   },
+  firebase: ((): FirebaseConfig => {
+    const serviceAccount = loadFirebaseServiceAccount();
+    return { serviceAccount, projectId: serviceAccount?.project_id, enabled: !!serviceAccount };
+  })(),
 });

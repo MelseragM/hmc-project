@@ -175,6 +175,37 @@ is a 501 in the Entra adapter. Entra config lives in the `entra` namespace
 `User.Read.All` (Application) with admin consent. Switching back to `ldap` is an
 instant rollback (no code redeploy). No mobile/gateway/DTO/JWT changes.
 
+## Push notifications (FCM)
+
+`src/modules/notifications/` — ports + adapters, exported so any module can
+notify a person without knowing about FCM, tokens or how many devices they
+have (`NotificationsService.notifyUser(username, message)`).
+
+- **Multi-device by design.** Tokens live in `HMC_Sanad_DeviceToken_tbl` keyed
+  by `(LoginID, IMEINumber)` — the same pair as the device-binding table — not
+  in a column on `HMC_Sanad_DeviceRegn_tbl`. Phone plus tablet is ordinary and
+  a single column would silently drop one of them; the token is also the
+  volatile part (FCM reissues it on reinstall/data-clear/periodically), so
+  keying on the DEVICE makes re-registration a replace. DDL is
+  `tools/notifications-schema.sql`; **it has not been applied yet** — until it
+  is, registrations are discarded with one warning and nothing else breaks.
+- **Nothing here may fail a request.** A notification is a side effect of an
+  action that already succeeded, so `notifyUser` never throws, the store
+  degrades to warnings, and an unconfigured credential binds `NoopPushSender`
+  instead of refusing to boot.
+- The credential is a PRIVATE KEY for the **production** project `sanaadprd`.
+  It is read once at boot from `FIREBASE_SERVICE_ACCOUNT` (raw JSON or base64)
+  or `FIREBASE_SERVICE_ACCOUNT_PATH`, inline winning — the same rule as
+  `LDAP_CA_CERT`. `.gitignore` blocks the generated key filenames; never commit
+  one.
+- `POST/DELETE /notifications/device-token` take the user from the JWT and
+  reject a `username` in the body — a registration redirects a person's
+  notifications to a handset, so the client must not get to name the person.
+  The app should re-register on every launch, and unregister on logout.
+- Tokens FCM reports as permanently dead (`UNREGISTERED`,
+  `INVALID_REGISTRATION_TOKEN`, `INVALID_ARGUMENT`) are pruned after a send; a
+  merely failed send is transient and must NOT cost a device its registration.
+
 ## Outstanding — not a code issue
 
 **Appointments (ops 41-44) return HTTP 503 on staging.** The module talks to
