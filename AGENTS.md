@@ -264,6 +264,14 @@ Facts worth not rediscovering:
   via `observe`**: enforcement rejects real devices (no Play Services, rooted,
   sideloaded, simulator) and observe reports what would have been refused while
   letting everything through. An unrecognised value means `off`.
+- `POST /app-integrity/android/verify` is a **development aid, not the
+  enforcement path** — in production the token rides as a header on the real
+  request and the guard checks it there; calling this first would make every
+  action two round trips. It exists because attestation ships `off`, so an app
+  can send a completely invalid token and learn nothing until enforcement is
+  switched on and everything fails at once. Unlike the guard it RETURNS
+  Google's verdicts, which is the point. Android has no `register` route
+  because it has no key to store.
 - `@SkipIntegrity()` (`core/integrity/`) exempts a controller — health,
   diagnostics, the dev console and the attestation routes themselves, since a
   device cannot prove itself before registering. Mobile routes including login
