@@ -299,6 +299,28 @@ responses as examples.
   **Note this cannot be verified by running locally:** `AUTH_DISABLED=true`
   injects `DEV_USER`, which holds EMPLOYEE + SUPERVISOR + APPROVER, so every
   route passes. `roles-guard-override.spec.ts` pins the behaviour instead.
+- **Testing an approver journey (dev only).** With `AUTH_DISABLED=true` the
+  identity now follows the presented token instead of being pinned to
+  `DEV_USER`, so logging in as an approver actually acts as them — previously
+  every request fell back to DEV_USER and their queue came back empty, which
+  made the journey impossible to exercise. Log in with any credentials as one
+  of these (login form ← employee number, rows waiting):
+  `EALJASSIM` ← 027303 (33) · `MSALEM4` ← 024799 (11) · `RABOOBACKER` ← 037911
+  (8) · `MIMRAN2` ← 048945 (2) · `AGAD1` ← 030728 (2) · `MASHWAR` ← 043914 (1).
+  The last four hold `037400`'s own pending requests, so a full
+  submit → approve loop can be run end to end. `devIdentity` deliberately
+  leaves `employeeNumber` unset — a placeholder like '000000' matches no view
+  while looking like an answer; adapters resolve the real one from the
+  username.
+- ops 21 and 21b (`GET /approvals/:id/details`, `attachments/:documentId`) are
+  open to any employee — that is how they open their own request — but they
+  resolve a request by ID ALONE, with no caller in the query, and the
+  notification ids are SEQUENTIAL. The role gate was the only thing preventing
+  an employee from walking the range and reading every request in the
+  organisation, so it is replaced by an ownership check (`isOwnedBy` /
+  `isItemOwnedBy`), not removed: the caller must be the requestor or the
+  approver, checked BEFORE any data is read. `request-ownership.spec.ts` is the
+  security boundary — do not relax one side without the other.
 - op 17 `POST /letters/apply` rejects a value it cannot look up, and the two
   inputs a client could not previously obtain were the pair `p_letter_name` +
   `p_letter_language` and `p_mobile_number`. Both come from op 16 now:
