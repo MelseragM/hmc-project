@@ -206,6 +206,31 @@ have (`NotificationsService.notifyUser(username, message)`).
   `INVALID_REGISTRATION_TOKEN`, `INVALID_ARGUMENT`) are pruned after a send; a
   merely failed send is transient and must NOT cost a device its registration.
 
+## App integrity (Firebase App Check)
+
+`core/app-check/` — a global guard after `JwtAuthGuard`. The JWT says WHO is
+calling; App Check says WHAT is. One verification covers both platforms
+(Play Integrity on Android, App Attest on iOS) because App Check wraps them —
+verifying Apple's attestation objects and Google's verdicts separately would be
+weeks of key handling for the same answer.
+
+- `APP_CHECK_MODE` = `off` (default) | `observe` | `enforce`. **Roll out via
+  `observe`**: enforcement rejects real devices — no Play Services, rooted,
+  sideloaded, an emulator without a registered debug token — and observe
+  reports exactly what would have been refused while letting everything
+  through. An unrecognised value means `off`, so a typo cannot silently start
+  rejecting users.
+- Asking to enforce with no Firebase credential logs an ERROR and **allows**
+  every request. A missing key is a deployment fault; closing the whole API
+  over it would be worse than not checking.
+- `@SkipAppCheck()` exempts a controller — applied to health, diagnostics and
+  the dev console, which are called by probes and humans, not the app. Mobile
+  routes including login stay covered; blocking scripted credential attempts is
+  much of the point.
+- The Firebase app itself is `core/firebase/` (global), shared with FCM — both
+  are features of the same service account, and two SDK apps would mean two
+  token caches and two credentials to reason about.
+
 ## Outstanding — not a code issue
 
 **Appointments (ops 41-44) return HTTP 503 on staging.** The module talks to

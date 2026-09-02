@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 // firebase-admin v14 is modular — the v13 `import * as admin` namespace is gone.
-import { App, cert, getApps, initializeApp } from 'firebase-admin/app';
+import { App } from 'firebase-admin/app';
 import { getMessaging, Messaging } from 'firebase-admin/messaging';
-import { FirebaseServiceAccount } from '@core/config/configuration';
 import { PushMessage, PushResult, PushSenderPort } from '../../domain/ports/push-sender.port';
 
 /** FCM's verdict that a token is dead — as opposed to a transient failure. */
@@ -16,36 +15,17 @@ const PERMANENT_FAILURES = new Set([
 const BATCH_LIMIT = 500;
 
 /**
- * FCM delivery through the Firebase Admin SDK.
- *
- * The app instance is named rather than default: the SDK keeps a global
- * registry, and a bare `initializeApp()` throws on the second call — which is
- * exactly what happens when Jest re-imports the module.
+ * FCM delivery through the Firebase Admin SDK, on the app shared with App
+ * Check — both are features of the same service account.
  */
 @Injectable()
 export class FirebasePushSender implements PushSenderPort {
   private static readonly log = new Logger(FirebasePushSender.name);
-  private static readonly APP_NAME = 'sanaad-push';
 
   readonly enabled = true;
   private readonly messaging: Messaging;
 
-  constructor(serviceAccount: FirebaseServiceAccount) {
-    const existing: App | undefined = getApps().find(
-      (a) => a.name === FirebasePushSender.APP_NAME,
-    );
-    const app =
-      existing ??
-      initializeApp(
-        {
-          credential: cert({
-            projectId: serviceAccount.project_id,
-            clientEmail: serviceAccount.client_email,
-            privateKey: serviceAccount.private_key,
-          }),
-        },
-        FirebasePushSender.APP_NAME,
-      );
+  constructor(app: App) {
     this.messaging = getMessaging(app);
   }
 

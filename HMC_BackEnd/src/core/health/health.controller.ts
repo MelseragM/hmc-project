@@ -6,8 +6,11 @@ import { MotcSmsDbService } from '../database/motc-sms-db.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
 import { DiagnosticsEnabledGuard } from '../http/diagnostics-enabled.guard';
+import { SkipAppCheck } from '../app-check/skip-app-check.decorator';
 
 @ApiTags('health')
+// Uptime probes are not the mobile app; App Check would fail them all.
+@SkipAppCheck()
 @Controller('health')
 export class HealthController {
   constructor(

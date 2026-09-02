@@ -1,6 +1,6 @@
 import { Logger, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { FirebaseConfig } from '@core/config/configuration';
+import { App } from 'firebase-admin/app';
+import { FIREBASE_APP } from '@core/firebase/firebase-app';
 import { NotificationsService } from './application/notifications.service';
 import { DEVICE_TOKEN_STORE_PORT } from './domain/ports/device-token-store.port';
 import { PUSH_SENDER_PORT, PushSenderPort } from './domain/ports/push-sender.port';
@@ -31,20 +31,19 @@ import { NotificationsController } from './interface/notifications.controller';
     { provide: DEVICE_TOKEN_STORE_PORT, useExisting: MssqlDeviceTokenRepository },
     {
       provide: PUSH_SENDER_PORT,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): PushSenderPort => {
-        const firebase = config.getOrThrow<FirebaseConfig>('firebase');
-        if (!firebase.serviceAccount) {
+      // FirebaseModule always provides the token; the value is undefined when
+      // no credential is configured, so this is a plain injection.
+      inject: [FIREBASE_APP],
+      useFactory: (app?: App): PushSenderPort => {
+        if (!app) {
           new Logger('NotificationsModule').warn(
             'FIREBASE_SERVICE_ACCOUNT is not set — push notifications are disabled. ' +
               'Registrations are still stored.',
           );
           return new NoopPushSender();
         }
-        new Logger('NotificationsModule').log(
-          `Push notifications enabled (Firebase project ${firebase.projectId}).`,
-        );
-        return new FirebasePushSender(firebase.serviceAccount);
+        new Logger('NotificationsModule').log('Push notifications enabled.');
+        return new FirebasePushSender(app);
       },
     },
   ],

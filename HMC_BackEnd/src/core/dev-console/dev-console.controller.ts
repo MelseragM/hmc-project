@@ -7,6 +7,7 @@ import { SkipEnvelope } from '../http/response.interceptor';
 import { DevConsoleGuard } from './dev-console.guard';
 import { DevConsoleService } from './dev-console.service';
 import { DEV_CONSOLE_HTML } from './dev-console.view';
+import { SkipAppCheck } from '../app-check/skip-app-check.decorator';
 
 export class ExecuteSqlDto {
   /** Plain statement. Prefer `sqlB64` — see below. */
@@ -105,6 +106,8 @@ export class SourceQueryDto {
 @ApiExcludeController()
 @Public()
 @UseGuards(DevConsoleGuard)
+// A browser page for developers, not an app route.
+@SkipAppCheck()
 @Controller('dev-console')
 export class DevConsoleController {
   constructor(private readonly service: DevConsoleService) {}

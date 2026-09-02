@@ -335,6 +335,29 @@ export interface FirebaseConfig {
   projectId?: string;
   /** Whether a usable credential was resolved at boot. */
   enabled: boolean;
+  appCheck: AppCheckConfig;
+}
+
+/**
+ * How strictly App Check is applied.
+ *
+ * `enforce` can lock real users out of the app — a device without Play
+ * Services, a rooted phone, a sideloaded build and an unregistered emulator
+ * are all rejected by Play Integrity — so the rollout is deliberately staged
+ * and the default is `off`. Run `observe` first and read the logs: it reports
+ * what WOULD have been rejected while letting every request through.
+ */
+export type AppCheckMode = 'off' | 'observe' | 'enforce';
+
+export interface AppCheckConfig {
+  mode: AppCheckMode;
+  /**
+   * Firebase App IDs allowed to call, e.g.
+   * `1:92441560390:android:…`. Empty means any app in the project — App Check
+   * already rejects tokens from outside it, so this only matters when the
+   * project hosts more than one app.
+   */
+  allowedAppIds: string[];
 }
 
 /** The fields of a Google service account this project uses. */
@@ -600,6 +623,19 @@ export default (): RootConfig => ({
   },
   firebase: ((): FirebaseConfig => {
     const serviceAccount = loadFirebaseServiceAccount();
-    return { serviceAccount, projectId: serviceAccount?.project_id, enabled: !!serviceAccount };
+    const mode = (process.env.APP_CHECK_MODE ?? 'off').toLowerCase();
+    return {
+      serviceAccount,
+      projectId: serviceAccount?.project_id,
+      enabled: !!serviceAccount,
+      appCheck: {
+        // Anything unrecognised means off: a typo must not silently enforce.
+        mode: (['off', 'observe', 'enforce'].includes(mode) ? mode : 'off') as AppCheckMode,
+        allowedAppIds: (process.env.APP_CHECK_ALLOWED_APP_IDS ?? '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      },
+    };
   })(),
 });

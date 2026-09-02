@@ -6,6 +6,8 @@ import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { OracleModule } from './database/oracle.module';
 import { MssqlModule } from './database/mssql.module';
+import { FirebaseModule } from './firebase/firebase.module';
+import { AppCheckGuard } from './app-check/app-check.guard';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
@@ -44,6 +46,7 @@ import { DevConsoleModule } from './dev-console/dev-console.module';
     EventEmitterModule.forRoot(),
     OracleModule,
     MssqlModule,
+    FirebaseModule,
     AuthModule,
     AuditModule,
     ApiLogsModule,
@@ -64,6 +67,8 @@ import { DevConsoleModule } from './dev-console/dev-console.module';
     { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // After JwtAuthGuard: identity first, then whether the caller is our app.
+    { provide: APP_GUARD, useClass: AppCheckGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: FunctionAccessGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

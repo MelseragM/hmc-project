@@ -31,6 +31,7 @@ import {
 import { ORACLE_LOG_VIEW_HTML } from './oracle-log.view';
 import { OracleMetadataService } from './oracle-metadata.service';
 import { assertReadOnlySelect } from './sql-console.util';
+import { SkipAppCheck } from '../app-check/skip-app-check.decorator';
 
 /** Query filters for GET /diagnostics/oracle-logs. */
 export class OracleLogQueryDto {
@@ -165,6 +166,8 @@ export class UsersDbSqlRequestDto {
  */
 @UseGuards(DiagnosticsEnabledGuard)
 @ApiTags('diagnostics')
+// Investigated with curl and Postman, never from the app.
+@SkipAppCheck()
 @Controller('diagnostics')
 export class DiagnosticsController {
   private readonly nodeEnv: string;
