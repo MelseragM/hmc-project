@@ -199,12 +199,6 @@ export interface MotcSmsConfig {
   connectTimeoutMs: number;
   encrypt: boolean;
   trustServerCertificate: boolean;
-  /**
-   * IGNORED since 2026-09-02 (client request, same as USERS_DB_DISABLED): the
-   * MOTC SMS DB pool is always created directly — eagerly at boot, retried
-   * lazily on first use. Kept only so existing .env/compose files with
-   * MOTC_SMS_DB_DISABLED don't break parsing.
-   */
   disabled: boolean;
   /**
    * Enables POST /diagnostics/motc-sms-db/sql (ad-hoc SELECT console). Ignored

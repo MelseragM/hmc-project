@@ -142,37 +142,7 @@ describe('database boot resilience', () => {
     await expect(service.onModuleInit()).resolves.toBeUndefined();
 
     await expect(service.ping()).resolves.toBe(false);
-    // Since 2026-09-02 the pool is created lazily (like the Users DB): a query
-    // retries the connection and surfaces the failure as a clean 503.
-    await expect(service.query('SELECT 1 AS ok')).rejects.toThrow(MssqlUnavailableException);
-  });
-
-  it('MOTC SMS DB ignores MOTC_SMS_DB_DISABLED and heals without a restart', async () => {
-    const service = new MotcSmsDbService(config('motcSms', { ...MSSQL_CFG, disabled: true }));
-    await service.onModuleInit(); // first attempt fails (mock rejects) — but it IS attempted
-    expect(service.isEnabled()).toBe(false);
-    expect(service.isConfigured()).toBe(true); // disabled flag no longer counts
-
-    // The database comes back: the next lazy attempt succeeds.
-    const query = jest.fn().mockResolvedValue({ recordset: [{ ok: 1 }], rowsAffected: [0] });
-    (sql.ConnectionPool as unknown as jest.Mock).mockImplementation(() => ({
-      connect: jest.fn().mockResolvedValue({ on: jest.fn(), request: () => ({ input: jest.fn(), query }) }),
-    }));
-
-    await expect(service.query('SELECT 1 AS ok')).resolves.toEqual([{ ok: 1 }]);
-    expect(service.isEnabled()).toBe(true);
-  });
-
-  it('names the missing MOTC_SMS_DB_* vars when unconfigured', async () => {
-    const service = new MotcSmsDbService(
-      config('motcSms', { ...MSSQL_CFG, host: '', user: '' }),
-    );
-    await service.onModuleInit();
-
-    await expect(service.query('SELECT 1 AS ok')).rejects.toThrow(
-      /MOTC_SMS_DB_HOST, MOTC_SMS_DB_USER/,
-    );
-    expect(service.isConfigured()).toBe(false);
+    expect(() => service['getPool']()).toThrow(MssqlUnavailableException);
   });
 
   it('reports the real reason on /health instead of dying silently', async () => {
