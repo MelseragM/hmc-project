@@ -21,7 +21,7 @@ export interface AppConfig {
   logLevel: string;
   /**
    * Identity provider for the auth journey: LDAPS, Entra ID (Graph), or the
-   * legacy Users DB itself (`usersdb` — HMC_Sanad_DeviceRegn_tbl, no directory).
+   * legacy Users DB itself (`usersdb` â€” HMC_Sanad_DeviceRegn_tbl, no directory).
    */
   directory: 'ldap' | 'entra' | 'usersdb';
 }
@@ -38,7 +38,7 @@ export interface OracleConfig {
   disabled: boolean;
   /**
    * Enables POST /diagnostics/oracle/sql (ad-hoc SELECT-only console over the
-   * XXHMC_SND_* schema). Ignored in production — always 403 there.
+   * XXHMC_SND_* schema). Ignored in production â€” always 403 there.
    */
   sqlConsoleEnabled: boolean;
   /** Use node-oracledb Thick mode (requires Oracle Client libraries at runtime). */
@@ -56,12 +56,12 @@ export interface OracleConfig {
  * starts READ-ONLY (SELECT/WITH/EXPLAIN, rolled back); write/PLSQL mode is a
  * deliberate switch in the UI itself (per process, reset on restart) rather
  * than an env variable. All env vars are optional hardening:
- *   DEV_CONSOLE_ENABLED=false → kill switch
- *   DEV_CONSOLE_TOKEN=<secret> → require `x-console-token` / `?token=`
- *   DEV_CONSOLE_ALLOW_WRITE=true → start already in write mode
+ *   DEV_CONSOLE_ENABLED=false â†’ kill switch
+ *   DEV_CONSOLE_TOKEN=<secret> â†’ require `x-console-token` / `?token=`
+ *   DEV_CONSOLE_ALLOW_WRITE=true â†’ start already in write mode
  */
 export interface DevConsoleConfig {
-  /** Master switch (DEV_CONSOLE_ENABLED). Defaults to ON — set `false` to remove the routes. */
+  /** Master switch (DEV_CONSOLE_ENABLED). Defaults to ON â€” set `false` to remove the routes. */
   enabled: boolean;
   /** Shared secret required in the `x-console-token` header / `?token=`. Empty = no token check. */
   token: string;
@@ -75,7 +75,7 @@ export interface DevConsoleConfig {
 
 /**
  * Master switch for the observability/test surface: the diagnostics APIs
- * (`/diagnostics/*` — Oracle logs, oracle-object, the users-db and motc-sms-db
+ * (`/diagnostics/*` â€” Oracle logs, oracle-object, the users-db and motc-sms-db
  * SQL consoles), the API request/response log (`/api-logs/*`), and the DB
  * connection-test endpoints (`/health/db`, `/health/users-db`,
  * `/health/motc-sms-db`). The plain `/health` liveness endpoint is NOT gated
@@ -85,7 +85,7 @@ export interface DevConsoleConfig {
  * apply on top when this is on.
  */
 export interface DiagnosticsConfig {
-  /** DIAGNOSTICS_ENABLED — defaults to true; set false to remove the routes. */
+  /** DIAGNOSTICS_ENABLED â€” defaults to true; set false to remove the routes. */
   enabled: boolean;
 }
 
@@ -133,7 +133,7 @@ export interface AppLaunchConfig {
 }
 
 /**
- * Users/Sanaad SQL Server database — backs the auth cycle (device registration,
+ * Users/Sanaad SQL Server database â€” backs the auth cycle (device registration,
  * MPIN, OTP rows) and the API-1 downtime/app-update tables. Legacy tables:
  * HMC_Sanad_DeviceRegn_tbl, HMC_RHAP_OTP_tbl, HMC_Sanad_AppDownTime_tbl, ...
  */
@@ -145,7 +145,7 @@ export interface UsersDbConfig {
   password: string;
   poolMin: number;
   poolMax: number;
-  /** Per-request timeout (ms) — mirrors ORACLE_CALL_TIMEOUT_MS convention. */
+  /** Per-request timeout (ms) â€” mirrors ORACLE_CALL_TIMEOUT_MS convention. */
   requestTimeoutMs: number;
   connectTimeoutMs: number;
   /** TLS to the SQL Server (true unless the instance has no cert). */
@@ -154,13 +154,13 @@ export interface UsersDbConfig {
   trustServerCertificate: boolean;
   /**
    * IGNORED since 2026-08-31 (client request): the Users DB pool is always
-   * created directly — eagerly at boot, retried lazily on first use. Kept only
+   * created directly â€” eagerly at boot, retried lazily on first use. Kept only
    * so existing .env/compose files with USERS_DB_DISABLED don't break parsing.
    */
   disabled: boolean;
   /**
    * Enables POST /diagnostics/users-db/sql (ad-hoc SELECT console). Ignored in
-   * production — the endpoint is always 403 there regardless of this flag.
+   * production â€” the endpoint is always 403 there regardless of this flag.
    */
   sqlConsoleEnabled: boolean;
 }
@@ -181,7 +181,7 @@ export interface SmsConfig {
 
 /**
  * MOTC SMS gateway database (client request 2026-08-25): the OTP is generated
- * by us, INSERTed into `MOTC_SMS_PushTable` (the government SMS push outbox —
+ * by us, INSERTed into `MOTC_SMS_PushTable` (the government SMS push outbox â€”
  * the insert IS the SMS delivery) and validated back against the same table.
  * A second SQL Server pool next to the Users DB (named instance, static port).
  */
@@ -202,19 +202,19 @@ export interface MotcSmsConfig {
   disabled: boolean;
   /**
    * Enables POST /diagnostics/motc-sms-db/sql (ad-hoc SELECT console). Ignored
-   * in production — the endpoint is always 403 there regardless of this flag.
+   * in production â€” the endpoint is always 403 there regardless of this flag.
    */
   sqlConsoleEnabled: boolean;
-  /** Push/outbox table name (interpolated as an identifier — validated). */
+  /** Push/outbox table name (interpolated as an identifier â€” validated). */
   table: string;
   /**
-   * <AppId> of the client's INSERT — written to ServiceID, ApplicationID and
+   * <AppId> of the client's INSERT â€” written to ServiceID, ApplicationID and
    * (unless fromAddress overrides it) FromAddress.
    */
   appId: string;
   /** FromAddress column; empty = use appId (mirrors the client's INSERT). */
   fromAddress: string;
-  /** <Subject> → SubjectID column. */
+  /** <Subject> â†’ SubjectID column. */
   subjectId: string;
   priority: string;
   languageId: string;
@@ -261,14 +261,14 @@ export interface LdapConfig {
   host: string;
   /** Directory port (636 = LDAPS, 389 = plain LDAP). */
   port: number;
-  /** Use LDAPS (SSL) — true for port 636. */
+  /** Use LDAPS (SSL) â€” true for port 636. */
   useSsl: boolean;
   /** Connection URL; derived from host/port/useSsl when LDAP_URL is unset. */
   url: string;
   /**
    * UPN domain suffix for direct binds (`username@upnDomain`), e.g. HMC.ORG.QA.
    * Defaults to `host`. Used by `authenticate()`, which binds directly as the
-   * user — no service-account search needed.
+   * user â€” no service-account search needed.
    */
   upnDomain: string;
   /** Search base, e.g. DC=hmc,DC=org,DC=qa. Used by `validate()` only. */
@@ -285,7 +285,7 @@ export interface LdapConfig {
   tlsRejectUnauthorized: boolean;
   /**
    * CA certificate(s) (PEM) to trust for LDAPS, read once at boot from
-   * LDAP_CA_CERT (inline PEM) or LDAP_CA_CERT_PATH (file path) — inline wins
+   * LDAP_CA_CERT (inline PEM) or LDAP_CA_CERT_PATH (file path) â€” inline wins
    * if both are set. Required to set `tlsRejectUnauthorized: true` against an
    * internal/self-signed AD CA; leave unset only for a quick connectivity
    * test (with tlsRejectUnauthorized=false).
@@ -296,7 +296,7 @@ export interface LdapConfig {
 }
 
 /**
- * Azure Entra ID (Microsoft Graph) directory lookup — the cloud replacement for
+ * Azure Entra ID (Microsoft Graph) directory lookup â€” the cloud replacement for
  * the LDAPS `validate()` path. App-only (client-credentials) auth; used only to
  * resolve employee identity + phone (the mobile journey stays OTP + MPIN).
  */
@@ -315,56 +315,80 @@ export interface EntraConfig {
 }
 
 /**
- * Firebase Admin — push notifications (FCM), and later App Check verification.
+ * Firebase Admin â€” push notifications (FCM), and later App Check verification.
  * Both are served by the same service-account credential.
  *
  * The credential is a PRIVATE KEY and never lives in the repository. It is read
- * once at boot from FIREBASE_SERVICE_ACCOUNT (the JSON itself, raw or base64 —
+ * once at boot from FIREBASE_SERVICE_ACCOUNT (the JSON itself, raw or base64 â€”
  * convenient for containers) or FIREBASE_SERVICE_ACCOUNT_PATH (a file on the
  * host), inline winning if both are set. Same shape as LDAP_CA_CERT above, so
  * there is no second convention to learn.
  *
  * Unset means push is DISABLED, not broken: the module binds a no-op sender and
  * the API keeps working. A half-configured deployment must not take the
- * notifications endpoints — or anything that emits one — down with it.
+ * notifications endpoints â€” or anything that emits one â€” down with it.
  */
 export interface FirebaseConfig {
   /** Parsed service account, or undefined when push is not configured. */
   serviceAccount?: FirebaseServiceAccount;
-  /** `sanaadprd` — read from the credential; exposed for logging/diagnostics. */
+  /** `sanaadprd` â€” read from the credential; exposed for logging/diagnostics. */
   projectId?: string;
   /** Whether a usable credential was resolved at boot. */
   enabled: boolean;
-  appCheck: AppCheckConfig;
 }
 
 /**
- * How strictly App Check is applied.
+ * How strictly device attestation is applied.
  *
- * `enforce` can lock real users out of the app — a device without Play
- * Services, a rooted phone, a sideloaded build and an unregistered emulator
- * are all rejected by Play Integrity — so the rollout is deliberately staged
- * and the default is `off`. Run `observe` first and read the logs: it reports
- * what WOULD have been rejected while letting every request through.
+ * `enforce` can lock real users out â€” Play Integrity refuses a device without
+ * Play Services, a rooted phone and a sideloaded build, and App Attest refuses
+ * a simulator â€” so the rollout is deliberately staged and the default is
+ * `off`. Run `observe` first and read the logs: it reports what WOULD have
+ * been rejected while letting every request through.
  */
-export type AppCheckMode = 'off' | 'observe' | 'enforce';
-
-export interface AppCheckConfig {
-  mode: AppCheckMode;
-  /**
-   * Firebase App IDs allowed to call, e.g.
-   * `1:92441560390:android:…`. Empty means any app in the project — App Check
-   * already rejects tokens from outside it, so this only matters when the
-   * project hosts more than one app.
-   */
-  allowedAppIds: string[];
-}
+export type IntegrityMode = 'off' | 'observe' | 'enforce';
 
 /** The fields of a Google service account this project uses. */
 export interface FirebaseServiceAccount {
   project_id: string;
   client_email: string;
   private_key: string;
+}
+
+/**
+ * Device attestation â€” Apple App Attest and Google Play Integrity, verified
+ * directly rather than through Firebase App Check.
+ *
+ * Same staged rollout as everything else that can refuse a request: `off` by
+ * default, `observe` to measure, `enforce` to act. Each platform is judged
+ * independently, so iOS can enforce while Android is still only observed.
+ */
+export interface AppIntegrityConfig {
+  mode: IntegrityMode;
+  ios: {
+    /** Apple Developer Team ID; the app id verified is `<teamId>.<bundleId>`. */
+    teamId: string;
+    bundleId: string;
+    /**
+     * Accept attestations produced by the App Attest DEVELOPMENT environment.
+     * Xcode debug builds emit those, and a production server must reject them.
+     */
+    allowDevelopment: boolean;
+    /** Configured enough to verify anything. */
+    enabled: boolean;
+  };
+  android: {
+    packageName: string;
+    /**
+     * Service account with the `playintegrity` scope. NOT the Firebase key â€”
+     * decoding an integrity token is a separate Google API with its own
+     * authorization.
+     */
+    serviceAccount?: FirebaseServiceAccount;
+    enabled: boolean;
+  };
+  /** How long a challenge stays usable, in milliseconds. */
+  challengeTtlMs: number;
 }
 
 export interface RootConfig {
@@ -383,6 +407,7 @@ export interface RootConfig {
   ldap: LdapConfig;
   entra: EntraConfig;
   firebase: FirebaseConfig;
+  appIntegrity: AppIntegrityConfig;
 }
 
 const toBool = (v: unknown): boolean => v === true || v === 'true';
@@ -397,9 +422,19 @@ const toBool = (v: unknown): boolean => v === true || v === 'true';
  * API fails to boot.
  */
 function loadFirebaseServiceAccount(): FirebaseServiceAccount | undefined {
-  const inline = process.env.FIREBASE_SERVICE_ACCOUNT;
-  const path = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  return loadServiceAccount(
+    process.env.FIREBASE_SERVICE_ACCOUNT,
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+    'FIREBASE_SERVICE_ACCOUNT',
+  );
+}
 
+/** Shared by the Firebase and Play Integrity credentials â€” same file shape. */
+function loadServiceAccount(
+  inline: string | undefined,
+  path: string | undefined,
+  label: string,
+): FirebaseServiceAccount | undefined {
   let raw: string | undefined;
   if (inline) {
     // A base64 blob has no braces; raw JSON does.
@@ -411,7 +446,7 @@ function loadFirebaseServiceAccount(): FirebaseServiceAccount | undefined {
       raw = fs.readFileSync(path, 'utf8');
     } catch (err) {
       console.warn(
-        `[configuration] Could not read FIREBASE_SERVICE_ACCOUNT_PATH="${path}": ${(err as Error).message}`,
+        `[configuration] Could not read ${label}_PATH="${path}": ${(err as Error).message}`,
       );
       return undefined;
     }
@@ -421,13 +456,13 @@ function loadFirebaseServiceAccount(): FirebaseServiceAccount | undefined {
   try {
     const parsed = JSON.parse(raw) as Partial<FirebaseServiceAccount>;
     if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
-      console.warn('[configuration] Firebase service account is missing required fields.');
+      console.warn(`[configuration] ${label} is missing required fields.`);
       return undefined;
     }
     // `\n` survives an env var only escaped; the SDK needs real newlines.
     return { ...parsed, private_key: parsed.private_key.replace(/\\n/g, '\n') } as FirebaseServiceAccount;
   } catch {
-    console.warn('[configuration] Firebase service account is not valid JSON.');
+    console.warn(`[configuration] ${label} is not valid JSON.`);
     return undefined;
   }
 }
@@ -436,7 +471,7 @@ function loadFirebaseServiceAccount(): FirebaseServiceAccount | undefined {
  * Resolve the LDAPS CA certificate: an inline PEM (LDAP_CA_CERT, `\n`
  * unescaped so it can be set as a single-line env var) wins over a file path
  * (LDAP_CA_CERT_PATH). Runs once at config-load time (before the Nest Logger
- * exists), so a missing/unreadable file is only ever `console.warn`'d —
+ * exists), so a missing/unreadable file is only ever `console.warn`'d â€”
  * never throws, since LDAP may be disabled or mid-provisioning.
  */
 function loadLdapCaCert(): Buffer | undefined {
@@ -600,7 +635,7 @@ export default (): RootConfig => ({
       `${toBool(process.env.LDAP_USE_SSL ?? 'true') ? 'ldaps' : 'ldap'}://${
         process.env.LDAP_HOST ?? 'HMC.ORG.QA'
       }:${Number(process.env.LDAP_PORT ?? 636)}`,
-    // Defaults to LDAP_HOST — override only if the UPN suffix differs from
+    // Defaults to LDAP_HOST â€” override only if the UPN suffix differs from
     // the directory host (uncommon).
     upnDomain: process.env.LDAP_UPN_DOMAIN || process.env.LDAP_HOST || 'HMC.ORG.QA',
     baseDn: process.env.LDAP_BASE_DN ?? 'DC=hmc,DC=org,DC=qa',
@@ -623,19 +658,35 @@ export default (): RootConfig => ({
   },
   firebase: ((): FirebaseConfig => {
     const serviceAccount = loadFirebaseServiceAccount();
-    const mode = (process.env.APP_CHECK_MODE ?? 'off').toLowerCase();
+    return { serviceAccount, projectId: serviceAccount?.project_id, enabled: !!serviceAccount };
+  })(),
+  appIntegrity: ((): AppIntegrityConfig => {
+    const mode = (process.env.APP_INTEGRITY_MODE ?? 'off').toLowerCase();
+    const teamId = process.env.APPLE_TEAM_ID ?? '';
+    const bundleId = process.env.APPLE_BUNDLE_ID ?? '';
+    const packageName = process.env.ANDROID_PACKAGE_NAME ?? '';
+    const androidKey = loadServiceAccount(
+      process.env.PLAY_INTEGRITY_SERVICE_ACCOUNT,
+      process.env.PLAY_INTEGRITY_SERVICE_ACCOUNT_PATH,
+      'PLAY_INTEGRITY_SERVICE_ACCOUNT',
+    );
     return {
-      serviceAccount,
-      projectId: serviceAccount?.project_id,
-      enabled: !!serviceAccount,
-      appCheck: {
-        // Anything unrecognised means off: a typo must not silently enforce.
-        mode: (['off', 'observe', 'enforce'].includes(mode) ? mode : 'off') as AppCheckMode,
-        allowedAppIds: (process.env.APP_CHECK_ALLOWED_APP_IDS ?? '')
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
+      // Anything unrecognised means off: a typo must not silently enforce.
+      mode: (['off', 'observe', 'enforce'].includes(mode) ? mode : 'off') as IntegrityMode,
+      ios: {
+        teamId,
+        bundleId,
+        // App Attest needs no Apple secret â€” verification is local, against a
+        // public root CA â€” so a Team ID and bundle id are the whole setup.
+        allowDevelopment: toBool(process.env.APPLE_APP_ATTEST_ALLOW_DEVELOPMENT),
+        enabled: !!teamId && !!bundleId,
       },
+      android: {
+        packageName,
+        serviceAccount: androidKey,
+        enabled: !!packageName && !!androidKey,
+      },
+      challengeTtlMs: Number(process.env.APP_INTEGRITY_CHALLENGE_TTL_MS ?? 300000),
     };
   })(),
 });

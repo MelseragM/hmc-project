@@ -226,30 +226,52 @@ have (`NotificationsService.notifyUser(username, message)`).
   would otherwise need to know notifications exist, and a later "notify from
   approvals" would close the cycle.
 
-## App integrity (Firebase App Check)
+## Device attestation (App Attest + Play Integrity)
 
-`core/app-check/` — a global guard after `JwtAuthGuard`. The JWT says WHO is
-calling; App Check says WHAT is. One verification covers both platforms
-(Play Integrity on Android, App Attest on iOS) because App Check wraps them —
-verifying Apple's attestation objects and Google's verdicts separately would be
-weeks of key handling for the same answer.
+`src/modules/app-integrity/` — Apple and Google verified directly, not through
+Firebase App Check. (App Check was built first and then removed on the client's
+decision; do not reintroduce it alongside this.)
 
-- `APP_CHECK_MODE` = `off` (default) | `observe` | `enforce`. **Roll out via
-  `observe`**: enforcement rejects real devices — no Play Services, rooted,
-  sideloaded, an emulator without a registered debug token — and observe
-  reports exactly what would have been refused while letting everything
-  through. An unrecognised value means `off`, so a typo cannot silently start
-  rejecting users.
-- Asking to enforce with no Firebase credential logs an ERROR and **allows**
-  every request. A missing key is a deployment fault; closing the whole API
-  over it would be worse than not checking.
-- `@SkipAppCheck()` exempts a controller — applied to health, diagnostics and
-  the dev console, which are called by probes and humans, not the app. Mobile
-  routes including login stay covered; blocking scripted credential attempts is
-  much of the point.
-- The Firebase app itself is `core/firebase/` (global), shared with FCM — both
-  are features of the same service account, and two SDK apps would mean two
-  token caches and two credentials to reason about.
+The two platforms are genuinely different, and that shapes the module:
+
+- **iOS** registers ONCE (`POST /app-integrity/ios/register`) and afterwards
+  signs each request with the Secure Enclave key, so the server issues a nonce
+  and keeps a public key per installation.
+- **Android** has no registration. Every call carries a fresh token that
+  already contains a hash of the request body, so nothing is stored.
+
+Facts worth not rediscovering:
+
+- **There is no Apple endpoint that validates an attestation.** The widely
+  copied `validate_device_token` call belongs to DeviceCheck — a different,
+  older feature — and neither accepts an attestation object nor returns a
+  public key. Verification is local: parse the CBOR, check the certificate
+  chain against Apple's App Attest root CA (`node-app-attest` does this).
+- **App Attest therefore needs no Apple secret** — `APPLE_TEAM_ID` and
+  `APPLE_BUNDLE_ID` are the whole setup. The `.p8` keys people associate with
+  it are for DeviceCheck and for APNs.
+- **Play Integrity needs its own credential**, not the Firebase one:
+  `PLAY_INTEGRITY_SERVICE_ACCOUNT` with the `playintegrity` scope. The method
+  is `playintegrity.v1.decodeIntegrityToken` — not a top-level
+  `decodePlayIntegrity`, which does not exist on the client.
+- A challenge is **stored and single-use**; consuming it is one conditional
+  UPDATE so two racing requests cannot both spend it. It is spent even when
+  the attestation then fails, or a captured one could be retried until
+  accepted. Generating a nonce and forgetting it — as most samples do — makes
+  the whole exercise decorative.
+- The iOS **sign counter must advance**; a repeated value is a replay.
+- `APP_INTEGRITY_MODE` = `off` (default) | `observe` | `enforce`. **Roll out
+  via `observe`**: enforcement rejects real devices (no Play Services, rooted,
+  sideloaded, simulator) and observe reports what would have been refused while
+  letting everything through. An unrecognised value means `off`.
+- `@SkipIntegrity()` (`core/integrity/`) exempts a controller — health,
+  diagnostics, the dev console and the attestation routes themselves, since a
+  device cannot prove itself before registering. Mobile routes including login
+  stay covered.
+- Each platform binds a refusing stub when unconfigured, so iOS can be live
+  while the Android credential is still being issued. Storage is
+  `tools/app-integrity-schema.sql`; a missing table warns once and means
+  "cannot verify", never a crash.
 
 ## Outstanding — not a code issue
 

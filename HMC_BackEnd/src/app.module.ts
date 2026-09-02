@@ -15,6 +15,7 @@ import { AppointmentsModule } from '@modules/appointments/appointments.module';
 import { AnnualTicketModule } from '@modules/annual-ticket/annual-ticket.module';
 import { ApprovalsModule } from '@modules/approvals/approvals.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AppIntegrityModule } from './modules/app-integrity/app-integrity.module';
 
 /**
  * Root module. Imports core cross-cutting concerns, the shared lookups kernel,
@@ -40,6 +41,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     AnnualTicketModule,
     ApprovalsModule,
     NotificationsModule,
+    AppIntegrityModule,
   ],
 })
 export class AppModule {}
