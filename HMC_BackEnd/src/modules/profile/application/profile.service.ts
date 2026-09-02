@@ -3,6 +3,7 @@ import { Lang } from '@shared/domain/lang';
 import { LovItem } from '@shared/domain/lov-item';
 import { SubmitResult } from '@shared/domain/submit-result';
 import { ORACLE_OBJECTS } from '@shared/constants/oracle-objects';
+import { collapseSpaceRuns } from '@shared/utils/collapse-spaces.util';
 import { AuthenticatedUser } from '@core/auth/auth-user.interface';
 import { LookupsService } from '@lookups/application/lookups.service';
 import { WorklistService } from '../../approvals/application/approvals.service';
@@ -27,18 +28,21 @@ export class ProfileService {
    * (getworklist documented query: `(RECIPIENT_ROLE = :u AND MORE_INFO_ROLE IS
    * NULL) OR MORE_INFO_ROLE = :u`). Delegates to the approvals module's
    * WorklistService so the SQL is implemented once (op 68 shares it).
+   * FROM_USER/TO_USER/SUBJECT arrive CHAR-padded ("037400    - Amir Ibrahim"),
+   * so space runs are collapsed before the rows leave the service.
    */
-  notifications(username: string, lang: Lang) {
-    return this.worklist.worklist(username, lang);
+  async notifications(username: string, lang: Lang) {
+    return collapseSpaceRuns(await this.worklist.worklist(username, lang));
   }
 
   /**
    * Notification summary — op 69's getworklistsummary query: the same
    * WORKLISTS_V role filter additionally scoped to one NOTIFICATION_ID
-   * (omitted = the full list, same as `notifications`).
+   * (omitted = the full list, same as `notifications`). Space runs are
+   * collapsed like in `notifications`.
    */
-  notificationSummary(username: string, lang: Lang, notificationId?: string) {
-    return this.worklist.worklistSummary(username, lang, notificationId);
+  async notificationSummary(username: string, lang: Lang, notificationId?: string) {
+    return collapseSpaceRuns(await this.worklist.worklistSummary(username, lang, notificationId));
   }
 
   /**

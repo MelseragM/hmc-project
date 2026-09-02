@@ -68,7 +68,7 @@ function baseKeyFor(key: string, keys: string[]): string | undefined {
 }
 
 /** Recurse only into plain data objects — never Dates, Buffers or class instances. */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object') return false;
   const proto = Object.getPrototypeOf(value) as unknown;
   return proto === Object.prototype || proto === null;
