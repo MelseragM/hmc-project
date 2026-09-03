@@ -86,15 +86,26 @@ export class MssqlDeviceTokenRepository implements DeviceTokenStorePort {
     });
   }
 
-  async removeTokens(tokens: readonly string[]): Promise<void> {
-    if (!tokens.length) return;
-    await this.guard('removeTokens', async () => {
-      // Named binds only — the driver has no array parameter, and building the
-      // list by interpolation would be an injection point.
-      const binds = Object.fromEntries(tokens.map((t, i) => [`t${i}`, t]));
-      const placeholders = tokens.map((_, i) => `@t${i}`).join(', ');
+  async removeDevices(
+    devices: readonly { username: string; imei: string }[],
+  ): Promise<void> {
+    if (!devices.length) return;
+    await this.guard('removeDevices', async () => {
+      // Keyed on (LoginID, IMEINumber) — the pair the unique index already
+      // covers. Deleting by token value instead would need an index over a
+      // 4000-character column, and SQL Server caps a nonclustered key at 1700
+      // bytes: it warns that inserting a long token could fail.
+      //
+      // Named binds only; the driver has no array parameter and building the
+      // predicate by interpolation would be an injection point.
+      const binds: Record<string, unknown> = {};
+      const predicates = devices.map(({ username, imei }, i) => {
+        binds[`u${i}`] = username;
+        binds[`i${i}`] = imei;
+        return `(LoginID = @u${i} AND IMEINumber = @i${i})`;
+      });
       await this.db.execute(
-        `DELETE FROM ${TABLE} WHERE DeviceTokenValue IN (${placeholders})`,
+        `DELETE FROM ${TABLE} WHERE ${predicates.join(' OR ')}`,
         binds,
       );
     });

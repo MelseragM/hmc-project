@@ -52,7 +52,15 @@ export class NotificationsService {
         devices.map((d) => d.token),
         message,
       );
-      if (result.invalidTokens.length) await this.store.removeTokens(result.invalidTokens);
+
+      // Map the dead tokens back to the devices they came from: the identity
+      // of a registration is the device, and deleting by device uses the index
+      // the table already has.
+      const dead = new Set(result.invalidTokens);
+      const staleDevices = devices
+        .filter((d) => dead.has(d.token))
+        .map(({ username: owner, imei }) => ({ username: owner, imei }));
+      if (staleDevices.length) await this.store.removeDevices(staleDevices);
 
       if (result.failed) {
         NotificationsService.log.warn(

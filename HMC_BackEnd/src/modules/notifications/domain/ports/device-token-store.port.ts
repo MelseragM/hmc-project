@@ -21,11 +21,18 @@ export interface DeviceTokenStorePort {
   remove(username: string, imei: string): Promise<void>;
 
   /**
-   * Drop tokens FCM has rejected as permanently invalid, whoever owns them.
+   * Drop the registrations of devices FCM has rejected as permanently dead.
    * Keeping them would mean re-sending to the same dead devices on every
    * notification and reading the failures as if they meant something.
+   *
+   * Identified by DEVICE, not by token string. The caller has just read those
+   * devices in order to send to them, so it knows which is which — and a
+   * delete keyed on `(LoginID, IMEINumber)` uses the unique index the table
+   * already has, instead of needing one over a 4000-character token column.
+   * SQL Server caps a nonclustered index key at 1700 bytes, so that index was
+   * not merely wasteful: it warned that inserts of long tokens could fail.
    */
-  removeTokens(tokens: readonly string[]): Promise<void>;
+  removeDevices(devices: readonly { username: string; imei: string }[]): Promise<void>;
 }
 
 export const DEVICE_TOKEN_STORE_PORT = Symbol('DEVICE_TOKEN_STORE_PORT');

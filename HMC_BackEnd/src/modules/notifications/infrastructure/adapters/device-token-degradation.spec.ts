@@ -44,7 +44,9 @@ describe('device-token store when the deployment is incomplete', () => {
     });
 
     it('tolerates pruning', async () => {
-      await expect(make(missingTable()).removeTokens(['dead'])).resolves.toBeUndefined();
+      await expect(
+        make(missingTable()).removeDevices([{ username: 'AIBRAHIM39', imei: 'imei-1' }]),
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -60,20 +62,45 @@ describe('device-token store when the deployment is incomplete', () => {
   it('does not touch the database when there is nothing to prune', async () => {
     const db = { execute: jest.fn(), query: jest.fn() } as unknown as MssqlService;
 
-    await new MssqlDeviceTokenRepository(db).removeTokens([]);
+    await new MssqlDeviceTokenRepository(db).removeDevices([]);
 
     expect(db.execute).not.toHaveBeenCalled();
   });
 
-  it('binds each token by name when pruning — never string-built SQL', async () => {
+  it('prunes by device, never by token value', async () => {
+    // Deleting by token would need an index over NVARCHAR(4000) — 8000 bytes
+    // against SQL Server's 1700-byte key limit, which it warns can make an
+    // insert fail. (LoginID, IMEINumber) is already uniquely indexed.
     const execute = jest.fn().mockResolvedValue(undefined);
     const db = { execute, query: jest.fn() } as unknown as MssqlService;
 
-    await new MssqlDeviceTokenRepository(db).removeTokens(["a'; DROP TABLE x --", 'b']);
+    await new MssqlDeviceTokenRepository(db).removeDevices([
+      { username: 'AIBRAHIM39', imei: 'phone' },
+    ]);
+
+    const [sql] = execute.mock.calls[0] as [string];
+    expect(sql).toContain('LoginID');
+    expect(sql).toContain('IMEINumber');
+    expect(sql).not.toContain('DeviceTokenValue');
+  });
+
+  it('binds every identifier by name when pruning — never string-built SQL', async () => {
+    const execute = jest.fn().mockResolvedValue(undefined);
+    const db = { execute, query: jest.fn() } as unknown as MssqlService;
+
+    await new MssqlDeviceTokenRepository(db).removeDevices([
+      { username: "a'; DROP TABLE x --", imei: 'i1' },
+      { username: 'b', imei: 'i2' },
+    ]);
 
     const [sql, binds] = execute.mock.calls[0] as [string, Record<string, unknown>];
-    expect(sql).toContain('@t0');
+    expect(sql).toContain('@u0');
     expect(sql).not.toContain('DROP TABLE');
-    expect(binds).toEqual({ t0: "a'; DROP TABLE x --", t1: 'b' });
+    expect(binds).toEqual({
+      u0: "a'; DROP TABLE x --",
+      i0: 'i1',
+      u1: 'b',
+      i1: 'i2',
+    });
   });
 });
