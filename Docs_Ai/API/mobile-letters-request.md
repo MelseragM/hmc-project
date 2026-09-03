@@ -14,9 +14,10 @@ Every response below was captured from staging.
 3. [Step 2 — the language is not a choice](#step-2--the-language-is-not-a-choice)
 4. [Step 3 — the remaining fields](#step-3--the-remaining-fields)
 5. [Step 4 — submit](#step-4--submit)
-6. [Field reference](#field-reference)
-7. [The 22 letters and their languages](#the-22-letters-and-their-languages)
-8. [Errors, and what each one means](#errors-and-what-each-one-means)
+6. [Every shape of request](#every-shape-of-request)
+7. [Field reference](#field-reference)
+8. [The 22 letters and their languages](#the-22-letters-and-their-languages)
+9. [Errors, and what each one means](#errors-and-what-each-one-means)
 
 ---
 
@@ -141,19 +142,34 @@ body['p_purpose_comments']    = commentsController.text;
 | `p_letter_delivery_loc` | From `deliveryLoc[]`. Nine values today, e.g. `Al Wakra Hospital`, `Main Office - Doha`. |
 | `p_no_of_copies` | From `exitCopies[]` — `"1"` to `"5"`. `"0"` is rejected. `defaultCopy[]` gives the value to preselect. |
 | `p_purpose_comments` | Free text from the user. **Required** — an empty string fails validation. |
-| `p_country` | **Omit it.** See below. |
+| `p_country` | Only for **one** letter — see below. |
 
-### `p_country` — omit it
+### `p_country` — exactly one letter needs it
 
-The country lookup inside the procedure is guarded by
+**`Passing through Saudi Arabia` requires it.** Omitting it is a business
+rejection, with the server saying so plainly:
 
-```sql
-AND 'Passage to Saudi Arabia' = <letter>
+```json
+{ "successflag": "N", "message": "Validate Please enter the Country if the Letter selected is ..." }
 ```
 
-so for any other letter it can never match, and sending one guarantees a
-rejection. Show the country field **only** when the selected letter is the
-Saudi passage one; otherwise leave the key out of the body entirely.
+**Every other letter must not send it.** The country lookup is guarded by the
+letter name, so with any other letter it cannot match and the request is
+rejected.
+
+Note the letters that sound like they should need it and do not — `Hajj to
+Saudi Arabia Letter` and `Umrah to Saudi Arabia Letter` both succeed without a
+country. Only the passage letter asks for the destination, because that is the
+country being travelled through.
+
+So the rule is:
+
+```dart
+if (letter.usedValue == 'Passing through Saudi Arabia') {
+  body['p_country'] = lovs.country[i].usedValue;   // show the field
+}
+// otherwise do not include the key at all
+```
 
 ---
 
@@ -193,6 +209,63 @@ returns 200 for a business rejection too.
 
 ---
 
+## Every shape of request
+
+There are only three. All were run against staging and returned `S`.
+
+### 1. An English letter — the ordinary case
+
+```json
+{
+  "p_letter_name": "Bank letter with details with effective date",
+  "p_letter_language": "English",
+  "p_no_of_copies": "1",
+  "p_mobile_number": "55112233",
+  "p_letter_delivery_loc": "Al Wakra Hospital",
+  "p_purpose_comments": "test"
+}
+```
+
+### 2. An Arabic letter — identical, only the pair changes
+
+```json
+{
+  "p_letter_name": "Basic Salary Certificate",
+  "p_letter_language": "Arabic",
+  "p_no_of_copies": "1",
+  "p_mobile_number": "55112233",
+  "p_letter_delivery_loc": "Al Wakra Hospital",
+  "p_purpose_comments": "test"
+}
+```
+
+Nothing about the request is "Arabic" except the value read from that letter's
+own row. There is no separate endpoint and no different body shape.
+
+### 3. `Passing through Saudi Arabia` — the only one with a country
+
+```json
+{
+  "p_letter_name": "Passing through Saudi Arabia",
+  "p_letter_language": "Arabic",
+  "p_no_of_copies": "1",
+  "p_mobile_number": "55112233",
+  "p_letter_delivery_loc": "Al Wakra Hospital",
+  "p_purpose_comments": "test",
+  "p_country": "Egypt"
+}
+```
+
+Without `p_country` this one returns:
+
+```json
+{ "successflag": "N", "message": "Validate Please enter the Country if the Letter selected is ..." }
+```
+
+The Hajj and Umrah letters take the shape in example 2, not this one.
+
+---
+
 ## Field reference
 
 | Body field | Source | Required |
@@ -212,30 +285,30 @@ returns 200 for a business rejection too.
 Read this from `name[].description` at runtime — it is data and can change.
 The current state, for reference:
 
-| Letter | Issued in |
-|---|---|
-| Bank letter with details with effective date | English |
-| Bank letter with details without effective date | English |
-| Bank letter with housing allowance details | English |
-| Basic Salary Certificate | **Arabic** |
-| Completion of Probation Period Certificate | **Arabic** |
-| Completion of Probation Period without salary | **Arabic** |
-| Hajj to Saudi Arabia Letter | **Arabic** |
-| No Objection of Marriage Certificate (non Qatari) | English |
-| Passing through Saudi Arabia | **Arabic** |
-| Salary Certificate with salary details | English |
-| Salary Certificate with salary details (Arabic) | **Arabic** |
-| Service Certificate | English |
-| Service Certificate with basic salary only | English |
-| Service Certificate with official language of HMC | English |
-| Service Certificate with school assistance | English |
-| Service Certificate with total salary | English |
-| Service Certificate with total salary with accommodation and tickets | English |
-| Service Certificate: employee has no loans | English |
-| Service certificate without salary (Arabic) | **Arabic** |
-| Services/Salary Certificate including deductions | English |
-| Total Salary Certificate | **Arabic** |
-| Umrah to Saudi Arabia Letter | **Arabic** |
+| Letter | Issued in | Needs `p_country` |
+|---|---|---|
+| Bank letter with details with effective date | English | |
+| Bank letter with details without effective date | English | |
+| Bank letter with housing allowance details | English | |
+| Basic Salary Certificate | **Arabic** | |
+| Completion of Probation Period Certificate | **Arabic** | |
+| Completion of Probation Period without salary | **Arabic** | |
+| Hajj to Saudi Arabia Letter | **Arabic** | no |
+| No Objection of Marriage Certificate (non Qatari) | English | |
+| **Passing through Saudi Arabia** | **Arabic** | **yes** |
+| Salary Certificate with salary details | English | |
+| Salary Certificate with salary details (Arabic) | **Arabic** | |
+| Service Certificate | English | |
+| Service Certificate with basic salary only | English | |
+| Service Certificate with official language of HMC | English | |
+| Service Certificate with school assistance | English | |
+| Service Certificate with total salary | English | |
+| Service Certificate with total salary with accommodation and tickets | English | |
+| Service Certificate: employee has no loans | English | |
+| Service certificate without salary (Arabic) | **Arabic** | |
+| Services/Salary Certificate including deductions | English | |
+| Total Salary Certificate | **Arabic** | |
+| Umrah to Saudi Arabia Letter | **Arabic** | no |
 
 Note the pairs that look alike: *Salary Certificate with salary details* is
 English, and *Salary Certificate with salary details (Arabic)* is a separate,
@@ -317,6 +390,6 @@ seconds succeeds.
 - [ ] `p_letter_delivery_loc` from `deliveryLoc[]`
 - [ ] `p_no_of_copies` between 1 and 5
 - [ ] `p_purpose_comments` not empty
-- [ ] `p_country` omitted unless the letter is the Saudi passage one
+- [ ] `p_country` sent **only** for `Passing through Saudi Arabia`, and always for it
 - [ ] No placeholder text left in the body
 - [ ] Branch on `successflag`, not the HTTP status
