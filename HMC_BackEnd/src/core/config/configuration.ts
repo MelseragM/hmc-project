@@ -421,6 +421,14 @@ export interface RootConfig {
 const toBool = (v: unknown): boolean => v === true || v === 'true';
 
 /**
+ * Bundle identifier / package name of the Sanaad app — the same string on both
+ * platforms. Kept as a constant so the app's default cannot drift from the one
+ * `docker-compose.yml` supplies; two disagreeing defaults would mean
+ * attestation quietly works under compose and quietly does not elsewhere.
+ */
+const SANAAD_APP_ID = 'com.hmc.sanaad';
+
+/**
  * Resolve the Firebase service account: inline JSON (FIREBASE_SERVICE_ACCOUNT,
  * raw or base64 so it survives being a single-line env var) wins over a file
  * path (FIREBASE_SERVICE_ACCOUNT_PATH).
@@ -672,8 +680,13 @@ export default (): RootConfig => ({
   appIntegrity: ((): AppIntegrityConfig => {
     const mode = (process.env.APP_INTEGRITY_MODE ?? 'off').toLowerCase();
     const teamId = process.env.APPLE_TEAM_ID ?? '';
-    const bundleId = process.env.APPLE_BUNDLE_ID ?? '';
-    const packageName = process.env.ANDROID_PACKAGE_NAME ?? '';
+    // The app's own identity, not a secret and not environment-specific, so it
+    // defaults here to the same value docker-compose supplies. Defaulting to
+    // an empty string instead would leave iOS attestation silently disabled
+    // (`ios.enabled` requires a bundle id) for any deployment that does not go
+    // through compose — Kubernetes, systemd, a bare `node dist/main.js`.
+    const bundleId = process.env.APPLE_BUNDLE_ID ?? SANAAD_APP_ID;
+    const packageName = process.env.ANDROID_PACKAGE_NAME ?? SANAAD_APP_ID;
     const androidKey = loadServiceAccount(
       process.env.PLAY_INTEGRITY_SERVICE_ACCOUNT,
       process.env.PLAY_INTEGRITY_SERVICE_ACCOUNT_PATH,

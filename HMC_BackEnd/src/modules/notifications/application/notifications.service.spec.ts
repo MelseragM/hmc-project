@@ -11,14 +11,14 @@ const MESSAGE = { title: 'Leave approved', body: 'Your request was approved.' };
  */
 describe('NotificationsService', () => {
   function make(
-    devices: { token: string }[] = [{ token: 'tok-phone' }],
+    devices: { token: string; username?: string; imei?: string }[] = [{ token: 'tok-phone' }],
     result: PushResult = { sent: 1, failed: 0, invalidTokens: [] },
   ) {
     const store = {
       save: jest.fn().mockResolvedValue(undefined),
       findByUsername: jest.fn().mockResolvedValue(devices),
       remove: jest.fn().mockResolvedValue(undefined),
-      removeTokens: jest.fn().mockResolvedValue(undefined),
+      removeDevices: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<DeviceTokenStorePort>;
     const send = jest.fn().mockResolvedValue(result);
     const sender = { send, enabled: true } as unknown as PushSenderPort;
@@ -41,16 +41,45 @@ describe('NotificationsService', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('prunes tokens FCM says are permanently dead', async () => {
-    const { service, store } = make([{ token: 'live' }, { token: 'dead' }], {
-      sent: 1,
-      failed: 1,
-      invalidTokens: ['dead'],
-    });
+  /**
+   * Pruning is keyed on the DEVICE, not the token string: the caller has just
+   * read those devices in order to send to them, and a delete by
+   * (LoginID, IMEINumber) uses the unique index the table already has. An
+   * index over the 4000-character token column would exceed SQL Server's
+   * 1700-byte key limit — it warned that inserting a long token could fail.
+   */
+  it('prunes the device whose token FCM says is permanently dead', async () => {
+    const { service, store } = make(
+      [
+        { token: 'live', username: 'AIBRAHIM39', imei: 'phone' },
+        { token: 'dead', username: 'AIBRAHIM39', imei: 'tablet' },
+      ],
+      { sent: 1, failed: 1, invalidTokens: ['dead'] },
+    );
 
     await service.notifyUser('AIBRAHIM39', MESSAGE);
 
-    expect(store.removeTokens).toHaveBeenCalledWith(['dead']);
+    expect(store.removeDevices).toHaveBeenCalledWith([
+      { username: 'AIBRAHIM39', imei: 'tablet' },
+    ]);
+  });
+
+  it('leaves the live devices alone while pruning a dead one', async () => {
+    const { service, store } = make(
+      [
+        { token: 'dead-1', username: 'AIBRAHIM39', imei: 'old-phone' },
+        { token: 'live', username: 'AIBRAHIM39', imei: 'phone' },
+        { token: 'dead-2', username: 'AIBRAHIM39', imei: 'old-tablet' },
+      ],
+      { sent: 1, failed: 2, invalidTokens: ['dead-1', 'dead-2'] },
+    );
+
+    await service.notifyUser('AIBRAHIM39', MESSAGE);
+
+    const [removed] = (store.removeDevices as jest.Mock).mock.calls[0] as [
+      { imei: string }[],
+    ];
+    expect(removed.map((d) => d.imei)).toEqual(['old-phone', 'old-tablet']);
   });
 
   it('keeps a token whose send merely failed — a transient error is not a dead device', async () => {
@@ -62,7 +91,7 @@ describe('NotificationsService', () => {
 
     await service.notifyUser('AIBRAHIM39', MESSAGE);
 
-    expect(store.removeTokens).not.toHaveBeenCalled();
+    expect(store.removeDevices).not.toHaveBeenCalled();
   });
 
   it('swallows a transport failure rather than failing the caller', async () => {

@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, HttpCode, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { SkipEnvelope } from '@core/http/response.interceptor';
 import { Lang } from '@core/i18n/lang.decorator';
 import type { Lang as LangCode } from '@shared/domain/lang';
 import { CurrentUser } from '@core/auth/decorators/current-user.decorator';
@@ -128,23 +130,46 @@ export class ApprovalsController {
   /**
    * Download one of the files listed by `:id/details` → `attachments[].url`.
    *
-   * Open alongside `:id/details`, which advertises these URLs — gating one and
-   * not the other would ship a download button that always fails. The document
-   * id identifies only the file, so the service resolves the request it belongs
-   * to and requires the caller to own it.
+   * Serves the FILE, not a description of it: real bytes, the stored
+   * content-type, and a `Content-Disposition` filename. That is what lets a
+   * client point an image view or a PDF viewer straight at the URL. It
+   * previously answered a JSON envelope with the bytes base64-encoded inside,
+   * which nothing could render without unwrapping it first — and which was
+   * empty anyway, since BLOBs arrive as Lob streams and the reader tested for
+   * a Buffer.
+   *
+   * `@SkipEnvelope` because the Sanaad wrapper would turn a PDF into a JSON
+   * string. Open alongside `:id/details`, which advertises these URLs — gating
+   * one and not the other would ship a download button that always fails — and
+   * the service still requires the caller to own the request the file belongs
+   * to, since a document id identifies only the file.
    */
   @Roles()
+  @SkipEnvelope()
   @Get('attachments/:documentId')
   @ApiOperation({
-    summary: 'op 21b — Download a request attachment',
+    summary: 'op 21b — Download a request attachment (binary)',
     operationId: 'approvals_attachment',
   })
-  attachment(
+  @ApiOkResponse({
+    description: 'The file itself, with its own content-type.',
+    content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } },
+  })
+  async attachment(
     @Param('documentId') documentId: string,
     @Query() q: OwnScopeQueryDto,
     @CurrentUser() user: AuthenticatedUser,
+    @Res() res: Response,
   ) {
-    return this.approvals.attachment(documentId, user, q.enum ?? q.username);
+    const file = await this.approvals.attachment(documentId, user, q.enum ?? q.username);
+    const body = Buffer.from(file.contentBase64, 'base64');
+
+    res.setHeader('Content-Type', file.contentType);
+    res.setHeader('Content-Length', body.length);
+    // `inline` so a viewer renders it in place; a client that wants to save it
+    // can still do so. The name is quoted because filenames contain spaces.
+    res.setHeader('Content-Disposition', `inline; filename="${file.fileName.replace(/"/g, '')}"`);
+    res.send(body);
   }
 
   @Post(':id/decision')
