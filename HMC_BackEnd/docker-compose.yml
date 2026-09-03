@@ -111,11 +111,12 @@ services:
       MOTC_SMS_DB_ENCRYPT: "${MOTC_SMS_DB_ENCRYPT:-true}"
       MOTC_SMS_DB_TRUST_SERVER_CERT: "${MOTC_SMS_DB_TRUST_SERVER_CERT:-false}"
       MOTC_SMS_DB_DISABLED: "${MOTC_SMS_DB_DISABLED:-false}"
-      MOTC_SMS_SQL_ENABLED: "${MOTC_SMS_SQL_ENABLED:-false}"
+      MOTC_SMS_SQL_ENABLED: "${MOTC_SMS_SQL_ENABLED:-true}"
       # Fixed columns of the documented INSERT (values pending from the client).
       # Leave BUSINESS_PARAM1/2 empty so they carry username + IMEI (what lets
       # validation find "the latest OTP for THIS user+device").
       MOTC_SMS_TABLE: "${MOTC_SMS_TABLE:-MOTC_SMS_PushTable}"
+      MOTC_SMS_EMPLOYEE_MASTER_VIEW: "${MOTC_SMS_EMPLOYEE_MASTER_VIEW:-HMC_SND_LIV_EMP_MASTER_VW}"
       MOTC_SMS_APP_ID: "${MOTC_SMS_APP_ID:-}"
       MOTC_SMS_FROM_ADDRESS: "${MOTC_SMS_FROM_ADDRESS:-}"
       MOTC_SMS_SUBJECT_ID: "${MOTC_SMS_SUBJECT_ID:-}"

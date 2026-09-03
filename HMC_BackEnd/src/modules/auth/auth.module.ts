@@ -37,11 +37,11 @@ import { MssqlUserRepository } from './infrastructure/adapters/mssql-user.reposi
  * inside each application service triggers on AUTH_DISABLED=true only.
  *
  * The identity port (LDAP_USER_PORT) is bound at runtime by AUTH_DIRECTORY:
- * `entra` → Microsoft Graph (EntraGraphUserRepository), `usersdb` → the legacy
- * Users DB itself (MssqlUserRepository — no corporate directory, mirrors the
- * legacy userValidate device check), else LDAPS (LdapUserRepository, the
- * default/fallback). HttpModule backs the Graph and SMS adapters' outbound
- * calls.
+ * `entra` → Microsoft Graph (EntraGraphUserRepository), `usersdb` → the
+ * live-employee master view on the MOTC_SMS DB (MssqlUserRepository — no
+ * corporate directory; usernames absent from the view are refused), else
+ * LDAPS (LdapUserRepository, the default/fallback). HttpModule backs the
+ * Graph and SMS adapters' outbound calls.
  */
 @Module({
   imports: [HttpModule],

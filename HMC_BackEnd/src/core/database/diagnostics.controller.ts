@@ -15,7 +15,7 @@ import * as oracledb from 'oracledb';
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, Max, Min } from 'class-validator';
-import { AppConfig, MotcSmsConfig, UsersDbConfig } from '../config/configuration';
+import { AppConfig, UsersDbConfig } from '../config/configuration';
 import { Public } from '../auth/decorators/public.decorator';
 import { SkipEnvelope } from '../http/response.interceptor';
 import { DiagnosticsEnabledGuard } from '../http/diagnostics-enabled.guard';
@@ -172,7 +172,6 @@ export class UsersDbSqlRequestDto {
 export class DiagnosticsController {
   private readonly nodeEnv: string;
   private readonly usersDbCfg: UsersDbConfig;
-  private readonly motcSmsCfg: MotcSmsConfig;
 
   constructor(
     private readonly store: OracleLogStore,
@@ -184,7 +183,6 @@ export class DiagnosticsController {
   ) {
     this.nodeEnv = config.getOrThrow<AppConfig>('app').nodeEnv;
     this.usersDbCfg = config.getOrThrow<UsersDbConfig>('usersDb');
-    this.motcSmsCfg = config.getOrThrow<MotcSmsConfig>('motcSms');
   }
 
   /**
@@ -299,26 +297,23 @@ export class DiagnosticsController {
 
   /**
    * Ad-hoc read-only SQL console against the MOTC SMS gateway DB (the OTP
-   * push table) â€” the MOTC twin of /diagnostics/users-db/sql, gated by
-   * MOTC_SMS_SQL_ENABLED and hard-disabled in production. NOTE: result rows
-   * from MOTC_SMS_PushTable can contain live OTPs (MessageBody) and phone
-   * numbers â€” staging/dev debugging only.
+   * push table + HMC_SND_LIV_EMP_MASTER_VW) â€” the MOTC twin of
+   * /diagnostics/users-db/sql.
+   *
+   * âš  TEMPORARY (client request 2026-09-03): the MOTC_SMS_SQL_ENABLED and
+   * NODE_ENV=production gates are REMOVED so the console works everywhere
+   * with no env dependency â€” same treatment as the Oracle console above.
+   * Restore the two checks (see the users-db console for the pattern) before
+   * any real production hardening: result rows from MOTC_SMS_PushTable can
+   * contain live OTPs (MessageBody) and phone numbers.
    */
   @Post('motc-sms-db/sql')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Run a read-only SELECT against the MOTC SMS DB (dev/staging only)',
+    summary: 'Run a read-only SELECT against the MOTC SMS DB (no env gate â€” temporary)',
     operationId: 'diag_motcSmsDbSql',
   })
   async motcSmsDbSql(@Body() body: UsersDbSqlRequestDto) {
-    if (this.nodeEnv === 'production') {
-      throw new ForbiddenException('The motc-sms-db SQL console is disabled in production.');
-    }
-    if (!this.motcSmsCfg.sqlConsoleEnabled) {
-      throw new ForbiddenException(
-        'The motc-sms-db SQL console is disabled â€” set MOTC_SMS_SQL_ENABLED=true to enable it.',
-      );
-    }
     return this.runSqlConsole(this.motcSmsDb, body);
   }
 

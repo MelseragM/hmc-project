@@ -201,12 +201,20 @@ export interface MotcSmsConfig {
   trustServerCertificate: boolean;
   disabled: boolean;
   /**
-   * Enables POST /diagnostics/motc-sms-db/sql (ad-hoc SELECT console). Ignored
-   * in production â€” the endpoint is always 403 there regardless of this flag.
+   * POST /diagnostics/motc-sms-db/sql (ad-hoc SELECT console). TEMPORARILY
+   * ignored (client request 2026-09-03): the console is ungated like the
+   * Oracle one â€” restore the flag + production checks before hardening.
    */
   sqlConsoleEnabled: boolean;
   /** Push/outbox table name (interpolated as an identifier â€” validated). */
   table: string;
+  /**
+   * Live-employee master view (HMC_SND_LIV_EMP_MASTER_VW) used by the
+   * AUTH_DIRECTORY=usersdb identity adapter: /auth/initiate resolves the
+   * username against it (UserName column) and a user absent from the view is
+   * refused. Interpolated as an identifier (validated).
+   */
+  employeeMasterView: string;
   /**
    * <AppId> of the client's INSERT â€” written to ServiceID, ApplicationID and
    * (unless fromAddress overrides it) FromAddress.
@@ -567,6 +575,7 @@ export default (): RootConfig => ({
     disabled: toBool(process.env.MOTC_SMS_DB_DISABLED),
     sqlConsoleEnabled: toBool(process.env.MOTC_SMS_SQL_ENABLED),
     table: process.env.MOTC_SMS_TABLE ?? 'MOTC_SMS_PushTable',
+    employeeMasterView: process.env.MOTC_SMS_EMPLOYEE_MASTER_VIEW ?? 'HMC_SND_LIV_EMP_MASTER_VW',
     appId: process.env.MOTC_SMS_APP_ID ?? '',
     fromAddress: process.env.MOTC_SMS_FROM_ADDRESS ?? '',
     subjectId: process.env.MOTC_SMS_SUBJECT_ID ?? '',
