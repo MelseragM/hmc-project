@@ -31,6 +31,12 @@ import {
   WorklistRepository,
 } from '../../domain/approvals.repository';
 
+/**
+ * Route prefix the attachment URLs are built with — read from the environment
+ * so it follows `API_PREFIX`, with the same default `main.ts` uses.
+ */
+const API_PREFIX = (process.env.API_PREFIX ?? 'api/v1').replace(/^\/+|\/+$/g, '');
+
 /** APPROVE_REJECT_PR input params (Sanaad spec — ApproveReject request input). */
 const APPROVE_REJECT_PARAMS = [
   'p_user_name',
@@ -257,7 +263,10 @@ export class ApprovalsOracleRepository extends BaseOracleRepository implements A
       contentType: String(r.FILE_CONTENT_TYPE ?? 'application/octet-stream'),
       sizeBytes: r.SIZE_BYTES === null ? null : Number(r.SIZE_BYTES),
       uploadedAt: r.LAST_UPDATE_DATE ? new Date(r.LAST_UPDATE_DATE).toISOString() : null,
-      url: `/approvals/attachments/${r.ATTACHED_DOCUMENT_ID}`,
+      // Includes the API prefix. Without it the path answered 404 and every
+      // client had to know to prepend it — a URL a caller has to repair is
+      // not a URL.
+      url: `/${API_PREFIX}/approvals/attachments/${r.ATTACHED_DOCUMENT_ID}`,
     }));
   }
 
