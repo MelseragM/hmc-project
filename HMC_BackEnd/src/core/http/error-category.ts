@@ -104,13 +104,40 @@ export const CATEGORY_STATUS: Readonly<Record<ErrorCategory, number>> = Object.f
 
 /**
  * Markers of technical/internal detail that must never reach a client: Oracle /
- * PL/SQL codes, SQL keywords, schema object names, connection strings, file
+ * PL/SQL codes, SQL statements, schema object names, connection strings, file
  * paths and stack frames.
+ *
+ * SQL keywords are matched as STATEMENT SHAPES, not bare words: procs return
+ * legitimate business prose like "Please select the correct Contractual Year"
+ * or "does not fall between … to …", and matching `\bSELECT\b`/`\bFROM\b`
+ * alone suppressed exactly the validation messages the client needs (op 10
+ * answered the generic database-error text for a plain date-range rejection).
  */
 const SENSITIVE_PATTERN =
-  /(ORA-\d{3,5}|PLS-\d{3,5}|\bSELECT\b|\bFROM\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bBEGIN\b|XXHMC_[A-Z0-9_.]+|connectString|:\d+\/[A-Za-z0-9_]+|[A-Za-z]:\\|\/(?:home|Users|var|opt|app)\/|node_modules|\.(?:ts|js):\d+|\n\s*at\s)/i;
+  /(ORA-\d{3,5}|PLS-\d{3,5}|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+[A-Za-z0-9_$#."]+\s+SET\b|\bBEGIN\b[\s\S]{0,500}?\bEND\s*;|XXHMC_[A-Z0-9_.]+|connectString|:\d+\/[A-Za-z0-9_]+|[A-Za-z]:\\|\/(?:home|Users|var|opt|app)\/|node_modules|\.(?:ts|js):\d+|\n\s*at\s)/i;
+
+/**
+ * A leaked query, recognised by its SQL-cased form only: `select`/`from` are
+ * ordinary English words ("select a date from the calendar"), so lowercase
+ * prose must not trip the filter while an uppercase `SELECT … FROM` still does.
+ */
+const SQL_QUERY_PATTERN = /\bSELECT\b[\s\S]{0,500}?\bFROM\b/;
 
 /** True when `text` contains internal detail that must not be exposed to clients. */
 export function looksSensitive(text?: string | null): boolean {
-  return !!text && SENSITIVE_PATTERN.test(text);
+  return !!text && (SENSITIVE_PATTERN.test(text) || SQL_QUERY_PATTERN.test(text));
+}
+
+/**
+ * The human text of a `RAISE_APPLICATION_ERROR` (ORA-20xxx) message — the DB
+ * team authors these as user-facing validation text, so it is returned to the
+ * client when it carries no technical detail of its own. Strips the ORA-20xxx
+ * prefix and everything from the first follow-up ORA/PLS frame (ORA-06512 "at
+ * line …" etc.). Undefined when nothing safe remains.
+ */
+export function extractBusinessRaiseText(message?: string | null): string | undefined {
+  if (!message) return undefined;
+  const match = /ORA-20\d{3}:\s*([\s\S]*?)(?=\s*(?:ORA|PLS)-\d{3,5}|$)/.exec(message);
+  const text = match?.[1]?.trim();
+  return text && !looksSensitive(text) ? text : undefined;
 }

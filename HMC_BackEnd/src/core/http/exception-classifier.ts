@@ -3,7 +3,12 @@ import { OracleQueryError, OracleUnavailableException } from '../database/oracle
 import { MssqlQueryError, MssqlUnavailableException } from '../database/mssql.error';
 import { SchemaColumnNotFoundException } from '../database/schema-column-not-found.error';
 import { ORA_NO_DATA_FOUND } from '@shared/constants/error-codes';
-import { CATEGORY_MESSAGE, CATEGORY_STATUS, ErrorCategory } from './error-category';
+import {
+  CATEGORY_MESSAGE,
+  CATEGORY_STATUS,
+  ErrorCategory,
+  extractBusinessRaiseText,
+} from './error-category';
 
 /** Result of classifying any thrown value into a safe, client-facing shape. */
 export interface ClassifiedError {
@@ -92,14 +97,16 @@ function classifyOracle(ex: OracleQueryError): ClassifiedError {
   // 404, with nothing to say which field was at fault. It is a rejected input,
   // so report it as one.
   if (code === ORA_NO_DATA_FOUND) return of(ErrorCategory.UNRESOLVED_VALUE);
-  // unique/integrity constraint or a custom ORA-20xxx business raise → business rule conflict
-  if (
-    code === 1 ||
-    code === 2290 ||
-    code === 2291 ||
-    code === 2292 ||
-    (code! >= 20000 && code! <= 20999)
-  ) {
+  // A custom ORA-20xxx business raise carries user-facing validation text
+  // authored in the procedure (RAISE_APPLICATION_ERROR) — surface it when it is
+  // clean, mirroring toSubmitResult's handling of the same range in OUT params.
+  if (code! >= 20000 && code! <= 20999) {
+    return of(ErrorCategory.BUSINESS_RULE_ERROR, {
+      message: extractBusinessRaiseText(ex.message),
+    });
+  }
+  // unique/integrity constraint violations → business rule conflict
+  if (code === 1 || code === 2290 || code === 2291 || code === 2292) {
     return of(ErrorCategory.BUSINESS_RULE_ERROR);
   }
   return of(ErrorCategory.DATABASE_ERROR);
