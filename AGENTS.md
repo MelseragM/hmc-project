@@ -280,6 +280,19 @@ Facts worth not rediscovering:
   while the Android credential is still being issued. Storage is
   `tools/app-integrity-schema.sql`; a missing table warns once and means
   "cannot verify", never a crash.
+- **The gateway does a first pass** (`HMC_Gateway`, `core/integrity/`,
+  `GATEWAY_INTEGRITY_MODE`) — defence in depth, nothing was moved out of the
+  backend. It holds no database and no platform credentials by design, so it
+  checks only what needs neither: headers present, shaped like real values, and
+  the request hash matching the body received. Two things this required, both
+  of which had made the backend's verification unreachable:
+  - `FORWARD_REQUEST_HEADERS` in `proxy.service.ts` is an allow-list, and the
+    attestation headers were not on it — they were being dropped, so the
+    backend guard could never have seen one.
+  - The proxy forwarded `req.body`, which axios re-serializes. Play Integrity
+    binds a token to a hash of exactly what the client sent, so a re-encoded
+    body is a different string. `main.ts` now keeps the raw bytes via the
+    body-parser `verify` hook and the proxy forwards those.
 
 ## Outstanding — not a code issue
 
