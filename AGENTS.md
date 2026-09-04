@@ -139,11 +139,24 @@ mpin/otp params redacted from logs:
 - `HMC_Sanad_DeviceRegn_tbl` — device binding (`DeviceRegistryPort`) and MPIN
   (`MpinStorePort`); MPIN stored **as received** (client pre-hashes) and
   compared with SQL equality — legacy-compatible by explicit decision, do not
-  switch to scrypt without a migration plan.
-- `HMC_RHAP_OTP_tbl` — OTP rows (`OtpPort`): `TOP 1 ... ORDER BY SeqNo DESC` +
-  `DATEDIFF` freshness; `SeqNo` doubles as the mobile `requestid`. Resend
-  window/TTL/max-attempts come from `OTP_*` config (attempts + single-use are
-  tracked in-memory; the legacy table has no columns for them).
+  switch to scrypt without a migration plan. Reworked initiate flow
+  (2026-09-03): `/auth/initiate` reads the exact user+device row
+  (`DeviceRegistryPort.find`); registered WITH an MPIN = existing user (full
+  identity returned, NO OTP), otherwise a missing row is created with MPIN
+  NULL + `Status` `'Inactive'` and an OTP is sent. `MpinStorePort.set`
+  (API-4 `/auth/mpin/update`) sets `DateFirstRegistered = GETDATE()`, the
+  MPIN and `Status = 'Active'`.
+- `HMC_RHAP_OTP_tbl` — OTP rows (`OtpPort`, `OTP_STORE=legacy`, the default
+  since 2026-09-03): `TOP 1 ... ORDER BY SeqNo DESC` + `DATEDIFF` freshness;
+  `SeqNo` doubles as the mobile `requestid`. Resend window/TTL/max-attempts
+  come from `OTP_*` config (attempts + single-use are tracked in-memory; the
+  legacy table has no columns for them). Delivery is separate
+  (`OTP_DELIVERY`): `motc` (default) INSERTs the SMS into
+  `MOTC_SMS_PushTable` (`MotcPushOtpDeliveryAdapter`), `http` is the generic
+  SMS adapter. OTP generation is shared (`otp-generator.util.ts`):
+  `OTP_STATIC_VALUE` (testing only) pins every OTP to a fixed value — leave
+  empty in production — and `OTP_CHARSET` picks `numeric` (default) or
+  `alphanumeric` (unambiguous A-Z/2-9).
 - `HMC_Sanad_AppDownTime_tbl` / `HMC_Sanad_App_Update_tbl` — API-1
   `/healthcheck` downtime + update-type (`APP_NAME` matches
   `HMC_Sanad_AppMaster_Tbl.AppName`); falls back to the `APP_*` env config when
@@ -167,7 +180,13 @@ The `AUTH_DISABLED`/non-production dev bypass is unchanged.
 The corporate-directory lookup behind `LDAP_USER_PORT` (auth journey API-2/5) is
 switchable via `AUTH_DIRECTORY`: `ldap` (default) uses `LdapUserRepository`
 (LDAPS/`ldapts`), `entra` uses `EntraGraphUserRepository` (Microsoft Graph,
-app-only client-credentials over the existing `@nestjs/axios`). The factory is in
+app-only client-credentials over the existing `@nestjs/axios`), `usersdb` uses
+`MssqlUserRepository`, which since 2026-09-03 checks the username against the
+live-employee master view `HMC_SND_LIV_EMP_MASTER_VW` on the **MOTC_SMS** DB
+(`MOTC_SMS_EMPLOYEE_MASTER_VIEW`, `UserName` column; absent = refused, and
+`EMPLOYEE_NAME`/`EMPLOYEE_NUMBER`/`MOBILE_NUMBER` feed the identity + OTP SMS
+destination — previously it was only the `HMC_Sanad_DeviceRegn_tbl` device
+lookup on the Users DB). The factory is in
 `src/modules/auth/auth.module.ts`. Only `validate()` (passwordless lookup) is
 used by the journey — the mobile credential stays OTP + MPIN — so `authenticate()`
 is a 501 in the Entra adapter. Entra config lives in the `entra` namespace

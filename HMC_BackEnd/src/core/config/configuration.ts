@@ -256,9 +256,28 @@ export interface OtpConfig {
   maxAttempts: number;
   resendWindowSeconds: number;
   /**
-   * Where OTPs are stored, delivered and validated: `motc` (default) = the
-   * MOTC_SMS push table (MotcSmsOtpRepository); `legacy` = HMC_RHAP_OTP_tbl in
-   * the Users DB + the HTTP SMS adapter (instant rollback, no redeploy).
+   * TESTING AID (client request 2026-09-03): when non-empty, every generated
+   * OTP is this fixed value (e.g. 123456) instead of a random one, so the
+   * journey can be exercised without reading the SMS. Empty = random.
+   */
+  staticValue: string;
+  /**
+   * Alphabet of a generated OTP: `numeric` (default, digits only) or
+   * `alphanumeric` (uppercase letters + digits, ambiguous I/O/0/1 excluded
+   * for SMS readability).
+   */
+  charset: 'numeric' | 'alphanumeric';
+  /**
+   * How the OTP SMS is delivered when the store is `legacy`: `motc` (default)
+   * INSERTs into MOTC_SMS_PushTable (the gateway fires the SMS); `http` uses
+   * the generic HTTP adapter (SMS_API_* config).
+   */
+  delivery: 'motc' | 'http';
+  /**
+   * Where OTPs are stored and validated: `legacy` (default since 2026-09-03)
+   * = HMC_RHAP_OTP_tbl in the Users DB (MssqlOtpRepository), delivery via
+   * OTP_DELIVERY; `motc` = the MOTC_SMS push table doubles as store AND
+   * delivery (MotcSmsOtpRepository).
    */
   store: 'motc' | 'legacy';
 }
@@ -638,7 +657,10 @@ export default (): RootConfig => ({
     ttlSeconds: Number(process.env.OTP_TTL_SECONDS ?? 300),
     maxAttempts: Number(process.env.OTP_MAX_ATTEMPTS ?? 5),
     resendWindowSeconds: Number(process.env.OTP_RESEND_WINDOW_SECONDS ?? 60),
-    store: process.env.OTP_STORE === 'legacy' ? 'legacy' : 'motc',
+    staticValue: process.env.OTP_STATIC_VALUE ?? '',
+    charset: process.env.OTP_CHARSET === 'alphanumeric' ? 'alphanumeric' : 'numeric',
+    delivery: process.env.OTP_DELIVERY === 'http' ? 'http' : 'motc',
+    store: process.env.OTP_STORE === 'motc' ? 'motc' : 'legacy',
   },
   ldap: {
     enabled: toBool(process.env.LDAP_ENABLED),

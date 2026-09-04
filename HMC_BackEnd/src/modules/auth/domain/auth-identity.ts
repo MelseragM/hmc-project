@@ -36,6 +36,8 @@ export interface EmployeeIdentity {
   employeeNameAr?: string;
   department?: string;
   company?: string;
+  jobName?: string;
+  email?: string;
   phoneNumber?: string;
   /** Whether the account is a valid employee eligible to use Sanaad. */
   isEmployee: boolean;

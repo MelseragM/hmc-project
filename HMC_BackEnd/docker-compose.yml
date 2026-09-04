@@ -92,13 +92,17 @@ services:
       USERS_DB_TRUST_SERVER_CERT: "${USERS_DB_TRUST_SERVER_CERT:-false}"
       USERS_DB_DISABLED: "${USERS_DB_DISABLED:-false}"
       USERS_DB_SQL_ENABLED: "${USERS_DB_SQL_ENABLED:-false}"
-      # ── MOTC SMS gateway DB (OTP store + delivery via MOTC_SMS_PushTable) ──
-      # OTP_STORE=motc (default) inserts/validates OTPs against the push table;
-      # OTP_STORE=legacy restores the HMC_RHAP_OTP_tbl + HTTP SMS path.
+      # ── MOTC SMS gateway DB (OTP delivery via MOTC_SMS_PushTable) ──
+      # OTP_STORE=legacy (default since 2026-09-03) stores/validates OTPs in
+      # HMC_RHAP_OTP_tbl; OTP_DELIVERY picks the SMS path (motc = push table).
+      # OTP_STATIC_VALUE pins the OTP for testing — leave empty in production.
       # MOTC_SMS_DB_PASSWORD must come from the host env, never a committed .env.
       # Host may be `HOST\INSTANCE`; with a static port the instance part is
       # informational (single-quoted so YAML keeps the backslash literal).
-      OTP_STORE: "${OTP_STORE:-motc}"
+      OTP_STORE: "${OTP_STORE:-legacy}"
+      OTP_DELIVERY: "${OTP_DELIVERY:-motc}"
+      OTP_STATIC_VALUE: "${OTP_STATIC_VALUE:-}"
+      OTP_CHARSET: "${OTP_CHARSET:-numeric}"
       MOTC_SMS_DB_HOST: '${MOTC_SMS_DB_HOST:-HSHCL7VVSQ1\SQL1}'
       MOTC_SMS_DB_PORT: "${MOTC_SMS_DB_PORT:-9001}"
       MOTC_SMS_DB_NAME: "${MOTC_SMS_DB_NAME:-MOTC_SMS}"

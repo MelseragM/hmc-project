@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomInt, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
 import { MssqlService } from '@core/database/mssql.service';
 import { OtpConfig } from '@core/config/configuration';
 import {
@@ -10,6 +10,7 @@ import {
   VerifyOtpCommand,
 } from '../../domain/ports/otp.port';
 import { OTP_DELIVERY_PORT, OtpDeliveryPort } from '../../domain/ports/otp-delivery.port';
+import { generateOtp } from './otp-generator.util';
 
 /** Latest OTP row for a user+device (legacy OTPValidate/OTPResend projection). */
 interface OtpRow {
@@ -62,7 +63,7 @@ export class MssqlOtpRepository implements OtpPort {
       );
     }
 
-    const otp = this.generateOtp();
+    const otp = generateOtp(this.cfg);
     const inserted = await this.db.execute<{ SeqNo: number }>(
       `INSERT INTO HMC_RHAP_OTP_tbl (LoginID, DeviceIMEINumber, OTPValue, OTPSentDateTime)
        OUTPUT INSERTED.SeqNo AS SeqNo
@@ -119,12 +120,6 @@ export class MssqlOtpRepository implements OtpPort {
       { username, imei },
     );
     return rows[0];
-  }
-
-  /** Numeric OTP of OTP_LENGTH digits (leading zeros preserved). */
-  private generateOtp(): string {
-    const max = 10 ** this.cfg.length;
-    return String(randomInt(0, max)).padStart(this.cfg.length, '0');
   }
 
   private static safeEquals(a: string, b: string): boolean {
